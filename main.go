@@ -9,11 +9,13 @@ import (
 
 func help() {
   fmt.Println("Shrink, Rename, Backup photos!")
+  fmt.Println("photos COMMAND ARGS")
   fmt.Println("(WIP) INIT   :: Set up the root of your photo project.")
   fmt.Println("(WIP) CONFIG :: Project settings")
-  fmt.Println("(WIP) RENAME :: Name files to match their current folder.")
+  fmt.Println("(WIP) PROCESS:: Compress and rename photos.")
   fmt.Println("(WIP) BACKUP :: Copy files to another location.")
   fmt.Println("(WIP) DROP   :: Remove file from project, replacing with a pointer to original.")
+  fmt.Println("(WIP) GET    :: Retrieve dropped file.")
 }
 
 func main()  {

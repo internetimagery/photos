@@ -10,5 +10,5 @@ const SUFFIX = "_(\\d+)(\\[(.+?)]|)\\.(\\w+)"
 
 func GetRegex(prefix string) (*regexp.Regexp, error) {
   // Apply prefix and suffix. Return compiled regex
-  return regex.Compile(regex.QuoteMeta(prefix) + SUFFIX)
+  return regexp.Compile(regexp.QuoteMeta(prefix) + SUFFIX)
 }
