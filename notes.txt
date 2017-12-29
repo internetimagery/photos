@@ -1,0 +1,42 @@
+Thoughts on how to proceed.
+
+### INIT - create "repo"
+
+* root of project create configuration json file. Containing all variables to draw from for repo.
+* include uuid file, to identify repo
+* include link to rclone config file, default linking to rclones own default location. If one is not found in config location and one exists in rclone default location, ask to use that instead.
+* include blacklist file to stop transferring of the above files
+
+### Naming
+
+* format all files as the following: parentDir_index[tag tag].ext
+* tags optional
+* consider adding content hash to end of filename, so file corruption can be checked.
+* assume files that do not fit naming format have not been added to repo yet
+
+### Backup
+
+* include different backup options in config. ie [{name:"name", prefix:"remote:bucket", uuid:"someid"}]. Use for backup commands as another layer on top of rclone.
+* use backup config to loop through backup options when checking if files are there, and/or where to download them from.
+* consider including a cost, like git-annex does, to organize the order in which files are inspected.
+
+### Processing
+
+* only process files not "added" to repo.
+* compress before adding, unless told not to (ie --no-compress). Have some basic levels of compression (ie --quality for higher quality compression)
+* look into retaining creation / modification date (file system, not metadata) after compression.
+* name according to convention to "add" to repo
+
+### Dropping / Getting
+
+* Include ability to drop and get items. Leaving a placeholder in their place.
+* include in config file number of copies required to drop. Before dropping anything, check those copies can be found.
+* placeholder file to leave paths that lead to copies of the file. one path per line in order of preference
+* getting file should be able to simply download from paths present in the file.
+* placeholder files to have the extension "missing" to differentiate them. (ie myPicture.jpg.missing)
+
+### Filecheck
+
+* when downloading files or running check manually, check in with filename for content hash and ensure it matches.
+* if it doesn't match, change extension to corrupt. (ie myPicture.jpg.corrupt)
+* if corrupt file already exists and operation would override it, error out and ask user for resolution on existing corrupt file (ie check it and delete it)

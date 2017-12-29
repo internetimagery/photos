@@ -24,5 +24,17 @@ func TestGetRegex(t *testing.T) {
   if exp.MatchString("one two four.mp4") {
     t.Fail()
   }
+}
 
+func TestParseFiles(t *testing.T) {
+  prefix := "testing 123"
+  files := []string {
+    prefix + "stuff",
+    prefix + "_002[tag1 tag2].jpg",
+    "something else",
+    prefix + "_034" }
+  media, err := ParseFiles(prefix, files)
+  if err == nil {
+    t.FailNow()
+  }
 }
