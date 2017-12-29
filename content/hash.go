@@ -13,6 +13,11 @@ import (
   "strconv"
 )
 
+// TODO: remove size aspect. This can be checked separately when
+// comparing files.
+// TODO: remove file opening, instead either take in data, or even
+// better a file handler.
+
 
 // Return a hash representing the files content
 func Hash(hash_type, path string) string {
