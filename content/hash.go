@@ -1,4 +1,5 @@
 // Content hashing and comparison
+// package main
 package content
 
 import (
@@ -13,28 +14,18 @@ import (
   "strconv"
 )
 
-// TODO: remove size aspect. This can be checked separately when
-// comparing files.
-// TODO: remove file opening, instead either take in data, or even
-// better a file handler.
-
+// Return number (string) representing filesize
+func Size(file *os.File) string {
+  // Get file stats
+  stat, err := file.Stat()
+  if err != nil {
+    log.Panic(err)
+  }
+  return strconv.FormatInt(stat.Size(), 10)
+}
 
 // Return a hash representing the files content
-func Hash(hash_type, path string) string {
-  // Open file
-  f, err := os.Open(path)
-  if err != nil {
-    log.Panic(err)
-  }
-  defer f.Close()
-
-  // Get file stats
-  stat, err := f.Stat()
-  if err != nil {
-    log.Panic(err)
-  }
-  size := strconv.FormatInt(stat.Size(), 10)
-
+func Hash(hash_type string, file *os.File) string {
   // Choose hash
   var h hash.Hash
   switch hash_type {
@@ -47,11 +38,20 @@ func Hash(hash_type, path string) string {
   }
 
   // Generate hash
-  if _, err := io.Copy(h, f); err != nil {
+  if _, err := io.Copy(h, file); err != nil {
     log.Panic(err)
   }
-  fingerprint := hex.EncodeToString(h.Sum(nil))
-
-  // Return hash value
-  return size + "-" + fingerprint
+  return hex.EncodeToString(h.Sum(nil))
 }
+
+// func main()  {
+//   p := "D:/Documents/go-workspace/src/github.com/internetimagery/photos/test.jpg"
+//   // Open file
+//   f, err := os.Open(p)
+//   if err != nil {
+//     log.Panic(err)
+//   }
+//   defer f.Close()
+//
+//   fmt.Println(Hash("SHA1", f))
+// }
