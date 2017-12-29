@@ -3,6 +3,7 @@ Thoughts on how to proceed.
 ### INIT - create "repo"
 
 * root of project create configuration json file. Containing all variables to draw from for repo.
+* Every command needs to recursively ascend the file structure looking for this file. Complain if not found (INIT command being the exception)
 * include uuid file, to identify repo
 * include link to rclone config file, default linking to rclones own default location. If one is not found in config location and one exists in rclone default location, ask to use that instead.
 * include blacklist file to stop transferring of the above files
@@ -19,6 +20,7 @@ Thoughts on how to proceed.
 * include different backup options in config. ie [{name:"name", prefix:"remote:bucket", uuid:"someid"}]. Use for backup commands as another layer on top of rclone.
 * use backup config to loop through backup options when checking if files are there, and/or where to download them from.
 * consider including a cost, like git-annex does, to organize the order in which files are inspected.
+* use config file as root for backups, to keep file directory structure
 
 ### Processing
 
