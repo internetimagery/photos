@@ -21,13 +21,20 @@ func GetConfig() string {
 
 // Create new config
 func NewConfig(name string) *Config {
-  cwd := utility.CWD()
-  files := ioutil.ReadDir(cwd)
-  for i := 0; i < len(files); i++ {
-    if files[i].Name() == CONFIGNAME {
-      log.Fatal("Config file already exists.")
-    }
-  }
-  conf := &Config{UUID: "", Name: name}
+  conf := &Config{UUID: utility.GenerateID(), Name: name}
   return conf
 }
+
+// Read a config
+func LoadConfig(path string) *Config {
+  
+}
+
+
+// cwd := utility.CWD()
+// files := ioutil.ReadDir(cwd)
+// for i := 0; i < len(files); i++ {
+//   if files[i].Name() == CONFIGNAME {
+//     log.Fatal("Config file already exists.")
+//   }
+// }

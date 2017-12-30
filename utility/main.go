@@ -41,7 +41,6 @@ func GetMAC() string {
 func GenerateID() string {
   mac := GetMAC()
   time := time.Now().String()
-  fmt.Println(time)
   hash := sha1.New().Sum([]byte(time+mac))
   return base64.StdEncoding.EncodeToString(hash)
 }
