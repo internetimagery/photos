@@ -1,9 +1,7 @@
 // walk file path
-package main
+package utility
 
 import (
-  "fmt"
-  "os"
   "io/ioutil"
   "path/filepath"
 )
@@ -24,8 +22,4 @@ func SearchUp(search, root string) string {
     root = new_root
   }
   return ""
-}
-
-func main()  {
-  fmt.Println(SearchUp("Go", os.Args[0]))
 }
