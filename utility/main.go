@@ -9,7 +9,8 @@ import (
   "bytes"
   "time"
   "crypto/sha1"
-  "encoding/base64"
+  // "encoding/base64"
+  "github.com/satori/go.uuid"
   // "crypto/rand"
 )
 
@@ -39,8 +40,9 @@ func GetMAC() string {
 
 // RandomID from mac address and time
 func GenerateID() string {
-  mac := GetMAC()
-  time := time.Now().String()
-  hash := sha1.New().Sum([]byte(time+mac))
-  return base64.StdEncoding.EncodeToString(hash)
+  return uuid.NewV4()
+  // mac := GetMAC()
+  // time := time.Now().String()
+  // hash := sha1.New().Sum([]byte(time+mac))
+  // return base64.StdEncoding.EncodeToString(hash)
 }
