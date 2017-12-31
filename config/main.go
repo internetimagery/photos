@@ -5,6 +5,8 @@ import (
 	"github.com/internetimagery/photos/utility"
 	"io/ioutil"
 	"log"
+  "encoding/json"
+  // "fmt"
 )
 
 const CONFIGNAME = "photos_conf.json"
@@ -21,14 +23,28 @@ func GetConfig() string {
 
 // Create new config
 func NewConfig(name string) *Config {
-	conf := &Config{UUID: utility.GenerateID(), Name: name}
+	conf := &Config{
+    UUID: utility.GenerateID(),
+    Name: name}
 	return conf
 }
 
-// Read a config
-func LoadConfig(path string) *Config {
-
+// Save config file to disk
+func SaveConfig(conf *Config, path string)  {
+  data, err := json.MarshalIndent(conf, "", "  ")
+  if err != nil {
+    log.Panic(err)
+  }
+  err = ioutil.WriteFile(path, data, 644)
+  if err != nil {
+    log.Panic(err)
+  }
 }
+
+// Read a config
+// func LoadConfig(path string) *Config {
+//   return
+// }
 
 // cwd := utility.CWD()
 // files := ioutil.ReadDir(cwd)
