@@ -14,23 +14,25 @@ func help()  {
 }
 
 func Run(args []string)  {
-  if len(args) != 0 && (args[0] == "-h" || args[1] == "--help"){
+  numArgs := len(args)
+  cwd, err := os.Getwd()
+  if err != nil {
+    log.Panic(err)
+  }
+  if numArgs != 0 && (args[0] == "-h" || args[0] == "--help"){
     help()
   } else {
     // Check if config file already exists.
-    cwd, err := os.Getwd()
-    if err != nil {
-      log.Panic(err)
-    }
     if config.GetConfig(cwd) == "" {
       log.Println("Initializing new Repo.")
       conf := config.NewConfig()
       path := filepath.Join(cwd, config.CONFIGNAME)
-      fmt.Println(conf)
-      fmt.Println(path)
-
+      if numArgs == 1 {
+        conf.Name = args[0]
+      }
+      config.SaveConfig(conf, path)
     } else {
-      log.Panic("Already Initialized.")
+      log.Println("Already Initialized.")
     }
   }
 }
