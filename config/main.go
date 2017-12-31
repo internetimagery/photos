@@ -11,6 +11,7 @@ import (
 
 const CONFIGNAME = "photos_conf.json"
 
+// CONFIG!
 type Config struct {
 	UUID, Name string
 }
@@ -41,7 +42,7 @@ func SaveConfig(conf *Config, path string)  {
   }
 }
 
-// Read a config
+// Read a config from file
 func LoadConfig(path string) *Config {
   data, err := ioutil.ReadFile(path)
   if err != nil {
