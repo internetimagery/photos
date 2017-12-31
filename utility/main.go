@@ -10,6 +10,7 @@ import (
   // "time"
   // "crypto/sha1"
   "github.com/satori/go.uuid"
+  "github.com/schollz/closestmatch"
 )
 
 // Get current working directory
@@ -19,6 +20,12 @@ func CWD() string {
     log.Panic(err)
   }
   return cwd
+}
+
+// Get closest match and return it
+func ClosestMatch(word string, list []string) string {
+  cm := closestmatch.New(list, []int{2})
+  return cm.Closest(word)
 }
 
 // // Get mac address

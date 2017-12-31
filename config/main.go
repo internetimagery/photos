@@ -31,9 +31,8 @@ type Config struct {
 }
 
 // Find config in the current context
-func GetConfig() string {
-	cwd := utility.CWD()
-	return utility.SearchUp(CONFIGNAME, cwd)
+func GetConfig(root string) string {
+	return utility.SearchUp(CONFIGNAME, root)
 }
 
 // Create new config
