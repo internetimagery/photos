@@ -42,9 +42,18 @@ func SaveConfig(conf *Config, path string)  {
 }
 
 // Read a config
-// func LoadConfig(path string) *Config {
-//   return
-// }
+func LoadConfig(path string) *Config {
+  data, err := ioutil.ReadFile(path)
+  if err != nil {
+    log.Panic(err)
+  }
+  conf := &Config{}
+  err = json.Unmarshal(data, conf)
+  if err != nil {
+    log.Panic(err)
+  }
+  return conf
+}
 
 // cwd := utility.CWD()
 // files := ioutil.ReadDir(cwd)
