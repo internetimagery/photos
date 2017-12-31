@@ -11,12 +11,13 @@ import (
 
 const CONFIGNAME = "photos_conf.json"
 
-// REMOTE
+// REMOTE!
 // UUID: Unique identifier (taken from repo config)
 // Name: Friendly name (from repo config)
-// Location: Prefix that leads to repo
+// Locations: List of prefixes that leads to repo
 type Remote struct {
-  UUID, Name, Location string
+  UUID, Name string
+  Locations []string
 }
 
 // CONFIG!
@@ -24,7 +25,6 @@ type Remote struct {
 // Name: Friendly Name
 // Bin: (optional) path to rclone
 // Remotes: remote repos
-Name:
 type Config struct {
 	UUID, Name, Bin string
   Remotes map[string]*Remote
