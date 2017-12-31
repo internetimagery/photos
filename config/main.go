@@ -3,6 +3,7 @@ package config
 
 import (
 	"github.com/internetimagery/photos/utility"
+  "github.com/internetimagery/photos/remote"
 	"io/ioutil"
 	"log"
   "encoding/json"
@@ -11,9 +12,11 @@ import (
 
 const CONFIGNAME = "photos_conf.json"
 
+
 // CONFIG!
 type Config struct {
 	UUID, Name string
+  Remotes []*remote.Remote
 }
 
 // Find config in the current context
