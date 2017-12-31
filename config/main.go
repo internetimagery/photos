@@ -3,7 +3,6 @@ package config
 
 import (
 	"github.com/internetimagery/photos/utility"
-  "github.com/internetimagery/photos/remote"
 	"io/ioutil"
 	"log"
   "encoding/json"
@@ -12,11 +11,15 @@ import (
 
 const CONFIGNAME = "photos_conf.json"
 
+// REMOTE
+type Remote struct {
+  UUID, Location string
+}
 
 // CONFIG!
 type Config struct {
 	UUID, Name string
-  Remotes []*remote.Remote
+  Remotes map[string]*Remote
 }
 
 // Find config in the current context
@@ -26,10 +29,8 @@ func GetConfig() string {
 }
 
 // Create new config
-func NewConfig(name string) *Config {
-	conf := &Config{
-    UUID: utility.GenerateID(),
-    Name: name}
+func NewConfig() *Config {
+	conf := &Config{UUID: utility.GenerateID()}
 	return conf
 }
 
