@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/internetimagery/photos/rename"
+	"github.com/internetimagery/photos/cmd/initiate"
+	"github.com/internetimagery/photos/cmd/rename"
 	"os"
 	"strings"
 )
@@ -24,7 +25,7 @@ func main() {
 	} else {
 		switch strings.ToLower(os.Args[1]) {
 		case "init":
-			rename.Run(os.Args[2:])
+			initiate.Run(os.Args[2:])
 		case "rename":
 			rename.Run(os.Args[2:])
 		default:
