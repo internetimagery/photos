@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/internetimagery/photos/cmd/initiate"
-	"github.com/internetimagery/photos/cmd/rename"
+	"github.com/internetimagery/photos/cmd/configuration"
 	"github.com/internetimagery/photos/utility"
 	"os"
 	"strings"
@@ -13,7 +13,7 @@ type run func([]string)
 
 var ARGS = map[string]run{
 	"init": initiate.Run,
-	"config": rename.Run,
+	"config": configuration.Run,
 }
 
 func help() {
