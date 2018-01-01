@@ -1,5 +1,5 @@
 // configuration stuff
-package configuration
+package cmdconfig
 
 import (
   "fmt"

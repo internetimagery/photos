@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/internetimagery/photos/cmd/initiate"
-	"github.com/internetimagery/photos/cmd/configuration"
+	"github.com/internetimagery/photos/cmd/init"
+	"github.com/internetimagery/photos/cmd/config"
 	"github.com/internetimagery/photos/utility"
 	"os"
 	"strings"
@@ -12,8 +12,8 @@ import (
 type run func([]string)
 
 var ARGS = map[string]run{
-	"init": initiate.Run,
-	"config": configuration.Run,
+	"init": cmdinit.Run,
+	"config": cmdconfig.Run,
 }
 
 func help() {
@@ -21,7 +21,7 @@ func help() {
 	fmt.Println(">>>photos COMMAND ARGS")
 	fmt.Println("(WIP) INIT   :: Set up the root of your photo project.")
 	fmt.Println("(WIP) CONFIG :: Project settings")
-	fmt.Println("(WIP) PROCESS:: Compress and rename photos.")
+	fmt.Println("(WIP) ADD    :: Compress and rename photos.")
 	fmt.Println("(WIP) BACKUP :: Copy files to another location.")
 	fmt.Println("(WIP) DROP   :: Remove file from project, replacing with a pointer to original.")
 	fmt.Println("(WIP) GET    :: Retrieve dropped file.")

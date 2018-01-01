@@ -1,4 +1,4 @@
-package initiate
+package cmdinit
 
 import (
   "log"
