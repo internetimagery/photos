@@ -9,6 +9,13 @@ import (
 	"strings"
 )
 
+type run func([]string)
+
+var ARGS = map[string]run{
+	"init": initiate.Run,
+	"config": rename.Run,
+}
+
 func help() {
 	fmt.Println("Shrink, Rename, Backup photos!")
 	fmt.Println(">>>photos COMMAND ARGS")
@@ -25,13 +32,16 @@ func main() {
 		help()
 	} else {
 		arg := strings.ToLower(os.Args[1])
-		switch arg {
-		case "init":
-			initiate.Run(os.Args[2:])
-		case "rename":
-			rename.Run(os.Args[2:])
-		default:
-			guess := utility.ClosestMatch(arg, []string{"init", "rename"})
+		if val, ok := ARGS[arg]; ok {
+			val(os.Args[2:])
+		} else {
+			options := make([]string, len(ARGS))
+			i := 0
+			for k := range ARGS {
+				options[i] = k
+				i++
+			}
+			guess := utility.ClosestMatch(arg, options)
 			fmt.Printf("Argument \"%s\" does not exist.\n", arg)
 			fmt.Println("Did you mean:")
 			fmt.Printf("\t%s", guess)
