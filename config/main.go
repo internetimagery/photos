@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
   "encoding/json"
+  "path/filepath"
   // "fmt"
 )
 
@@ -26,13 +27,22 @@ type Remote struct {
 // Bin: (optional) path to rclone
 // Remotes: remote repos
 type Config struct {
-	UUID, Name, Bin string
+	UUID, Name, Bin, root string
   Remotes map[string]*Remote
+}
+func (self Config) GetRoot() string {
+  return self.root
 }
 
 // Find config in the current context
-func GetConfig(root string) string {
-	return utility.SearchUp(CONFIGNAME, root)
+func GetConfig(root string) *Config {
+  var conf Config
+  pconf := &conf
+  path := utility.SearchUp(CONFIGNAME, root)
+  if path != "" {
+    pconf = LoadConfig(path)
+  }
+  return pconf
 }
 
 // Create new config
@@ -59,7 +69,7 @@ func LoadConfig(path string) *Config {
   if err != nil {
     log.Panic(err)
   }
-  conf := &Config{}
+  conf := &Config{root:filepath.Dir(path)}
   err = json.Unmarshal(data, conf)
   if err != nil {
     log.Panic(err)

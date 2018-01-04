@@ -13,19 +13,15 @@ func help()  {
   fmt.Println(">>>photos INIT <name>")
 }
 
-func Run(args []string)  {
+func Run(args []string, conf *config.Config)  {
   numArgs := len(args)
-  cwd, err := os.Getwd()
-  if err != nil {
-    log.Panic(err)
-  }
   if numArgs != 0 && (args[0] == "-h" || args[0] == "--help"){
     help()
   } else {
     // Check if config file already exists.
-    if config.GetConfig(cwd) == "" {
+    if conf.GetRoot() == "" {
       log.Println("Initializing new Repo.")
-      conf := config.NewConfig()
+      cwd, _ := os.Getwd()
       path := filepath.Join(cwd, config.CONFIGNAME)
       if numArgs == 1 {
         conf.Name = args[0]

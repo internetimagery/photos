@@ -5,11 +5,13 @@ import (
 	"github.com/internetimagery/photos/cmd/init"
 	"github.com/internetimagery/photos/cmd/config"
 	"github.com/internetimagery/photos/utility"
+	"github.com/internetimagery/photos/config"
 	"os"
+	"log"
 	"strings"
 )
 
-type run func([]string)
+type run func([]string, *config.Config)
 
 var ARGS = map[string]run{
 	"init": cmdinit.Run,
@@ -32,8 +34,20 @@ func main() {
 		help()
 	} else {
 		arg := strings.ToLower(os.Args[1])
+		cwd, err := os.Getwd()
+		if err != nil {
+			log.Panic(err)
+		}
+		conf := config.GetConfig(cwd)
+		if arg == "init" {
+			cmdinit.Run(conf, conf)
+		}
 		if val, ok := ARGS[arg]; ok {
-			val(os.Args[2:])
+			if conf.GetRoot() != "" || arg == "init" {
+				val(os.Args[2:], conf)
+				return
+			}
+			log.Panic("Not inside repository")
 		} else {
 			options := make([]string, len(ARGS))
 			i := 0
