@@ -4,8 +4,8 @@ package utility
 
 import (
   "gopkg.in/h2non/filetype.v1"
-  "io/ioutil"
   "os"
+  "log"
 )
 
 const UNKNOWN = 0
@@ -15,12 +15,12 @@ const VIDEO = 2
 func getHeader(path string) []byte {
   file, err := os.Open(path)
   if err != nil {
-    Panic(err)
+    log.Panic(err)
   }
-  defer os.Close
+  defer file.Close()
   header := make([]byte, 261)
   file.Read(header)
-  return file
+  return header
 }
 
 // Get file type

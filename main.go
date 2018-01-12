@@ -2,39 +2,38 @@ package main
 
 import (
 	"fmt"
-	"github.com/internetimagery/photos/cmd/init"
-	"github.com/internetimagery/photos/cmd/config"
-	"github.com/internetimagery/photos/utility"
+	// "github.com/internetimagery/photos/cmd/init"
+	// "github.com/internetimagery/photos/cmd/config"
+	// "github.com/internetimagery/photos/utility"
 	"github.com/internetimagery/photos/config"
+	"github.com/internetimagery/photos/commands"
 	"os"
-	"log"
-	"strings"
+	// "log"
+	// "strings"
 )
 
-type Module interface {
-	// Execute module
-	Run([]string, *config.Config) int
-	// Return short module description
+type Command interface {
 	Desc() string
+	Run([]string, *config.Config) int
 }
 
-var mod = map[string]Module{
-	"init": cmdinit
-}
-
-func help(mod map[string]Module)  {
-
+func help(mod map[string]Command)  {
+	fmt.Println("Usage:\nphotos COMMAND")
+	for name, com := range mod {
+		fmt.Println(name, ":", com.Desc())
+	}
 }
 
 func main()  {
-	if len(os.Args) == 0 {
-		help(mod)
-	}
-	fnc, ok := mod[os.Args[1]]
-		if ok != nil {
-			continue
+	modules := map[string]Command{"init": commands.CMD_Init{}}
+	if len(os.Args) < 2 {
+		help(modules)
+	} else {
+		fnc, ok := modules[os.Args[1]]
+		if !ok {
+			help(modules)
 		} else {
-			os.Exit(fnc(os.Args[1:]))
+			os.Exit(fnc.Run(os.Args[1:], new(config.Config)))
 		}
 	}
 }
