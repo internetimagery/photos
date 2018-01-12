@@ -4,64 +4,60 @@ import (
 	"fmt"
 	// "github.com/internetimagery/photos/cmd/init"
 	// "github.com/internetimagery/photos/cmd/config"
-	// "github.com/internetimagery/photos/utility"
+	"github.com/internetimagery/photos/utility"
 	"github.com/internetimagery/photos/config"
 	"github.com/internetimagery/photos/commands"
 	"os"
 	// "log"
-	// "strings"
+	"strings"
 )
 
+// Simple command
 type Command interface {
 	Desc() string
 	Run([]string, *config.Config) int
 }
 
+// Brief help message
 func help(mod map[string]Command)  {
-	fmt.Println("Usage:\nphotos COMMAND")
+	fmt.Println("Usage:\n")
+	max := 0
+	for name, _ := range mod {
+		max = utility.MaxInt(max, len(name))
+	}
 	for name, com := range mod {
-		fmt.Println(name, ":", com.Desc())
+		fmt.Println(strings.Repeat(" ", max-len(name)) + name, ":", com.Desc())
 	}
 }
 
+// Lets go!
 func main()  {
+	// No arguments? Show help message
 	modules := map[string]Command{
-		"  INIT": commands.CMD_Init{},
-		"CONFIG": commands.CMD_Config{},
-		"   ADD": commands.CMD_Add{},
-		"  DROP": commands.CMD_Drop{},
-		"   GET": commands.CMD_Get{},
-		"BACKUP": commands.CMD_Backup{},
-		}
+		"init": commands.CMD_Init{},
+		"config": commands.CMD_Config{},
+		"add": commands.CMD_Add{},
+		"drop": commands.CMD_Drop{},
+		"get": commands.CMD_Get{},
+		"backup": commands.CMD_Backup{},
+	}
 	if len(os.Args) < 2 {
 		help(modules)
 	} else {
-		fnc, ok := modules[os.Args[1]]
+		fnc, ok := modules[strings.ToLower(os.Args[1])]
 		if !ok {
 			help(modules)
 		} else {
-			os.Exit(fnc.Run(os.Args[1:], new(config.Config)))
+			// 		cwd, err := os.Getwd()
+			// 		if err != nil {
+			// 			log.Panic(err)
+			// 		}
+
+			os.Exit(fnc.Run(os.Args[2:], new(config.Config)))
 		}
 	}
 }
-//
-// type run func([]string, *config.Config)
-//
-// var ARGS = map[string]run{
-// 	"init": cmdinit.Run,
-// 	"config": cmdconfig.Run,
-// }
-//
-// func help() {
-// 	fmt.Println("Shrink, Rename, Backup photos!")
-// 	fmt.Println(">>>photos COMMAND ARGS")
-// 	fmt.Println("(WIP) INIT   :: Set up the root of your photo project.")
-// 	fmt.Println("(WIP) CONFIG :: Project settings")
-// 	fmt.Println("(WIP) ADD    :: Compress and rename photos.")
-// 	fmt.Println("(WIP) BACKUP :: Copy files to another location.")
-// 	fmt.Println("(WIP) DROP   :: Remove file from project, replacing with a pointer to original.")
-// 	fmt.Println("(WIP) GET    :: Retrieve dropped file.")
-// }
+
 //
 // func main() {
 // 	if len(os.Args) == 1 || os.Args[1] == "-h" || os.Args[1] == "--help" {

@@ -13,6 +13,13 @@ import (
   "github.com/schollz/closestmatch"
 )
 
+func MaxInt(a, b int) int {
+  if a > b {
+    return a
+  }
+  return b
+}
+
 // Get current working directory
 func CWD() string {
   cwd, err := os.Getwd()
