@@ -25,7 +25,14 @@ func help(mod map[string]Command)  {
 }
 
 func main()  {
-	modules := map[string]Command{"init": commands.CMD_Init{}}
+	modules := map[string]Command{
+		"  INIT": commands.CMD_Init{},
+		"CONFIG": commands.CMD_Config{},
+		"   ADD": commands.CMD_Add{},
+		"  DROP": commands.CMD_Drop{},
+		"   GET": commands.CMD_Get{},
+		"BACKUP": commands.CMD_Backup{},
+		}
 	if len(os.Args) < 2 {
 		help(modules)
 	} else {
