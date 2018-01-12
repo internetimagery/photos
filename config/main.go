@@ -24,10 +24,11 @@ type Remote struct {
 // CONFIG!
 // UUID: Unique identifier
 // Name: Friendly Name
+// Rclone: rclone location (command)
 // Bin: (optional) path to rclone
 // Remotes: remote repos
 type Config struct {
-	UUID, Name, Bin, root string
+	UUID, Name, Rclone, root string
   Remotes map[string]*Remote
 }
 func (self Config) GetRoot() string {
