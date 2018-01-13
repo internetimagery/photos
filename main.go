@@ -48,10 +48,10 @@ func main()  {
 		if !ok {
 			help(modules)
 		} else {
-			// 		cwd, err := os.Getwd()
-			// 		if err != nil {
-			// 			log.Panic(err)
-			// 		}
+			cwd, err := os.Getwd()
+			if err != nil {
+				log.Panic(err)
+			}
 
 			os.Exit(fnc.Run(os.Args[2:], new(config.Config)))
 		}
