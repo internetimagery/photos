@@ -13,6 +13,5 @@ type State struct {
 
 func (_ State) New(cwd string) *State {
   res := new(State)
-  res.Conf = new(conf.Config)
   res.Cwd = cwd
 }

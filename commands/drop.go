@@ -3,7 +3,7 @@ package commands
 
 import (
   "log"
-  "github.com/internetimagery/photos/config"
+  "github.com/internetimagery/photos/state"
 )
 
 type CMD_Drop struct{}
@@ -12,9 +12,9 @@ func (self CMD_Drop) Desc() string {
   return "Drop content, replacing with placeholder."
 }
 
-func (self CMD_Drop) Run(args []string, conf *config.Config) int {
+func (self CMD_Drop) Run(args []string, state *state.State) int {
   log.Println(args)
   log.Println("DROP")
-  log.Println(conf)
+  log.Println(state)
   return 0
 }

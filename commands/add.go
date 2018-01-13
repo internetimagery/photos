@@ -3,7 +3,7 @@ package commands
 
 import (
   "log"
-  "github.com/internetimagery/photos/config"
+  "github.com/internetimagery/photos/state"
 )
 
 type CMD_Add struct{}
@@ -12,9 +12,9 @@ func (self CMD_Add) Desc() string {
   return "Add media to repository."
 }
 
-func (self CMD_Add) Run(args []string, conf *config.Config) int {
+func (self CMD_Add) Run(args []string, state *state.State) int {
   log.Println(args)
   log.Println("ADD")
-  log.Println(conf)
+  log.Println(state)
   return 0
 }

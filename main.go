@@ -5,7 +5,7 @@ import (
 	// "github.com/internetimagery/photos/cmd/init"
 	// "github.com/internetimagery/photos/cmd/config"
 	"github.com/internetimagery/photos/utility"
-	"github.com/internetimagery/photos/config"
+	"github.com/internetimagery/photos/state"
 	"github.com/internetimagery/photos/commands"
 	"os"
 	// "log"
@@ -15,7 +15,7 @@ import (
 // Simple command
 type Command interface {
 	Desc() string
-	Run([]string, *config.Config) int
+	Run([]string, *state.State) int
 }
 
 // Brief help message
@@ -52,8 +52,8 @@ func main()  {
 			if err != nil {
 				log.Panic(err)
 			}
-
-			os.Exit(fnc.Run(os.Args[2:], new(config.Config)))
+			state := state.State.New(cwd)
+			os.Exit(fnc.Run(os.Args[2:], state))
 		}
 	}
 }
