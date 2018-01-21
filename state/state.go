@@ -17,6 +17,7 @@ type State struct {
 	Conf                 *config.Config
 }
 
+// Create new state
 func (_ State) New() *State {
 	// Get current directory
 	cwd, err := os.Getwd()
@@ -26,10 +27,12 @@ func (_ State) New() *State {
 	// Look for config file
 	conf := utility.SearchUp(CONFIG, cwd)
 	root := filepath.Dir(conf)
+	data := new(config.Config)
 
 	// TODO: Collect config path and file etc
 	state := new(State)
 	state.Cwd = cwd
+	state.Conf = data
 	state.Conf_Path = conf
 	state.Root = root
 	return state
