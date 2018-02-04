@@ -133,4 +133,9 @@ func TestUpdate(t *testing.T) {
 	if config.Name != config2.Name {
 		t.Fail()
 	}
+	config.ID = "something else"
+	err = config.Save(tmp)
+	if err == nil {
+		t.Fail()
+	}
 }
