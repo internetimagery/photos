@@ -9,6 +9,7 @@ import (
 	"github.com/rs/xid"
 )
 
+// Config data
 type Config struct {
 	ID       string            `json:"id"`       // Unique ID
 	Name     string            `json:"name"`     // Optional name
