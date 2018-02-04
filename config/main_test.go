@@ -8,6 +8,7 @@ import (
 	"testing"
 )
 
+// Tempfile helper
 type Temp struct {
 	Name string
 }
@@ -79,6 +80,14 @@ func TestLoad(t *testing.T) {
 		t.Fail()
 	}
 	if config2.Root != tmp {
+		t.Fail()
+	}
+	if config2.ID == "" {
+		t.Fail()
+	}
+
+	_, err = LoadConfig(tmp + "nothere")
+	if err == nil {
 		t.Fail()
 	}
 }
