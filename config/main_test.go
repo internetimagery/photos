@@ -78,6 +78,9 @@ func TestLoad(t *testing.T) {
 	if config.ID != config2.ID {
 		t.Fail()
 	}
+	if config2.Root != tmp {
+		t.Fail()
+	}
 }
 
 func TestUpdate(t *testing.T) {
