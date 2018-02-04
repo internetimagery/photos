@@ -42,10 +42,16 @@ func LoadConfig(path string) (*Config, error) {
 
 // Store config data to file
 func (self Config) Save(path string) error {
+	// First load content and compare ID's
+	old_conf, err := LoadConfig(path)
+	if err == nil && old_conf.ID != self.ID {
+		return errors.New("Cannot override config. ID's do not match.")
+	}
+
 	data, err := json.MarshalIndent(self, "", "  ")
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(path, data, 644)
+	err = ioutil.WriteFile(path, data, 664)
 	return err
 }
