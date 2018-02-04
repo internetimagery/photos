@@ -3,6 +3,7 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 
 	uuid "github.com/satori/go.uuid"
@@ -28,12 +29,15 @@ func NewConfig() *Config {
 }
 
 func LoadConfig(path string) (*Config, error) {
-	conf := new(Config)
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		return conf, err
+		return nil, err
 	}
+	conf := new(Config)
 	err = json.Unmarshal(data, conf)
+	if conf.ID == "" {
+		return nil, errors.New("Missing ID")
+	}
 	conf.Root = path
 	return conf, err
 }

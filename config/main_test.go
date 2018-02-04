@@ -90,6 +90,21 @@ func TestLoad(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
+
+	tmp2 := dir.File("bad.json")
+	ioutil.WriteFile(tmp2, []byte("{ this is bad json"), 644)
+	_, err = LoadConfig(tmp2)
+	if err == nil {
+		t.Fail()
+	}
+
+	tmp3 := dir.File("incomplete.json")
+	ioutil.WriteFile(tmp3, []byte("{\"Name\" : \"This is incomplete.\"}"), 644)
+	_, err = LoadConfig(tmp3)
+	if err == nil {
+		t.Fail()
+	}
+
 }
 
 func TestUpdate(t *testing.T) {
