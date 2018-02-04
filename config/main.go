@@ -6,28 +6,24 @@ import (
 	"errors"
 	"io/ioutil"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/rs/xid"
 )
 
-// "fmt"
-
-// RandomID from mac address and time
-func GenerateID() string {
-	return uuid.NewV4().String()
-}
-
 type Config struct {
-	ID, Name, Root string
+	ID   string `json:"id"`   // Unique ID
+	Name string `json:"name"` // Optional name
+	Root string `json:"-"`    // Location of the config file (not stored in config)
 }
 
 // Create a new config file
 func NewConfig() *Config {
 	// Perform initial setup here
 	conf := new(Config)
-	conf.ID = GenerateID()
+	conf.ID = xid.New().String() // Generate random ID
 	return conf
 }
 
+// Load config from file
 func LoadConfig(path string) (*Config, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -35,13 +31,14 @@ func LoadConfig(path string) (*Config, error) {
 	}
 	conf := new(Config)
 	err = json.Unmarshal(data, conf)
-	if conf.ID == "" {
+	if conf.ID == "" { // ID is a required field. Error if not found.
 		return nil, errors.New("Missing ID")
 	}
 	conf.Root = path
 	return conf, err
 }
 
+// Store config data to file
 func (self Config) Save(path string) error {
 	data, err := json.MarshalIndent(self, "", "  ")
 	if err != nil {

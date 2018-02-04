@@ -99,7 +99,7 @@ func TestLoad(t *testing.T) {
 	}
 
 	tmp3 := dir.File("incomplete.json")
-	ioutil.WriteFile(tmp3, []byte("{\"Name\" : \"This is incomplete.\"}"), 644)
+	ioutil.WriteFile(tmp3, []byte("{\"name\" : \"This is incomplete.\"}"), 644)
 	_, err = LoadConfig(tmp3)
 	if err == nil {
 		t.Fail()
