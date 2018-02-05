@@ -33,8 +33,9 @@ func TestFormat(t *testing.T) {
 	}
 	media[0].Index = 13
 	media[0].Tags = append(media[0].Tags, "some", "tag")
+	media[0].Ext = ".jpg"
 	name = media[0].Format("dir3_name")
-	if name != "dir3_name_013[some tag].mov" {
+	if name != "dir3_name_013[some tag].jpg" {
 		t.Fail()
 	}
 }
