@@ -50,10 +50,8 @@ func TestLoad(t *testing.T) {
 
 	config := NewConfig()
 	tmp := filepath.Join(dir, "config.json")
-	err := config.Save(tmp)
-	if err != nil {
-		t.Error(err)
-	}
+	config.Save(tmp)
+
 	config2, err := LoadConfig(tmp)
 	if err != nil {
 		t.Error(err)
@@ -95,13 +93,11 @@ func TestUpdate(t *testing.T) {
 
 	config := NewConfig()
 	tmp := filepath.Join(dir, "config.json")
-	err := config.Save(tmp)
-	if err != nil {
-		t.Error(err)
-	}
+	config.Save(tmp)
+
 	name := "TEST123"
 	config.Name = name
-	err = config.Save(tmp)
+	err := config.Save(tmp)
 	if err != nil {
 		t.Error(err)
 	}
