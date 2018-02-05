@@ -16,9 +16,10 @@ func TestMatch(t *testing.T) {
 		"dir_name[tags].png",
 		"dir_name_004{why not}.png",
 		"dir_name_005[why yes.png",
+		"",
 	})
 
-	if !good[0].Formatted || good[0].Index != 1 {
+	if !good[0].Formatted || good[0].Index != 1 || good[0].Ext != ".mov" {
 		t.Fail()
 	}
 	if !good[1].Formatted || good[1].Index != 1 || good[1].Tags[0] != "stuff" {
