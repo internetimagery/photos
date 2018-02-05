@@ -14,15 +14,15 @@ type Media struct {
 	Formatted bool
 	Index     int
 	Tags      []string
+	Ext       string
 }
 
 func (self Media) Format(dir string) string {
-	ext := filepath.Ext(self.Name)
 	name := fmt.Sprintf("%s_%03d", dir, self.Index)
 	if len(self.Tags) > 0 {
 		name = fmt.Sprintf("%s[%s]", name, strings.Join(self.Tags, " "))
 	}
-	return name + ext
+	return name + self.Ext
 }
 
 func getRegex(dir string) (*regexp.Regexp, error) {
@@ -35,6 +35,7 @@ func NewMedia(regex *regexp.Regexp, name string) (*Media, error) {
 	parts := regex.FindStringSubmatch(name)
 	media := new(Media)
 	media.Name = name
+	media.Ext = filepath.Ext(name)
 	if len(parts) > 0 {
 		media.Formatted = true
 		index, err := strconv.Atoi(parts[1])
