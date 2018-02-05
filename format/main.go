@@ -2,6 +2,8 @@
 package format
 
 import (
+	"fmt"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -12,6 +14,15 @@ type Media struct {
 	Formatted bool
 	Index     int
 	Tags      []string
+}
+
+func (self Media) Format(dir string) string {
+	ext := filepath.Ext(self.Name)
+	name := fmt.Sprintf("%s_%03d", dir, self.Index)
+	if len(self.Tags) > 0 {
+		name = fmt.Sprintf("%s[%s]", name, strings.Join(self.Tags, " "))
+	}
+	return name + ext
 }
 
 func getRegex(dir string) (*regexp.Regexp, error) {
@@ -31,7 +42,11 @@ func NewMedia(regex *regexp.Regexp, name string) (*Media, error) {
 			return nil, err
 		}
 		media.Index = index
-		media.Tags = strings.Split(parts[2], " ")
+		for _, tag := range strings.Split(parts[2], " ") {
+			if tag != "" { // Skip empty tags
+				media.Tags = append(media.Tags, tag)
+			}
+		}
 	}
 	return media, nil
 }

@@ -1,7 +1,9 @@
 // Testing formatting
 package format
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestMatch(t *testing.T) {
 	good1, _ := Match("dir_name", []string{"dir_name_001.mov"})
@@ -19,6 +21,20 @@ func TestMatch(t *testing.T) {
 		t.Fail()
 	}
 	if bad1[0].Formatted || bad2[0].Formatted || bad3[0].Formatted || bad4[0].Formatted || bad5[0].Formatted {
+		t.Fail()
+	}
+}
+
+func TestFormat(t *testing.T) {
+	media, _ := Match("dir_name", []string{"dir_name_003.mov"})
+	name := media[0].Format("dir2_name")
+	if name != "dir2_name_003.mov" {
+		t.Fail()
+	}
+	media[0].Index = 13
+	media[0].Tags = append(media[0].Tags, "some", "tag")
+	name = media[0].Format("dir3_name")
+	if name != "dir3_name_013[some tag].mov" {
 		t.Fail()
 	}
 }
