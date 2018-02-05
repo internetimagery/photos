@@ -4,29 +4,29 @@ package format
 import "testing"
 
 func TestMatch(t *testing.T) {
-	good1 := Match("dir_name", "dir_name_001.mov")
-	good2 := Match("dir_name", "dir_name_001[stuff more stuff].jpg")
-	bad1 := Match("dir_name", "whatever.png")
-	bad2 := Match("dir_name", "whatever_002.png")
-	bad3 := Match("dir_name", "dir_name[tags].png")
-	bad4 := Match("dir_name", "dir_name_004{why not}.png")
+	good1, _ := Match("dir_name", []string{"dir_name_001.mov"})
+	good2, _ := Match("dir_name", []string{"dir_name_001[stuff more stuff].jpg"})
+	bad1, _ := Match("dir_name", []string{"whatever.png"})
+	bad2, _ := Match("dir_name", []string{"whatever_002.png"})
+	bad3, _ := Match("dir_name", []string{"dir_name[tags].png"})
+	bad4, _ := Match("dir_name", []string{"dir_name_004{why not}.png"})
 
-	if !good1.Formatted {
+	if !good1[0].Formatted || good1[0].Index != 1 {
 		t.Fail()
 	}
-	if !good2.Formatted {
+	if !good2[0].Formatted || good2[0].Index != 1 || good2[0].Tags[0] != "stuff" {
 		t.Fail()
 	}
-	if bad1.Formatted {
+	if bad1[0].Formatted {
 		t.Fail()
 	}
-	if bad2.Formatted {
+	if bad2[0].Formatted {
 		t.Fail()
 	}
-	if bad3.Formatted {
+	if bad3[0].Formatted {
 		t.Fail()
 	}
-	if bad4.Formatted {
+	if bad4[0].Formatted {
 		t.Fail()
 	}
 }
