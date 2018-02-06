@@ -2,6 +2,7 @@
 package format
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"regexp"
@@ -65,6 +66,10 @@ func NewMedia(regex *regexp.Regexp, name string) (*Media, error) {
 }
 
 func Match(dir string, names []string) ([]*Media, error) {
+	dir = strings.TrimSpace(dir)
+	if dir == "" {
+		return nil, errors.New("No directory specified.")
+	}
 	media := []*Media{}
 	reg, err := getRegex(dir)
 	if err != nil {

@@ -18,10 +18,17 @@ func TestMatch(t *testing.T) {
 		"dir_name_005[why yes.png",
 		"",
 	})
+	_, err := Match(" ", []string{"fail.me"})
 
+	// Test for empty directory
+	if err == nil {
+		t.Fail()
+	}
+	// Test for well formatted without tags
 	if !good[0].Formatted || good[0].Index != 1 || good[0].Ext != ".mov" {
 		t.Fail()
 	}
+	// Test for well formatted with tags
 	if !good[1].Formatted || good[1].Index != 1 || good[1].Tags[0] != "stuff" {
 		t.Fail()
 	}
@@ -29,6 +36,7 @@ func TestMatch(t *testing.T) {
 	if len(good[1].Tags) != 2 {
 		t.Fail()
 	}
+	// Test for different types of bad formats
 	for _, b := range bad {
 		if b.Formatted {
 			t.Fail()
