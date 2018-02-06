@@ -31,6 +31,16 @@ func getRegex(dir string) (*regexp.Regexp, error) {
 	return regexp.Compile(regexp.QuoteMeta(dir) + suffix)
 }
 
+func tagIn(value string, list []string) bool {
+	res := false
+	for _, val := range list {
+		if val == value {
+			res = true
+		}
+	}
+	return res
+}
+
 func NewMedia(regex *regexp.Regexp, name string) (*Media, error) {
 	parts := regex.FindStringSubmatch(name)
 	media := new(Media)
@@ -45,7 +55,9 @@ func NewMedia(regex *regexp.Regexp, name string) (*Media, error) {
 		media.Index = index
 		for _, tag := range strings.Split(parts[2], " ") {
 			if tag != "" { // Skip empty tags
-				media.Tags = append(media.Tags, tag)
+				if !tagIn(tag, media.Tags) {
+					media.Tags = append(media.Tags, tag)
+				}
 			}
 		}
 	}

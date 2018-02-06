@@ -25,6 +25,10 @@ func TestMatch(t *testing.T) {
 	if !good[1].Formatted || good[1].Index != 1 || good[1].Tags[0] != "stuff" {
 		t.Fail()
 	}
+	// Test for no repeated tags
+	if len(good[1].Tags) != 2 {
+		t.Fail()
+	}
 	for _, b := range bad {
 		if b.Formatted {
 			t.Fail()
