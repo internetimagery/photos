@@ -1,4 +1,4 @@
-package photos
+package main
 
 import "testing"
 
