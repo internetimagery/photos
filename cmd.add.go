@@ -2,16 +2,15 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 )
 
 var test bool
 
-func cmd_add_init() *command {
-	set := flag.NewFlagSet("add", flag.ExitOnError)
-	set.BoolVar(&test, "test", false, "Testing command")
-	return &command{Set: set, Run: cmd_add_run}
+func cmd_add_init() *Command {
+	com := NewCommand("add", cmd_add_run)
+	com.Set.BoolVar(&test, "test", false, "Testing command")
+	return com
 }
 
 func cmd_add_run(args []string) error {

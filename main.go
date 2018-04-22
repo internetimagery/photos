@@ -9,14 +9,18 @@ import (
 )
 
 // Single command
-type command struct {
+type Command struct {
 	Set *flag.FlagSet
 	Run func([]string) error
 }
 
+func NewCommand(name string, run func([]string) error) *Command {
+	return &Command{Set: flag.NewFlagSet(name, flag.ExitOnError), Run: run}
+}
+
 func main() {
 	// Initialize our commands
-	coms := make(map[string]*command)
+	coms := make(map[string]*Command)
 	coms["add"] = cmd_add_init()
 
 	// If no commands are issued. Send help message.
