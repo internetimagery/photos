@@ -1,94 +1,53 @@
+// Main entry point.
+
 package main
 
 import (
+	"flag"
 	"fmt"
-	// "github.com/internetimagery/photos/cmd/init"
-	// "github.com/internetimagery/photos/cmd/config"
-	"github.com/internetimagery/photos/utility"
-	"github.com/internetimagery/photos/state"
-	"github.com/internetimagery/photos/commands"
 	"os"
-	// "log"
-	"strings"
 )
 
-// Simple command
-type Command interface {
-	Desc() string
-	Run([]string, *state.State) int
+// Single command
+type Command struct {
+	Set *flag.FlagSet
+	Run func([]string) error
 }
 
-// Brief help message
-func help(mod map[string]Command)  {
-	fmt.Println("Usage:\n")
-	max := 0
-	for name, _ := range mod {
-		max = utility.MaxInt(max, len(name))
-	}
-	for name, com := range mod {
-		fmt.Println(strings.Repeat(" ", max-len(name)) + name, ":", com.Desc())
-	}
+func NewCommand(name string, run func([]string) error) *Command {
+	return &Command{Set: flag.NewFlagSet(name, flag.ExitOnError), Run: run}
 }
 
-// Lets go!
-func main()  {
-	// No arguments? Show help message
-	modules := map[string]Command{
-		"init": commands.CMD_Init{},
-		"config": commands.CMD_Config{},
-		"add": commands.CMD_Add{},
-		"drop": commands.CMD_Drop{},
-		"get": commands.CMD_Get{},
-		"backup": commands.CMD_Backup{},
-	}
+func main() {
+	// Initialize our commands
+	coms := make(map[string]*Command)
+	coms["add"] = cmd_add_init()
+
+	// If no commands are issued. Send help message.
 	if len(os.Args) < 2 {
-		help(modules)
-	} else {
-		fnc, ok := modules[strings.ToLower(os.Args[1])]
-		if !ok {
-			help(modules)
-		} else {
-			cwd, err := os.Getwd()
-			if err != nil {
-				log.Panic(err)
-			}
-			state := state.State.New(cwd)
-			os.Exit(fnc.Run(os.Args[2:], state))
+		fmt.Println("Available commands:")
+		for c, _ := range coms {
+			fmt.Println(c)
 		}
+		os.Exit(1)
+	}
+
+	// Grab requested command
+	com := coms[os.Args[1]]
+	if com == nil {
+		fmt.Println("Command", os.Args[1], "not valid.")
+		fmt.Println("Valid commands:")
+		for c, _ := range coms {
+			fmt.Println(c)
+		}
+		os.Exit(1)
+	}
+
+	// Parse commands, and run
+	com.Set.Parse(os.Args[2:])
+	args := com.Set.Args()
+	err := com.Run(args)
+	if err != nil {
+		panic(err)
 	}
 }
-
-//
-// func main() {
-// 	if len(os.Args) == 1 || os.Args[1] == "-h" || os.Args[1] == "--help" {
-// 		help()
-// 	} else {
-// 		arg := strings.ToLower(os.Args[1])
-// 		cwd, err := os.Getwd()
-// 		if err != nil {
-// 			log.Panic(err)
-// 		}
-// 		conf := config.GetConfig(cwd)
-// 		if arg == "init" {
-// 			cmdinit.Run(conf, conf)
-// 		}
-// 		if val, ok := ARGS[arg]; ok {
-// 			if conf.GetRoot() != "" || arg == "init" {
-// 				val(os.Args[2:], conf)
-// 				return
-// 			}
-// 			log.Panic("Not inside repository")
-// 		} else {
-// 			options := make([]string, len(ARGS))
-// 			i := 0
-// 			for k := range ARGS {
-// 				options[i] = k
-// 				i++
-// 			}
-// 			guess := utility.ClosestMatch(arg, options)
-// 			fmt.Printf("Argument \"%s\" does not exist.\n", arg)
-// 			fmt.Println("Did you mean:")
-// 			fmt.Printf("\t%s", guess)
-// 		}
-// 	}
-// }

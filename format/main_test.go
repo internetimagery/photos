@@ -1,32 +1,60 @@
 // Testing formatting
 package format
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestMatch(t *testing.T) {
-	good1 := Match("dir_name", "dir_name_001.mov")
-	good2 := Match("dir_name", "dir_name_001[stuff more stuff].jpg")
-	bad1 := Match("dir_name", "whatever.png")
-	bad2 := Match("dir_name", "whatever_002.png")
-	bad3 := Match("dir_name", "dir_name[tags].png")
-	bad4 := Match("dir_name", "dir_name_004{why not}.png")
+	good, _ := Match("dir_name", []string{
+		"dir_name_001.mov",
+		"dir_name_001[stuff more stuff].jpg",
+	})
+	bad, _ := Match("dir_name", []string{
+		"whatever.png",
+		"whatever_002.png",
+		"dir_name[tags].png",
+		"dir_name_004{why not}.png",
+		"dir_name_005[why yes.png",
+		"",
+	})
+	_, err := Match(" ", []string{"fail.me"})
 
-	if !good1.Formatted {
+	// Test for empty directory
+	if err == nil {
 		t.Fail()
 	}
-	if !good2.Formatted {
+	// Test for well formatted without tags
+	if !good[0].Formatted || good[0].Index != 1 || good[0].Ext != ".mov" {
 		t.Fail()
 	}
-	if bad1.Formatted {
+	// Test for well formatted with tags
+	if !good[1].Formatted || good[1].Index != 1 || good[1].Tags[0] != "stuff" {
 		t.Fail()
 	}
-	if bad2.Formatted {
+	// Test for no repeated tags
+	if len(good[1].Tags) != 2 {
 		t.Fail()
 	}
-	if bad3.Formatted {
+	// Test for different types of bad formats
+	for _, b := range bad {
+		if b.Formatted {
+			t.Fail()
+		}
+	}
+}
+
+func TestFormat(t *testing.T) {
+	media, _ := Match("dir_name", []string{"dir_name_003.mov"})
+	name := media[0].Format("dir2_name")
+	if name != "dir2_name_003.mov" {
 		t.Fail()
 	}
-	if bad4.Formatted {
+	media[0].Index = 13
+	media[0].Tags = append(media[0].Tags, "some", "tag")
+	media[0].Ext = ".jpg"
+	name = media[0].Format("dir3_name")
+	if name != "dir3_name_013[some tag].jpg" {
 		t.Fail()
 	}
 }

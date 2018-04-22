@@ -8,29 +8,17 @@ import (
 	"testing"
 )
 
-// Tempfile helper
-type Temp struct {
-	Name string
+func tempDir(t *testing.T) string {
+	dir, err := ioutil.TempDir("", "Go_Test")
+	if err != nil {
+		t.Error(err)
+	}
+	return dir
 }
 
-func (self Temp) Remove() {
-	os.RemoveAll(self.Name)
-}
-
-func (self Temp) File(name string) string {
-	return filepath.Join(self.Name, name)
-}
-
-func (self Temp) Missing(path string) bool {
+func isMissing(path string) bool {
 	_, err := os.Stat(path)
 	return os.IsNotExist(err)
-}
-
-func NewTemp() (*Temp, error) {
-	tmp := new(Temp)
-	dir, err := ioutil.TempDir("", "Go_Test")
-	tmp.Name = dir
-	return tmp, err
 }
 
 func TestNew(t *testing.T) {
@@ -42,36 +30,28 @@ func TestNew(t *testing.T) {
 }
 
 func TestSave(t *testing.T) {
-	dir, err := NewTemp()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer dir.Remove()
+	dir := tempDir(t)
+	defer os.RemoveAll(dir)
 
 	config := NewConfig()
-	tmp := dir.File("config.json")
-	err = config.Save(tmp)
+	tmp := filepath.Join(dir, "config.json")
+	err := config.Save(tmp)
 	if err != nil {
 		t.Error(err)
 	}
-	if dir.Missing(tmp) {
+	if isMissing(tmp) {
 		t.Fail()
 	}
 }
 
 func TestLoad(t *testing.T) {
-	dir, err := NewTemp()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer dir.Remove()
+	dir := tempDir(t)
+	defer os.RemoveAll(dir)
 
 	config := NewConfig()
-	tmp := dir.File("config.json")
-	err = config.Save(tmp)
-	if err != nil {
-		t.Error(err)
-	}
+	tmp := filepath.Join(dir, "config.json")
+	config.Save(tmp)
+
 	config2, err := LoadConfig(tmp)
 	if err != nil {
 		t.Error(err)
@@ -91,14 +71,14 @@ func TestLoad(t *testing.T) {
 		t.Fail()
 	}
 
-	tmp2 := dir.File("bad.json")
+	tmp2 := filepath.Join(dir, "bad.json")
 	ioutil.WriteFile(tmp2, []byte("{ this is bad json"), 644)
 	_, err = LoadConfig(tmp2)
 	if err == nil {
 		t.Fail()
 	}
 
-	tmp3 := dir.File("incomplete.json")
+	tmp3 := filepath.Join(dir, "incomplete.json")
 	ioutil.WriteFile(tmp3, []byte("{\"name\" : \"This is incomplete.\"}"), 644)
 	_, err = LoadConfig(tmp3)
 	if err == nil {
@@ -108,21 +88,16 @@ func TestLoad(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	dir, err := NewTemp()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer dir.Remove()
+	dir := tempDir(t)
+	defer os.RemoveAll(dir)
 
 	config := NewConfig()
-	tmp := dir.File("config.json")
-	err = config.Save(tmp)
-	if err != nil {
-		t.Error(err)
-	}
+	tmp := filepath.Join(dir, "config.json")
+	config.Save(tmp)
+
 	name := "TEST123"
 	config.Name = name
-	err = config.Save(tmp)
+	err := config.Save(tmp)
 	if err != nil {
 		t.Error(err)
 	}
