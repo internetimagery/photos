@@ -4,14 +4,16 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"testing"
 
-	"github.com/internetimagery/photos/testutil"
+	"github.com/internetimagery/photos/sandbox"
 )
 
 func TestTest(t *testing.T) {
-	dir := testutil.NewTempDir(t)
+	dir := sandbox.NewSandbox(t)
 	defer dir.Close()
 	// Do stuff
-	fmt.Println(dir.Join("thing"))
+	files, _ := ioutil.ReadDir(dir.Path)
+	fmt.Println(files[0].Name())
 }
