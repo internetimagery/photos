@@ -1,4 +1,4 @@
-// Sandbox utility for testing
+// Sandbox utility for testing. Copy assets over to temporary test folder
 
 package sandbox
 

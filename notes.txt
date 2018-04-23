@@ -59,3 +59,18 @@ photos DROP filepath filepath ... - check for another copy somewhere else, then 
 photos GET filepath filepath ... - download files previously dropped using their links. Optionally add argument to tell it where to find the file as override.
 photos FSCK filepath filepath ... - check file hash lines up with the hash in the filename itself. if file is corrupt, rename with "corrupt" extension.
 photos BACKUP REMOTE filepath filepath ... - copy file to remote specified in config file.
+
+
+
+
+func setupTest(t *testing.T) func() {
+       // Test setup
+       t.Log("setupTest()")
+
+       // Test teardown - return a closure for use by 'defer'
+       return func() {
+               // t is from the outer setupTest scope
+               t.Log("teardownTest()")
+       }
+}
+defer setupTest(t)()
