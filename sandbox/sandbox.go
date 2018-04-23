@@ -56,6 +56,19 @@ func NewSandbox(t *testing.T) *SandBox {
 	return &SandBox{Path: tmp, t: t}
 }
 
+// Get asset at location
+func (self *SandBox) Get(name string) string {
+	return filepath.Join(self.Path, name)
+}
+
+// Clean up
+func (self *SandBox) Close() {
+	err := os.RemoveAll(self.Path)
+	if err != nil {
+		self.t.Fatal(err)
+	}
+}
+
 // Simple file copy utility
 func copy(src, dst string, done chan error) {
 	var err error
@@ -79,11 +92,4 @@ func copy(src, dst string, done chan error) {
 		return
 	}
 	defer out.Close()
-}
-
-func (self *SandBox) Close() {
-	err := os.RemoveAll(self.Path)
-	if err != nil {
-		self.t.Fatal(err)
-	}
 }

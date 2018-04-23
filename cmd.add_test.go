@@ -3,8 +3,7 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/internetimagery/photos/sandbox"
@@ -13,7 +12,9 @@ import (
 func TestTest(t *testing.T) {
 	dir := sandbox.NewSandbox(t)
 	defer dir.Close()
-	// Do stuff
-	files, _ := ioutil.ReadDir(dir.Path)
-	fmt.Println(files[0].Name())
+	// Check asset is there
+	asset := dir.Get("img1.jpg")
+	if _, err := os.Stat(asset); os.IsNotExist(err) {
+		t.Fail()
+	}
 }
