@@ -18,6 +18,13 @@ type Media struct {
 	Ext       string
 }
 
+// Remove any illegal characters, turning them into underscores.
+// Allowed characters: spaces, underscores, dashes, letters, digits, fullstops, square brackets, round brackets
+func Sanitize(filename string) string {
+	reg := regexp.MustCompile(`[^\p{L} _\-\d\.\[\]\()]`)
+	return reg.ReplaceAllString(filename, "_")
+}
+
 func (self Media) Format(dir string) string {
 	name := fmt.Sprintf("%s_%03d", dir, self.Index)
 	if len(self.Tags) > 0 {

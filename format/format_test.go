@@ -2,8 +2,24 @@
 package format
 
 import (
+	"fmt"
 	"testing"
 )
+
+func TestSanitize(t *testing.T) {
+	tests := make(map[string]string)
+	tests["one.two"] = "one.two"
+	tests["three/four"] = "three_four"
+	tests["Hello, 世界"] = "Hello_ 世界"
+
+	for test, expect := range tests {
+		result := Sanitize(test)
+		if result != expect {
+			fmt.Println("Testing:", test, "Expected:", expect, "Got:", result)
+			t.Fail()
+		}
+	}
+}
 
 func TestMatch(t *testing.T) {
 	good, _ := Match("dir_name", []string{
