@@ -8,15 +8,45 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/internetimagery/photos/utility"
 )
 
+// thoughts...
+// NewMediaFromFile(path)
+// media object, path to associated file, name, path, id etc...
+// create media object, parsing filename for metadata
+// metadata can be changed to whatever. Media.Update() to rename it perhaps
+
 type Media struct {
-	Name      string
-	Formatted bool
-	Index     int
-	Tags      []string
-	Ext       string
+	Path  string   // Path to file.
+	Index int      // Unique to folder. Sorting files.
+	Group string   // Group media is located in. Typically the name of the containing folder.
+	Type  string   // File type. Doubles as file extension.
+	Hash  string   // Hash fingerprint of files content.
+	Tags  []string // Extra metadata
 }
+
+// Get new media element from file.
+func NewMedia(filename string) (*Media, error) {
+	media := new(Media)
+	media.Path = filename
+	media.Type = filepath.Ext(filename)
+	filehash, err := utility.GetHashFromFile(filename)
+	if err != nil {
+		return media, err
+	}
+	// TODO: regex group, index, tags
+	return media, nil
+}
+
+// type Media struct {
+// 	Name      string
+// 	Formatted bool
+// 	Index     int
+// 	Tags      []string
+// 	Ext       string
+// }
 
 // Remove any illegal characters, turning them into underscores.
 // Allowed characters: spaces, underscores, dashes, letters, digits, fullstops, square brackets, round brackets
