@@ -18,7 +18,7 @@ class TestFormat(unittest.TestCase):
             else:
                 s.assertIsNone(match)
 
-    def test_mediaformat(s): # type: () -> None
+    def test_media_format(s): # type: () -> None
         event = "18-02-23 some event"
         names = [
             ("{}_034[one two three].jpg".format(event), {"event": event, "index": 34, "tags": ["one", "two", "three"]}),
@@ -31,6 +31,16 @@ class TestFormat(unittest.TestCase):
             media = MediaFormat.from_match(match)
             for attr, value in test[1].items():
                 s.assertEqual(getattr(media, attr), value)
+
+    def test_media_reformat(s): # type: () -> None
+        names = [
+            ("123 event_034[one two].jpg", {"event": "123 event", "index": 34, "tags": ["one", "two"], "ext": "jpg"}),
+            ("123 event_001.jpg", {"event": "123 event", "index": 1, "tags": [], "ext": "jpg"})]
+        for test in names:
+            media = MediaFormat()
+            for attr in test[1]:
+                setattr(media, attr, test[1][attr])
+            s.assertEqual(media.to_filename(), test[0])
 
 
 

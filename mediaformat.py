@@ -31,6 +31,7 @@ class MediaFormat(object):
 
     @classmethod
     def from_match(cls, match): # type: (Match[str]) -> MediaFormat
+        """ Fill in format details from match info """
         media = MediaFormat()
         media.name = match.group(0)
         media.event = match.group(1)
@@ -38,3 +39,8 @@ class MediaFormat(object):
         media.tags = (match.group(3) or "")[1:-1].split()
         media.ext = match.group(4)
         return media
+
+    def to_filename(s): # type: () -> str
+        """ Format name from given info """
+        tags = "[{}]".format(" ".join(s.tags)) if s.tags else ""
+        return "{}_{:03d}{}.{}".format(s.event, s.index, tags, s.ext)
