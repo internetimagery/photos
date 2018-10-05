@@ -90,3 +90,20 @@ func (compress CompressCategory) GetCommand(filename string) string {
 	}
 	return ""
 }
+
+// Backup functionality
+
+// GetCommands : Get all backup commands that match the provided name
+func (backup BackupCategory) GetCommands(name string) []string {
+	commands := []string{}
+	for _, command := range backup {
+		match, err := filepath.Match(name, command.GetName())
+		if err != nil {
+			panic(err) // Malformed name!
+		}
+		if match {
+			commands = append(commands, command.GetCommand())
+		}
+	}
+	return commands
+}

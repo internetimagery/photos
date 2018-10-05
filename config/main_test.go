@@ -67,28 +67,37 @@ func TestCompressCommand(t *testing.T) {
 	}
 }
 
-func TestLoadConfig(t *testing.T) {
+func TestBackupCommand(t *testing.T) {
 	testData := `
 	{
-	 "compress":[
-	    ["filter1 filter2", "command1"],
-	    ["filter3", "command2"]
-	 ],
 	 "backup":[
-	    ["optionA", "command3"],
-	    ["optionB", "command4"]
+	    ["remote-dropbox", "dropbox"],
+			["remote-amazon", "amazon"],
+	    ["local", "local"]
 	 ]
-	}`
-
-	// Load our mock data
+ }`
 	handle := bytes.NewReader([]byte(testData))
 	conf, err := LoadConfig(handle)
 	if err != nil {
 		fmt.Println(err)
 		t.Fail()
 	}
-	if conf == nil {
-		fmt.Println("Huh? Missing config?")
-		t.Fail()
+	// Do some testing!
+	tests := map[string]map[string]bool{
+		"local":   map[string]bool{"local": true},
+		"remote*": map[string]bool{"dropbox": true, "amazon": true},
+	}
+	for test, expect := range tests {
+		commands := conf.Backup.GetCommands(test)
+		if len(commands) == 0 {
+			fmt.Println("No commands returned for", test)
+			t.Fail()
+		}
+		for _, command := range commands {
+			if !expect[command] {
+				fmt.Printf("Got '%s' while testing '%s'\n", command, test)
+				t.Fail()
+			}
+		}
 	}
 }
