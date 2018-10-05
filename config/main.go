@@ -23,18 +23,21 @@ type Command struct {
 	Command string `json:"command"` // Command to run
 }
 
+// Category : Groups commands together. Facilitates finding commands by name
+type Category []Command
+
 // Config : Base class to access root configuration
 type Config struct {
-	Compress []Command `json:"compress"` // Compression commands
-	Backup   []Command `json:"backup"`   // Backup commands
+	Compress Category `json:"compress"` // Compression commands
+	Backup   Category `json:"backup"`   // Backup commands
 }
 
 // NewConfig build barebones data to get started on a new config file
 func NewConfig(writer io.Writer) error {
 	newConfig := new(Config) // Create empty config, and add some default info to assist in fleshing out properly
-	newConfig.Compress = []Command{
+	newConfig.Compress = Category{
 		Command{"*.example2 *.example2", "// command to run on files ending with '.example1' or '.example2'"}}
-	newConfig.Backup = []Command{
+	newConfig.Backup = Category{
 		Command{"placeofbackup", "// command to run when selecting this backup option 'placeofbackup'"}}
 	newData, err := json.Marshal(newConfig)
 	if err != nil {
