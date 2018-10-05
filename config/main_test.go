@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"testing"
 )
 
@@ -39,6 +40,7 @@ func TestCompressCommand(t *testing.T) {
 	{
 	 "compress":[
 	    ["*.jpg *.png", "image"],
+			["*.mp4 video/*", "video"],
 	    ["*", "all"]
 	 ]
  }`
@@ -50,14 +52,16 @@ func TestCompressCommand(t *testing.T) {
 	}
 	// Do some testing!
 	tests := map[string]string{
-		"anything":      "all",
-		"somepic.JPG":   "image",
-		"other/pic.png": "image",
+		"anything":                         "all",
+		"somepic.JPG":                      "image",
+		"other/pic.png":                    "image",
+		"video.mp4":                        "video",
+		filepath.Join("video", "file.vid"): "video",
 	}
 	for test, expect := range tests {
 		command := conf.Compress.GetCommand(test)
 		if command != expect {
-			fmt.Printf("Expected '%s' but got '%s'\n", expect, command)
+			fmt.Printf("Expected '%s' but got '%s' while testing '%s'\n", expect, command, test)
 			t.Fail()
 		}
 	}

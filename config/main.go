@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
+	"path/filepath"
+	"strings"
 )
 
 ///////////////////////////////////
@@ -74,5 +76,17 @@ func (command Command) GetCommand() string {
 
 // GetCommand : Get the first command (in config order) whose name filter satisfies filename
 func (compress CompressCategory) GetCommand(filename string) string {
+	lowName := filepath.ToSlash(strings.ToLower(filename))
+	for _, command := range compress {
+		for _, pattern := range strings.Split(command.GetName(), " ") {
+			match, err := filepath.Match(pattern, lowName)
+			if err != nil { // This will only trigger if filter is malformed, so we should exit
+				panic(err)
+			}
+			if match {
+				return command.GetCommand()
+			}
+		}
+	}
 	return ""
 }
