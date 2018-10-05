@@ -1,57 +1,28 @@
-// Repo configuration
+// Generate or go hunting for a configuration file.
 package config
 
 import (
 	"encoding/json"
-	"errors"
-	"io/ioutil"
-
-	"github.com/rs/xid"
+	"io"
 )
 
-// Config data
+// Config : Base class to access root configuration
 type Config struct {
-	ID       string            `json:"id"`       // Unique ID
-	Name     string            `json:"name"`     // Optional name
-	Root     string            `json:"-"`        // Location of the config file (not stored in config)
-	Commands map[string]string `json:"commands"` // Command names and paths
+	Compress map[string]string `json:"compress"` // Compression commands
+	Backup   map[string]string `json:"backup"`   // Backup commands
 }
 
-// Create a new config file
-func NewConfig() *Config {
-	// Perform initial setup here
-	conf := new(Config)
-	conf.ID = xid.New().String() // Generate random ID
-	return conf
-}
-
-// Load config from file
-func LoadConfig(path string) (*Config, error) {
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	conf := new(Config)
-	err = json.Unmarshal(data, conf)
-	if conf.ID == "" { // ID is a required field. Error if not found.
-		return nil, errors.New("Missing ID")
-	}
-	conf.Root = path
-	return conf, err
-}
-
-// Store config data to file
-func (self Config) Save(path string) error {
-	// Check id first
-	conf, err := LoadConfig(path)
-	if err == nil && conf.ID != self.ID {
-		return errors.New("ID's do not match. Can't save config.")
-	}
-
-	data, err := json.MarshalIndent(self, "", "  ")
+// NewConfig build barebones data to get started on a new config file
+func NewConfig(writer io.Writer) error {
+	newConfig := new(Config) // Create empty config, and add some default info to assist in fleshing out properly
+	newConfig.Compress = make(map[string]string)
+	newConfig.Compress["*.example2 *.example2"] = "// command to run on files ending with '.example1' or '.example2'"
+	newConfig.Backup = make(map[string]string)
+	newConfig.Backup["placeofbackup"] = "// command to run when selecting this backup option 'placeofbackup'"
+	newData, err := json.Marshal(newConfig)
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(path, data, 664)
+	_, err = writer.Write(newData)
 	return err
 }

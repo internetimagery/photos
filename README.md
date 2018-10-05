@@ -6,6 +6,8 @@ photos management wip
 
 rebuild.
 
+[ ] Rebuild config to create empty configs, to load configs, and to hunt for configs. (should hunting for a file be a utility?)
+
 Plan:
 
 two main commands to start. simplify.
