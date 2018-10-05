@@ -20,31 +20,24 @@ import (
 // Command : Structure for a command
 type Command [2]string
 
-// GetName : Get the name associated with the command
-func (command Command) GetName() string {
-	return command[0]
-}
+// CompressCategory : Groups categories together. Facilitates finding commands by filter
+type CompressCategory []Command
 
-// GetCommand : Get the raw command string associated with the command
-func (command Command) GetCommand() string {
-	return command[1]
-}
-
-// Category : Groups commands together. Facilitates finding commands by name
-type Category []Command
+// BackupCategory : Groups backups together. Facilitates finding commands by name
+type BackupCategory []Command
 
 // Config : Base class to access root configuration
 type Config struct {
-	Compress Category `json:"compress"` // Compression commands
-	Backup   Category `json:"backup"`   // Backup commands
+	Compress CompressCategory `json:"compress"` // Compression commands
+	Backup   BackupCategory   `json:"backup"`   // Backup commands
 }
 
 // NewConfig build barebones data to get started on a new config file
 func NewConfig(writer io.Writer) error {
 	newConfig := new(Config) // Create empty config, and add some default info to assist in fleshing out properly
-	newConfig.Compress = Category{
+	newConfig.Compress = CompressCategory{
 		Command{"*.example2 *.example2", "// command to run on files ending with '.example1' or '.example2'"}}
-	newConfig.Backup = Category{
+	newConfig.Backup = BackupCategory{
 		Command{"placeofbackup", "// command to run when selecting this backup option 'placeofbackup'"}}
 	newData, err := json.Marshal(newConfig)
 	if err != nil {
@@ -63,4 +56,23 @@ func LoadConfig(reader io.Reader) (*Config, error) {
 	loadedConfig := new(Config)
 	err = json.Unmarshal(loadedData, loadedConfig)
 	return loadedConfig, err
+}
+
+// Command functionality
+
+// GetName : Get the name associated with the command
+func (command Command) GetName() string {
+	return command[0]
+}
+
+// GetCommand : Get the raw command string associated with the command
+func (command Command) GetCommand() string {
+	return command[1]
+}
+
+// Compress functionality
+
+// GetCommand : Get the first command (in config order) whose name filter satisfies filename
+func (compress CompressCategory) GetCommand(filename string) string {
+	return ""
 }

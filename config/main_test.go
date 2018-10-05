@@ -34,6 +34,33 @@ func TestNewConfig(t *testing.T) {
 	}
 }
 
+func TestCompressCommand(t *testing.T) {
+	testData := `
+	{
+	 "compress":[
+	    ["filter1 filter2", "command1"],
+	    ["*", "all"]
+	 ]
+ }`
+	handle := bytes.NewReader([]byte(testData))
+	conf, err := LoadConfig(handle)
+	if err != nil {
+		fmt.Println(err)
+		t.Fail()
+	}
+	// Do some testing!
+	tests := map[string]string{
+		"anything": "all",
+	}
+	for test, expect := range tests {
+		command := conf.Compress.GetCommand(test)
+		if command != expect {
+			fmt.Printf("Expected '%s' but got '%s'\n", expect, command)
+			t.Fail()
+		}
+	}
+}
+
 func TestLoadConfig(t *testing.T) {
 	testData := `
 	{
