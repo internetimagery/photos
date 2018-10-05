@@ -4,6 +4,7 @@ package config
 import (
 	"encoding/json"
 	"io"
+	"io/ioutil"
 )
 
 // Config : Base class to access root configuration
@@ -25,4 +26,15 @@ func NewConfig(writer io.Writer) error {
 	}
 	_, err = writer.Write(newData)
 	return err
+}
+
+// LoadConfig : Load and populate a new Config from existing config data
+func LoadConfig(reader io.Reader) (*Config, error) {
+	loadedData, err := ioutil.ReadAll(reader) // Load the data to process
+	if err != nil {
+		return nil, err
+	}
+	loadedConfig := new(Config)
+	err = json.Unmarshal(loadedData, loadedConfig)
+	return loadedConfig, err
 }
