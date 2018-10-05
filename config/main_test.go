@@ -38,7 +38,7 @@ func TestCompressCommand(t *testing.T) {
 	testData := `
 	{
 	 "compress":[
-	    ["filter1 filter2", "command1"],
+	    ["*.jpg *.png", "image"],
 	    ["*", "all"]
 	 ]
  }`
@@ -50,7 +50,9 @@ func TestCompressCommand(t *testing.T) {
 	}
 	// Do some testing!
 	tests := map[string]string{
-		"anything": "all",
+		"anything":      "all",
+		"somepic.JPG":   "image",
+		"other/pic.png": "image",
 	}
 	for test, expect := range tests {
 		command := conf.Compress.GetCommand(test)
