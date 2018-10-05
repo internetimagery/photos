@@ -18,9 +18,16 @@ import (
 ///////////////////////////////////
 
 // Command : Structure for a command
-type Command struct {
-	Name    string `json:"name"`    // Name for command. Can be used as a filter for compress matches etc
-	Command string `json:"command"` // Command to run
+type Command [2]string
+
+// GetName : Get the name associated with the command
+func (command Command) GetName() string {
+	return command[0]
+}
+
+// GetCommand : Get the raw command string associated with the command
+func (command Command) GetCommand() string {
+	return command[1]
 }
 
 // Category : Groups commands together. Facilitates finding commands by name
