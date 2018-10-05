@@ -38,12 +38,12 @@ func TestLoadConfig(t *testing.T) {
 	testData := `
 	{
 	 "compress":[
-	    {"filter": "filter1 filter2", "command": "command1"},
-	    {"filter": "filter3", "command": "command2"}
+	    {"name": "filter1 filter2", "command": "command1"},
+	    {"name": "filter3", "command": "command2"}
 	 ],
 	 "backup":[
-	    {"filter": "optionA", "command": "command3"},
-	    {"filter": "optionB", "command": "command4"}
+	    {"name": "optionA", "command": "command3"},
+	    {"name": "optionB", "command": "command4"}
 	 ]
 	}`
 

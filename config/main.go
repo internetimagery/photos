@@ -19,7 +19,7 @@ import (
 
 // Command : Structure for a command
 type Command struct {
-	Filter  string `json:"filter"`  // Flag this command to use if it matches the filter
+	Name    string `json:"name"`    // Name for command. Can be used as a filter for compress matches etc
 	Command string `json:"command"` // Command to run
 }
 
