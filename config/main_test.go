@@ -37,14 +37,14 @@ func TestNewConfig(t *testing.T) {
 func TestLoadConfig(t *testing.T) {
 	testData := `
 	{
-	 "compress":{
-	    "filter1 filter2":"command1",
-	    "filter3":"command2"
-	 },
-	 "backup":{
-	    "optionA":"command3",
-	    "optionB":"command4"
-	 }
+	 "compress":[
+	    {"filter": "filter1 filter2", "command": "command1"},
+	    {"filter": "filter3", "command": "command2"}
+	 ],
+	 "backup":[
+	    {"filter": "optionA", "command": "command3"},
+	    {"filter": "optionB", "command": "command4"}
+	 ]
 	}`
 
 	// Load our mock data
