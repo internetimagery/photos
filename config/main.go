@@ -8,6 +8,9 @@ import (
 )
 
 ///////////////////////////////////
+// TODO: Adding filter to all commands means we can use combined filter functionality
+// TODO: ie: We can apply filenames to the filter on compress commands to get the first command that matches.
+// TODO: ie: We can apply the same to match backup commands to a vague command request. To run more than one command at once.
 // TODO: Should config be able to run commands when requested? Utility function?
 // TODO: https://golang.org/pkg/path/filepath/#Match split filename on space? use go-shlex?
 // TODO: Should config be able to detect which command to run with filtering Compress?
