@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"strings"
+
+	"github.com/rs/xid"
 )
 
 // Command : Structure for a command
@@ -20,16 +22,20 @@ type BackupCategory []Command
 
 // Config : Base class to access root configuration
 type Config struct {
+	ID       string           `json:"id"`       // Unique ID
+	Location string           `json:"location"` // Location name that refers to photo location
 	Compress CompressCategory `json:"compress"` // Compression commands
 	Backup   BackupCategory   `json:"backup"`   // Backup commands
 }
 
 // NewConfig build barebones data to get started on a new config file
-func NewConfig(writer io.Writer) error {
-	newConfig := new(Config) // Create empty config, and add some default info to assist in fleshing out properly
-	newConfig.Compress = CompressCategory{
+func NewConfig(writer io.Writer, location string) error {
+	newConfig := new(Config)               // Create empty config, and add some default info to assist in fleshing out properly
+	newConfig.ID = xid.New().String()      // Generate random ID
+	newConfig.Location = location          // Nice name for location
+	newConfig.Compress = CompressCategory{ // Useful default entry to demo
 		Command{"*.jpg *.jpeg *.png", `echo "command to run on image!"`}}
-	newConfig.Backup = BackupCategory{
+	newConfig.Backup = BackupCategory{ // Another useful demo
 		Command{"harddrive", `echo "command to backup to 'harddrive'"`}}
 	newData, err := json.Marshal(newConfig)
 	if err != nil {

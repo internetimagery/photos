@@ -11,7 +11,7 @@ import (
 
 func TestNewConfig(t *testing.T) {
 	handle := new(bytes.Buffer)
-	err := NewConfig(handle) // Create new config data
+	err := NewConfig(handle, "test") // Create new config data
 	if err != nil {
 		fmt.Println(err)
 		t.Fail()
@@ -31,6 +31,11 @@ func TestNewConfig(t *testing.T) {
 
 	if _, ok := verifyStruct["backup"]; !ok {
 		fmt.Println("Config missing backup group")
+		t.Fail()
+	}
+
+	if _, ok := verifyStruct["id"]; !ok {
+		fmt.Println("Config missing id group")
 		t.Fail()
 	}
 }
