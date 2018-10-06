@@ -4,7 +4,10 @@ package sandbox
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"runtime"
 	"testing"
 )
@@ -15,15 +18,6 @@ const (
 	IMAGETYPE
 )
 
-// AssetList : Hardcoded list of assets to copy over for testing. Mapped to types.
-var AssetList = map[string]int{
-	"photos.config":     CONFIGTYPE,
-	"event01/img01.JPG": IMAGETYPE,
-}
-
-// assetRoot : Location of test assets from source path
-var assetRoot = "sandbox/assets"
-
 // SandBox : Temporary location, where tests can make or break things however they see fit
 type SandBox struct {
 	Root string     // Base temporary file housing the media
@@ -32,75 +26,42 @@ type SandBox struct {
 
 // NewSandBox : Generate a new clean area to mess around with. Remember to defer "Close" to clean up.
 func NewSandBox(t *testing.T) *SandBox {
-	wd, err := os.Getwd()
+	// Get location of this path, so we can get to our assets.
+	_, root, _, _ := runtime.Caller(0)
+	assets := filepath.Join(filepath.Dir(root), "assets")
+
+	// Create temp dir
+	tmpDir, err := ioutil.TempDir("", "Photos")
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println(wd)
-	_, root, _, _ := runtime.Caller(0)
-	fmt.Println(root)
-	return new(SandBox)
+
+	// Copy files over, using "cp" command for simplicity.
+	command := exec.Command("cp", "-avT", assets, tmpDir+string(filepath.Separator))
+	output, err := command.CombinedOutput()
+	if err != nil {
+		fmt.Println(string(output))
+		t.Fatal(err)
+	}
+
+	return &SandBox{Root: tmpDir, t: t}
 }
 
-//
-//
-// // Copy assets to temp location for testing
-// type SandBox struct {
-// 	Path string
-// 	t    *testing.T
-// }
+// Close : Clean up sandbox when done. Use with defer after having created in tests.
+func (sb *SandBox) Close() {
+	err := os.RemoveAll(sb.Root)
+	if err != nil {
+		sb.t.Fatal(err)
+	}
+}
 
-// func NewSandbox(t *testing.T) *SandBox {
-// 	// Get source location. Testing always places working directory at project home.
-// 	_, root, _, _ := runtime.Caller(0)
-// 	root = filepath.Join(filepath.Dir(root), "assets")
-//
-// 	// Create temp dir
-// 	tmp, err := ioutil.TempDir("", "Photos")
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-//
-// 	// Copy files over to temp dir
-// 	threads := make([]chan error, 0)
-// 	err = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-// 		if err == nil && !info.IsDir() {
-// 			base, err := filepath.Rel(root, path)
-// 			if err != nil {
-// 				return err
-// 			}
-// 			src, dst := filepath.Join(root, base), filepath.Join(tmp, base)
-// 			done := make(chan error)
-// 			threads = append(threads, done)
-// 			go copy(src, dst, done)
-// 		}
-// 		return err
-// 	})
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	for _, done := range threads {
-// 		err = <-done
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
-// 	}
-//
-// 	return &SandBox{Path: tmp, t: t}
-// }
 //
 // // Get asset at location
 // func (self *SandBox) Get(name string) string {
 // 	return filepath.Join(self.Path, name)
 // }
 //
-// // Clean up
-// func (self *SandBox) Close() {
-// 	err := os.RemoveAll(self.Path)
-// 	if err != nil {
-// 		self.t.Fatal(err)
-// 	}
-// }
+
 //
 // // Simple file copy utility
 // func copy(src, dst string, done chan error) {
