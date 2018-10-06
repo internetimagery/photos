@@ -9,16 +9,6 @@ import (
 	"strings"
 )
 
-///////////////////////////////////
-// TODO: Adding filter to all commands means we can use combined filter functionality
-// TODO: ie: We can apply filenames to the filter on compress commands to get the first command that matches.
-// TODO: ie: We can apply the same to match backup commands to a vague command request. To run more than one command at once.
-// TODO: Should config be able to run commands when requested? Utility function?
-// TODO: https://golang.org/pkg/path/filepath/#Match split filename on space? use go-shlex?
-// TODO: Should config be able to detect which command to run with filtering Compress?
-// TODO: Do we even need a "loadConfig" test? type checking and struct filling sort that out...
-///////////////////////////////////
-
 // Command : Structure for a command
 type Command [2]string
 
@@ -38,9 +28,9 @@ type Config struct {
 func NewConfig(writer io.Writer) error {
 	newConfig := new(Config) // Create empty config, and add some default info to assist in fleshing out properly
 	newConfig.Compress = CompressCategory{
-		Command{"*.example2 *.example2", "// command to run on files ending with '.example1' or '.example2'"}}
+		Command{"*.jpg *.jpeg *.png", `echo "command to run on image!"`}}
 	newConfig.Backup = BackupCategory{
-		Command{"placeofbackup", "// command to run when selecting this backup option 'placeofbackup'"}}
+		Command{"harddrive", `echo "command to backup to 'harddrive'"`}}
 	newData, err := json.Marshal(newConfig)
 	if err != nil {
 		return err
