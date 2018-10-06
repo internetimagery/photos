@@ -54,36 +54,3 @@ func (sb *SandBox) Close() {
 		sb.t.Fatal(err)
 	}
 }
-
-//
-// // Get asset at location
-// func (self *SandBox) Get(name string) string {
-// 	return filepath.Join(self.Path, name)
-// }
-//
-
-//
-// // Simple file copy utility
-// func copy(src, dst string, done chan error) {
-// 	var err error
-// 	defer func() {
-// 		done <- err
-// 	}()
-// 	in, err := os.Open(src)
-// 	if err != nil {
-// 		return
-// 	}
-// 	defer in.Close()
-//
-// 	out, err := os.Create(dst)
-// 	if err != nil {
-// 		return
-// 	}
-// 	defer out.Close()
-//
-// 	_, err = io.Copy(out, in)
-// 	if err != nil {
-// 		return
-// 	}
-// 	defer out.Close()
-// }
