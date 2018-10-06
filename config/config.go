@@ -29,7 +29,7 @@ type Config struct {
 }
 
 // NewConfig build barebones data to get started on a new config file
-func NewConfig(writer io.Writer, location string) error {
+func NewConfig(location string) *Config {
 	newConfig := new(Config)               // Create empty config, and add some default info to assist in fleshing out properly
 	newConfig.ID = xid.New().String()      // Generate random ID
 	newConfig.Location = location          // Nice name for location
@@ -37,12 +37,7 @@ func NewConfig(writer io.Writer, location string) error {
 		Command{"*.jpg *.jpeg *.png", `echo "command to run on image!"`}}
 	newConfig.Backup = BackupCategory{ // Another useful demo
 		Command{"harddrive", `echo "command to backup to 'harddrive'"`}}
-	newData, err := json.Marshal(newConfig)
-	if err != nil {
-		return err
-	}
-	_, err = writer.Write(newData)
-	return err
+	return newConfig
 }
 
 // LoadConfig : Load and populate a new Config from existing config data
@@ -54,6 +49,16 @@ func LoadConfig(reader io.Reader) (*Config, error) {
 	loadedConfig := new(Config)
 	err = json.Unmarshal(loadedData, loadedConfig)
 	return loadedConfig, err
+}
+
+// Save : Save config data out for writing
+func (conf *Config) Save(writer io.Writer) error {
+	data, err := json.Marshal(conf)
+	if err != nil {
+		return err
+	}
+	_, err = writer.Write(data)
+	return err
 }
 
 // Command functionality

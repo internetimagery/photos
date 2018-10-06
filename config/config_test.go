@@ -11,7 +11,8 @@ import (
 
 func TestNewConfig(t *testing.T) {
 	handle := new(bytes.Buffer)
-	err := NewConfig(handle, "test") // Create new config data
+	conf := NewConfig("test") // Create new config data
+	err := conf.Save(handle)
 	if err != nil {
 		fmt.Println(err)
 		t.Fail()
