@@ -9,5 +9,6 @@ import (
 
 func TestContext(t *testing.T) {
 	sb := sandbox.NewSandBox(t)
+	defer sb.Close()
 	fmt.Println(sb)
 }

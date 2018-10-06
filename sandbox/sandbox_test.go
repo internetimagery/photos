@@ -25,7 +25,7 @@ func TestSandbox(t *testing.T) {
 		if !sourceInfo.IsDir() {
 			// Get corresponding files
 			relPath, _ := filepath.Rel(assets, sourcePath)
-			destPath := filepath.Join(sb.Root, relPath)
+			destPath := sb.Join(relPath)
 			destInfo, err := os.Stat(destPath)
 			if err != nil {
 				return err

@@ -12,12 +12,6 @@ import (
 	"testing"
 )
 
-// Types of media used in testing
-const (
-	CONFIGTYPE = iota
-	IMAGETYPE
-)
-
 // SandBox : Temporary location, where tests can make or break things however they see fit
 type SandBox struct {
 	Root string     // Base temporary file housing the media
@@ -53,4 +47,9 @@ func (sb *SandBox) Close() {
 	if err != nil {
 		sb.t.Fatal(err)
 	}
+}
+
+// Join : Simple utility for joining paths to the sandbox source!
+func (sb *SandBox) Join(path string) string {
+	return filepath.Join(sb.Root, path)
 }
