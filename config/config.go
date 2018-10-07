@@ -1,4 +1,3 @@
-// Generate or go hunting for a configuration file.
 package config
 
 import (
