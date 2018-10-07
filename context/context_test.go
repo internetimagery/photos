@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
-
-	"github.com/internetimagery/photos/sandbox"
 )
 
 func TestNewContext(t *testing.T) {
@@ -22,19 +21,41 @@ func TestNewContext(t *testing.T) {
 }
 
 func TestContext(t *testing.T) {
-	sb := sandbox.NewSandBox(t)
-	defer sb.Close()
+	configData := []byte(`{
+	"compress": [
+		["*", "some command"]
+	]
+}`)
+
+	tmpDir, err := ioutil.TempDir("", "photos-context-test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Make a couple files
+	workingDir := filepath.Join(tmpDir, "some-event")
+	rootConf := filepath.Join(tmpDir, ROOTCONF)
+
+	err = os.Mkdir(workingDir, 744)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = ioutil.WriteFile(rootConf, configData, 655)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Start within event directory
-	cxt, err := NewContext(sb.Join("event01"))
+	cxt, err := NewContext(workingDir)
 	if err != nil {
 		fmt.Println(err)
 		t.Fail()
 	}
 
-	// Check root and workingDir are not the same!
-	if cxt.Root == cxt.WorkingDir {
-		fmt.Println("Root is the same as workingDir!")
+	// Check we reached root file
+	if cxt.Root != tmpDir {
+		fmt.Println("Couldn't find config file.", cxt.Root)
 		t.Fail()
 	}
 }
