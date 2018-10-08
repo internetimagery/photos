@@ -2,6 +2,7 @@ package format
 
 import (
 	"fmt"
+	"io/ioutil"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -12,11 +13,11 @@ var eventReg = `[\w\-_ ]+` // Valid event
 var indexReg = `\d+`       // Valid Index
 var tagReg = `[\w\-_ ]+`   // Valid Tags
 var extReg = `\w+`
-var formatReg = regexp.MustCompile(fmt.Sprintf(`(%s)_(%s)(?:\[(%s)\])?\.(%s)`, eventReg, indexReg, tagReg, extReg))
+var formatReg = regexp.MustCompile(fmt.Sprintf(`(%s)_(%s)(?:\[(%s)\])?\.(%s)$`, eventReg, indexReg, tagReg, extReg))
 
 // Media : Container for information about media item
 type Media struct {
-	Name  string   // File name
+	Path  string   // File name
 	Event string   // Event name (parent folder)
 	Index int      // ID of media
 	Tags  []string // Any Tags
@@ -26,7 +27,7 @@ type Media struct {
 // NewMedia : Create new media representation
 func NewMedia(filename string) *Media {
 	media := new(Media)
-	media.Name = filename
+	media.Path = filename
 	media.Ext = filepath.Ext(filename)[1:]
 	parts := formatReg.FindStringSubmatch(filename)
 	if len(parts) > 0 {
@@ -63,5 +64,28 @@ func (media *Media) FormatName() (string, error) {
 	if len(media.Tags) > 0 {
 		tags = fmt.Sprintf("[%s]", strings.Join(media.Tags, " "))
 	}
-	return fmt.Sprintf("%s_%03d%s.%s", media.Event, media.Index, tags, media.Ext), nil
+	ext := strings.ToLower(media.Ext)
+	return fmt.Sprintf("%s_%03d%s.%s", media.Event, media.Index, tags, ext), nil
+}
+
+// GetMediaFromDirectory : Walk through directory, and return a list of media items represented there
+func GetMediaFromDirectory(dirPath string) ([]*Media, error) {
+	mediaList := []*Media{}
+	event := filepath.Base(dirPath)
+	files, err := ioutil.ReadDir(dirPath)
+	if err != nil {
+		return mediaList, err
+	}
+	for _, file := range files {
+		if !file.IsDir() {
+			fullPath := filepath.Join(dirPath, file.Name())
+			media := NewMedia(fullPath)
+			if media.Event != event {
+				media.Index = 0
+				media.Event = event
+			}
+			mediaList = append(mediaList, media)
+		}
+	}
+	return mediaList, nil
 }
