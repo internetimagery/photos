@@ -81,7 +81,7 @@ func GetMediaFromDirectory(dirPath string) ([]*Media, error) {
 			fullPath := filepath.Join(dirPath, file.Name())
 			media := NewMedia(fullPath)
 			if media.Event != event {
-				media.Index = 0
+				media.Index = 0 // Index 0 means unformatted
 				media.Event = event
 			}
 			mediaList = append(mediaList, media)
