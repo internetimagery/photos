@@ -64,6 +64,8 @@ func TestGetMediaFromDirectory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer os.RemoveAll(tmpDir)
+
 	rootName := "18-05-12 event"
 	rootPath := filepath.Join(tmpDir, rootName)
 	testFiles := map[string]Media{
