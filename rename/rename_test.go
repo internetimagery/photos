@@ -36,7 +36,7 @@ func TestRename(t *testing.T) {
 
 	// Prep some test files
 	testFiles := map[string]string{
-		"someimage.img":                 eventName + "_002.img",
+		"someimage.img":                 eventName + "_003.img",
 		eventName + "_001.jpg":          eventName + "_001.jpg",
 		eventName + "_002[one two].jpg": eventName + "_002[one two].jpg",
 	}
