@@ -59,3 +59,47 @@ func TestContext(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestGetEnv(t *testing.T) {
+	tmpDir, err := ioutil.TempDir("", "photo_test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	if err = ioutil.WriteFile(filepath.Join(tmpDir, ROOTCONF), []byte("{}"), 644); err != nil {
+		t.Fatal(err)
+	}
+
+	cxt, err := NewContext(tmpDir)
+	if err != nil {
+		fmt.Println(err)
+		t.Fail()
+	}
+	sourcePath := filepath.Join(tmpDir, "source")
+	destPath := filepath.Join(tmpDir, "dest")
+	envList := cxt.GetEnv(sourcePath, destPath)
+
+	testEnv := map[string]bool{
+		"SOURCEPATH=" + sourcePath: true,
+		"DESTPATH=" + destPath:     true,
+		"WORKINGPATH=" + tmpDir:    true,
+		"PROJECTPATH=" + tmpDir:    true,
+	}
+
+	for _, env := range envList {
+		if !testEnv[env] {
+			fmt.Println("Environment incorrect", env)
+			t.Fail()
+		}
+	}
+	if len(envList) != len(testEnv) {
+		fmt.Println("Envlist does not match expected")
+		fmt.Println("Expected:")
+		fmt.Println(testEnv)
+		fmt.Println("Got:")
+		fmt.Println(testEnv)
+		t.Fail()
+	}
+
+}

@@ -45,3 +45,13 @@ func NewContext(workingDir string) (*Context, error) {
 	}
 	return &Context{Root: currentRoot, WorkingDir: workingDir, Config: conf}, nil
 }
+
+// GetEnv : Prep environment variables to prepare commands
+func (cxt *Context) GetEnv(sourcePath, destPath string) []string {
+	return []string{
+		"SOURCEPATH=" + sourcePath,
+		"DESTPATH=" + destPath,
+		"WORKINGPATH=" + cxt.WorkingDir,
+		"PROJECTPATH=" + cxt.Root,
+	}
+}

@@ -72,6 +72,25 @@ func Rename(directoryPath string, cxt *context.Context) error {
 		return err
 	}
 
+	// Run through files!
+	for src, dest := range renameMap {
+
+		// Grab compress command or use a default command
+		command := cxt.Config.Compress.GetCommand(src)
+		if command == "" {
+			command = `cp "$SOURCEPATH" "$DESTPATH"`
+		}
+
+		fmt.Println(command)
+		fmt.Println(src)
+		fmt.Println(dest)
+
+		// Build out command with environment variables
+
+		// Run compress command and check file made it to destination
+
+		// Move source file to source folder
+	}
 	fmt.Println(renameMap)
 	fmt.Println(sourceMap)
 	return nil
