@@ -3,6 +3,7 @@ package rename
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/internetimagery/photos/context"
@@ -75,23 +76,24 @@ func Rename(directoryPath string, cxt *context.Context) error {
 	// Run through files!
 	for src, dest := range renameMap {
 
-		// Grab compress command or use a default command
+		// Grab compress command or use a default command. Expand variables
 		command := cxt.Config.Compress.GetCommand(src)
 		if command == "" {
 			command = `cp "$SOURCEPATH" "$DESTPATH"`
 		}
-
-		fmt.Println(command)
-		fmt.Println(src)
-		fmt.Println(dest)
-
-		// Build out command with environment variables
+		command = os.Expand(command, cxt.GetEnv(src, dest))
 
 		// Run compress command and check file made it to destination
+		fmt.Println("To run ->", command)
 
 		// Move source file to source folder
+		fmt.Println("COPY:", "cp", "-avT", src, sourceMap[src])
+		com := exec.Command("cp", "-avT", src, sourceMap[src])
+		output, err := com.CombinedOutput()
+		if err != nil {
+			fmt.Println(string(output))
+			return err
+		}
 	}
-	fmt.Println(renameMap)
-	fmt.Println(sourceMap)
 	return nil
 }

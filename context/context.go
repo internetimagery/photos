@@ -47,11 +47,18 @@ func NewContext(workingDir string) (*Context, error) {
 }
 
 // GetEnv : Prep environment variables to prepare commands
-func (cxt *Context) GetEnv(sourcePath, destPath string) []string {
-	return []string{
-		"SOURCEPATH=" + sourcePath,
-		"DESTPATH=" + destPath,
-		"WORKINGPATH=" + cxt.WorkingDir,
-		"PROJECTPATH=" + cxt.Root,
+func (cxt *Context) GetEnv(sourcePath, destPath string) func(string) string {
+	return func(name string) string {
+		switch name {
+		case "SOURCEPATH":
+			return sourcePath
+		case "DESTPATH":
+			return destPath
+		case "WORKINGPATH":
+			return cxt.WorkingDir
+		case "PROJECTPATH":
+			return cxt.Root
+		}
+		return ""
 	}
 }

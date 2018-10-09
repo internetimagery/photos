@@ -16,7 +16,7 @@ func TestRename(t *testing.T) {
 	mockCxt := &context.Context{
 		Config: &config.Config{
 			Compress: config.CompressCategory{
-				config.Command{"*", "echo $SOURCEFILE"},
+				config.Command{"*", `echo "$SOURCEPATH"`},
 			},
 		},
 	}
@@ -57,4 +57,15 @@ func TestRename(t *testing.T) {
 	}
 
 	// Check files made it to where they need to be
+
+	// Check source files are where they should be
+	sourcePath := filepath.Join(tmpDir, SOURCEDIR)
+	for src, dst := range testFiles {
+		if src != dst {
+			if _, err = os.Stat(filepath.Join(sourcePath, src)); err != nil {
+				fmt.Println(err)
+				t.Fail()
+			}
+		}
+	}
 }

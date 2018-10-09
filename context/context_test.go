@@ -80,26 +80,19 @@ func TestGetEnv(t *testing.T) {
 	destPath := filepath.Join(tmpDir, "dest")
 	envList := cxt.GetEnv(sourcePath, destPath)
 
-	testEnv := map[string]bool{
-		"SOURCEPATH=" + sourcePath: true,
-		"DESTPATH=" + destPath:     true,
-		"WORKINGPATH=" + tmpDir:    true,
-		"PROJECTPATH=" + tmpDir:    true,
+	testEnv := map[string]string{
+		"SOURCEPATH":  sourcePath,
+		"DESTPATH":    destPath,
+		"WORKINGPATH": tmpDir,
+		"PROJECTPATH": tmpDir,
 	}
 
-	for _, env := range envList {
-		if !testEnv[env] {
-			fmt.Println("Environment incorrect", env)
+	for key, value := range testEnv {
+		testValue := envList(key)
+		if value != testValue {
+			fmt.Println("Expected:", value, "Got:", testValue)
 			t.Fail()
 		}
-	}
-	if len(envList) != len(testEnv) {
-		fmt.Println("Envlist does not match expected")
-		fmt.Println("Expected:")
-		fmt.Println(testEnv)
-		fmt.Println("Got:")
-		fmt.Println(testEnv)
-		t.Fail()
-	}
 
+	}
 }
