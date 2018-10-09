@@ -37,7 +37,7 @@ func TestContext(t *testing.T) {
 	workingDir := filepath.Join(tmpDir, "some-event")
 	rootConf := filepath.Join(tmpDir, ROOTCONF)
 
-	err = os.Mkdir(workingDir, 744)
+	err = os.Mkdir(workingDir, 755)
 	if err != nil {
 		t.Fatal(err)
 	}

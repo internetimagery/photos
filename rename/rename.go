@@ -2,6 +2,7 @@ package rename
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/internetimagery/photos/context"
@@ -50,6 +51,25 @@ func Rename(directoryPath string, cxt *context.Context) error {
 			renameMap[media.Path] = filepath.Join(directoryPath, newName)
 			sourceMap[media.Path] = filepath.Join(sourcePath, filepath.Base(media.Path))
 		}
+	}
+
+	// Make sure we actually have something to do
+	if len(renameMap) == 0 {
+		return nil
+	}
+
+	// Check files aren't already in the source directory
+	for _, source := range sourceMap {
+		if _, err = os.Stat(source); !os.IsNotExist(err) {
+			return fmt.Errorf("File already exists: '%s'", source)
+		}
+	}
+
+	//////////// Now make some changes! /////////////
+
+	// Make source file directory if it doesn't exist
+	if err = os.Mkdir(sourcePath, 755); err != nil && !os.IsNotExist(err) {
+		return err
 	}
 
 	fmt.Println(renameMap)
