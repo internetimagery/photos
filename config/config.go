@@ -52,7 +52,7 @@ func LoadConfig(reader io.Reader) (*Config, error) {
 
 // Save : Save config data out for writing
 func (conf *Config) Save(writer io.Writer) error {
-	data, err := json.Marshal(conf)
+	data, err := json.MarshalIndent(conf, "", "    ")
 	if err != nil {
 		return err
 	}

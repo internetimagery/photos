@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/internetimagery/photos/config"
 	"github.com/internetimagery/photos/context"
 )
 
@@ -16,7 +17,7 @@ func sendHelp() {
 	fmt.Println("Command to manage photos naming, compression, backup.")
 	fmt.Println("Usage:")
 	root := filepath.Base(os.Args[0])
-	fmt.Println("\t", root, "init", "\t\t// Set up a new project. Creates a config file also serving as the root of the project.")
+	fmt.Println("\t", root, "init <name>", "\t\t// Set up a new project. Creates a config file also serving as the root of the project.")
 	fmt.Println("\t", root, "rename", "\t\t// Rename (and compress) files in current directory to their parent directory's namespace (event).")
 	fmt.Println("\t", root, "backup <name>", "\t// Execute specified procedure in config to backup files from the current directory.")
 }
@@ -59,10 +60,23 @@ func main() {
 
 	case "init": // Create a starter config file at working directory, to signify the root of the project.
 		if os.IsNotExist(err) {
-			fmt.Printf("About to initialize your project in '%s'\n", cwd)
-			if question() {
-				fmt.Println("YAY DO IT")
-				// configPath := filepath.Join(cwd, context.ROOTCONF)
+			if len(os.Args) < 3 {
+				fmt.Println("Please provide a name for your project.")
+			} else {
+				name := os.Args[2]
+				fmt.Printf("About to initialize your project '%s' in '%s'\n", name, cwd)
+				if question() {
+					configPath := filepath.Join(cwd, context.ROOTCONF)
+					newConfig := config.NewConfig(name)
+					fmt.Printf("Creating config file '%s'\n", configPath)
+					fmt.Println("Be sure to edit it later with what you need. :)")
+					handle, err := os.Create(configPath)
+					if err != nil {
+						panic(err)
+					}
+					defer handle.Close()
+					newConfig.Save(handle)
+				}
 			}
 		} else if err == nil {
 			fmt.Println("Already within a project. Cannot initialize...")

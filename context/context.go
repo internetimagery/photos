@@ -8,7 +8,7 @@ import (
 )
 
 // ROOTCONF : name of config file that marks the root of the project (as well as important information)
-const ROOTCONF = "photos.config"
+const ROOTCONF = "photos-config.json"
 
 // Context : Collect and encapsulate information about project
 type Context struct {
