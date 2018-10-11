@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	shlex "github.com/google/shlex"
 	"github.com/internetimagery/photos/context"
@@ -77,36 +78,48 @@ func Rename(directoryPath string, cxt *context.Context) error {
 	// Run through files!
 	for src, dest := range renameMap {
 
-		// Grab compress command or use a default command. Expand variables
+		// Grab compress command or use a default command. Do the compression.
 		command := cxt.Config.Compress.GetCommand(src)
 		if command == "" {
-			command = `cp "$SOURCEPATH" "$DESTPATH"`
+			command = `cp -a "$SOURCEPATH" "$DESTPATH"`
 		}
-		command = os.Expand(command, cxt.GetEnv(src, dest))
-		commandParts, err := shlex.Split(command)
+		env := map[string]string{
+			"SOURCEPATH":  src,            // From where are we going?
+			"DESTPATH":    dest,           // To where are we headed?
+			"ROOTPATH":    cxt.Root,       // Where is the root of our project?
+			"WORKINGPATH": cxt.WorkingDir, // Where are we working right now?
+		}
+		err = runCommand(command, env)
 		if err != nil {
 			return err
 		}
 
-		// Run compress command and check file made it to destination
-		fmt.Println("Running:", command)
-		fmt.Println("Running:", commandParts)
-		com := exec.Command(commandParts[0], commandParts[1:]...)
-		com.Stdout = os.Stdout
-		com.Stderr = os.Stderr
-		err = com.Run()
-		if err != nil {
-			return err
-		}
+		// Verify file made it to its location
 		if _, err = os.Stat(dest); err != nil {
 			return err
 		}
 
-		// Move source file to source folder, and verify it made it. Then remove it.
+		// Move source file to source folder.
 		if err = os.Rename(src, sourceMap[src]); err != nil {
 			return err
 		}
-
 	}
 	return nil
+}
+
+// runCommand : Helper to run commands, linking outputs to terminal outputs and replacing variables safely
+func runCommand(commandString string, environment map[string]string) error {
+	buildEnv := func(name string) string {
+		return strings.Replace(environment[name], `\`, `\\`, -1)
+	}
+	commandExpand := os.Expand(commandString, buildEnv)
+	commandParts, err := shlex.Split(commandExpand)
+	if err != nil {
+		return err
+	}
+	command := exec.Command(commandParts[0], commandParts[1:]...)
+	command.Stdout = os.Stdout
+	command.Stderr = os.Stderr
+	fmt.Println("Running:", commandParts)
+	return command.Run()
 }
