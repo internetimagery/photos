@@ -16,8 +16,8 @@ import (
 // SOURCEDIR : File to store originals for manual checking
 const SOURCEDIR = "Source Media Please check before removing"
 
-// Rename : Rename and compress files within an event (directory)
-func Rename(directoryPath string, cxt *context.Context) error {
+// Rename : Rename and compress files within an event (directory). Optionally compress while renaming.
+func Rename(directoryPath string, cxt *context.Context, compress bool) error {
 	// Get event name from path
 	eventName := filepath.Base(directoryPath)
 
@@ -78,19 +78,26 @@ func Rename(directoryPath string, cxt *context.Context) error {
 	// Run through files!
 	for src, dest := range renameMap {
 
-		// Grab compress command or use a default command. Do the compression.
-		command := cxt.Config.Compress.GetCommand(src)
-		if command == "" {
-			command = `cp -a "$SOURCEPATH" "$DESTPATH"`
-		}
-		env := map[string]string{
-			"SOURCEPATH":  src,            // From where are we going?
-			"DESTPATH":    dest,           // To where are we headed?
-			"ROOTPATH":    cxt.Root,       // Where is the root of our project?
-			"WORKINGPATH": cxt.WorkingDir, // Where are we working right now?
-		}
-		if err = runCommand(command, env); err != nil {
-			return err
+		if compress {
+
+			// Grab compress command or use a default command. Do the compression.
+			command := cxt.Config.Compress.GetCommand(src)
+			if command == "" {
+				command = `cp -a "$SOURCEPATH" "$DESTPATH"`
+			}
+			env := map[string]string{
+				"SOURCEPATH":  src,            // From where are we going?
+				"DESTPATH":    dest,           // To where are we headed?
+				"ROOTPATH":    cxt.Root,       // Where is the root of our project?
+				"WORKINGPATH": cxt.WorkingDir, // Where are we working right now?
+			}
+			if err = runCommand(command, env); err != nil {
+				return err
+			}
+		} else {
+			if err = os.Link(src, dest); err != nil {
+				return err
+			}
 		}
 
 		// Verify file made it to its location

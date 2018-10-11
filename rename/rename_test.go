@@ -50,19 +50,23 @@ func TestRename(t *testing.T) {
 		}
 	}
 
-	// Perform rename
-	err = Rename(rootPath, mockCxt)
+	// Perform rename with compression
+	err = Rename(rootPath, mockCxt, true)
 	if err != nil {
 		fmt.Println(err)
 		t.Fail()
 	}
 
 	// Check files made it to where they need to be
-
-	// Check source files are where they should be
 	sourcePath := filepath.Join(rootPath, SOURCEDIR)
 	for src, dst := range testFiles {
 		if src != dst {
+			// Check renamed
+			if _, err = os.Stat(filepath.Join(rootPath, dst)); err != nil {
+				fmt.Println(err)
+				t.Fail()
+			}
+			// Check original source
 			if _, err = os.Stat(filepath.Join(sourcePath, src)); err != nil {
 				fmt.Println(err)
 				t.Fail()
