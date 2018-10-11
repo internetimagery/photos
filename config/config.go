@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -79,7 +80,7 @@ func (compress CompressCategory) GetCommand(filename string) string {
 	lowName := filepath.ToSlash(strings.ToLower(filename))
 	for _, command := range compress {
 		for _, pattern := range strings.Split(command.GetName(), " ") {
-			match, err := filepath.Match(pattern, lowName)
+			match, err := path.Match(pattern, lowName)
 			if err != nil { // This will only trigger if filter is malformed, so we should exit
 				panic(err)
 			}

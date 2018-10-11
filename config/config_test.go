@@ -47,6 +47,7 @@ func TestCompressCommand(t *testing.T) {
 	 "compress":[
 	    ["*.jpg *.png", "image"],
 			["*.mp4 video/*", "video"],
+			["path/to/*/*", "path"],
 	    ["*", "all"]
 	 ]
  }`
@@ -60,7 +61,7 @@ func TestCompressCommand(t *testing.T) {
 	tests := map[string]string{
 		"anything":                         "all",
 		"somepic.JPG":                      "image",
-		"other/pic.png":                    "image",
+		"path/to/other/pic.png":            "path",
 		"video.mp4":                        "video",
 		filepath.Join("video", "file.vid"): "video",
 	}
