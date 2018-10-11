@@ -89,8 +89,7 @@ func Rename(directoryPath string, cxt *context.Context) error {
 			"ROOTPATH":    cxt.Root,       // Where is the root of our project?
 			"WORKINGPATH": cxt.WorkingDir, // Where are we working right now?
 		}
-		err = runCommand(command, env)
-		if err != nil {
+		if err = runCommand(command, env); err != nil {
 			return err
 		}
 
