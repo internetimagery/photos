@@ -60,6 +60,7 @@ func Rename(cxt *context.Context, compress bool) error {
 
 	// Make sure we actually have something to do
 	if len(renameMap) == 0 {
+		log.Println("Nothing to rename...")
 		return nil
 	}
 
@@ -73,7 +74,7 @@ func Rename(cxt *context.Context, compress bool) error {
 	//////////// Now make some changes! /////////////
 
 	// Make source file directory if it doesn't exist
-	if err = os.Mkdir(sourcePath, 755); err != nil && !os.IsNotExist(err) {
+	if err = os.Mkdir(sourcePath, 755); err != nil && !os.IsExist(err) {
 		return err
 	}
 
