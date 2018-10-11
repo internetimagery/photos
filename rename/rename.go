@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	shlex "github.com/google/shlex"
 	"github.com/internetimagery/photos/context"
 
 	"github.com/internetimagery/photos/format"
@@ -82,18 +83,30 @@ func Rename(directoryPath string, cxt *context.Context) error {
 			command = `cp "$SOURCEPATH" "$DESTPATH"`
 		}
 		command = os.Expand(command, cxt.GetEnv(src, dest))
-
-		// Run compress command and check file made it to destination
-		fmt.Println("To run ->", command)
-
-		// Move source file to source folder
-		fmt.Println("COPY:", "cp", "-avT", src, sourceMap[src])
-		com := exec.Command("cp", "-avT", src, sourceMap[src])
-		output, err := com.CombinedOutput()
+		commandParts, err := shlex.Split(command)
 		if err != nil {
-			fmt.Println(string(output))
 			return err
 		}
+
+		// Run compress command and check file made it to destination
+		fmt.Println("Running:", command)
+		fmt.Println("Running:", commandParts)
+		com := exec.Command(commandParts[0], commandParts[1:]...)
+		com.Stdout = os.Stdout
+		com.Stderr = os.Stderr
+		err = com.Run()
+		if err != nil {
+			return err
+		}
+		if _, err = os.Stat(dest); err != nil {
+			return err
+		}
+
+		// Move source file to source folder, and verify it made it. Then remove it.
+		if err = os.Rename(src, sourceMap[src]); err != nil {
+			return err
+		}
+
 	}
 	return nil
 }

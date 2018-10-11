@@ -3,6 +3,7 @@ package context
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/internetimagery/photos/config"
 )
@@ -51,13 +52,13 @@ func (cxt *Context) GetEnv(sourcePath, destPath string) func(string) string {
 	return func(name string) string {
 		switch name {
 		case "SOURCEPATH":
-			return sourcePath
+			return strings.Replace(sourcePath, `\`, `\\`, -1)
 		case "DESTPATH":
-			return destPath
+			return strings.Replace(destPath, `\`, `\\`, -1)
 		case "WORKINGPATH":
-			return cxt.WorkingDir
+			return strings.Replace(cxt.WorkingDir, `\`, `\\`, -1)
 		case "PROJECTPATH":
-			return cxt.Root
+			return strings.Replace(cxt.Root, `\`, `\\`, -1)
 		}
 		return ""
 	}
