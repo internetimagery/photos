@@ -14,10 +14,11 @@ import (
 )
 
 // SOURCEDIR : File to store originals for manual checking
-const SOURCEDIR = "Source Media Please check before removing"
+const SOURCEDIR = "Source Media - Please check before removing"
 
 // Rename : Rename and compress files within an event (directory). Optionally compress while renaming.
 func Rename(cxt *context.Context, compress bool) error {
+
 	// Get event name from path
 	eventName := filepath.Base(cxt.WorkingDir)
 

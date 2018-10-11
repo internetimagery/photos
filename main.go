@@ -10,6 +10,7 @@ import (
 
 	"github.com/internetimagery/photos/config"
 	"github.com/internetimagery/photos/context"
+	"github.com/internetimagery/photos/rename"
 )
 
 // sendHelp : Print out helpful message.
@@ -98,16 +99,20 @@ func main() {
 	switch os.Args[1] {
 
 	case "rename": // Rename files (and optionally compress them) within working directory
-		fmt.Printf("About to rename media in '%s'", cxt.WorkingDir)
-		if question() {
-			fmt.Println("Ok gonna do it I guess")
+		if cxt.WorkingDir == cxt.Root {
+			fmt.Println("Cannot rename media in the root directory (same place as config file.)")
+		} else {
+			fmt.Printf("About to rename media in '%s'\n", cxt.WorkingDir)
+			if question() {
+				fmt.Printf("Renaming media in '%s'\n", cxt.WorkingDir)
+				if err = rename.Rename(cxt, true); err != nil {
+					panic(err)
+				}
+			}
 		}
 
 	case "backup": // Backup files within working directory to specified destination
-		fmt.Printf("About to rename media in '%s'", cxt.WorkingDir)
-		if question() {
-			fmt.Println("Ok gonna do it I guess")
-		}
+		fmt.Println("When this is functioning, life will be grand!")
 
 	default:
 		fmt.Println("Unrecognized command", os.Args[1])
