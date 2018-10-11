@@ -2,6 +2,7 @@ package rename
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -79,6 +80,8 @@ func Rename(cxt *context.Context, compress bool) error {
 	// Run through files!
 	for src, dest := range renameMap {
 
+		log.Println("Renaming:", src)
+
 		if compress {
 
 			// Grab compress command or use a default command. Do the compression.
@@ -92,6 +95,7 @@ func Rename(cxt *context.Context, compress bool) error {
 				"ROOTPATH":    cxt.Root,       // Where is the root of our project?
 				"WORKINGPATH": cxt.WorkingDir, // Where are we working right now?
 			}
+			log.Println("Compressing:", src)
 			if err = runCommand(command, env); err != nil {
 				return err
 			}
@@ -127,6 +131,6 @@ func runCommand(commandString string, environment map[string]string) error {
 	command := exec.Command(commandParts[0], commandParts[1:]...)
 	command.Stdout = os.Stdout
 	command.Stderr = os.Stderr
-	fmt.Println("Running:", commandParts)
+	log.Println("Running:", commandParts)
 	return command.Run()
 }
