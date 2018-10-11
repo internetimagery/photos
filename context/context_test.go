@@ -9,7 +9,7 @@ import (
 )
 
 func TestNewContext(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "photostest")
+	tmpDir, err := ioutil.TempDir("", "TestNewContext")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -27,7 +27,7 @@ func TestContext(t *testing.T) {
 	]
 }`)
 
-	tmpDir, err := ioutil.TempDir("", "photos-context-test")
+	tmpDir, err := ioutil.TempDir("", "TestContext")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -14,7 +14,7 @@ import (
 func TestRename(t *testing.T) {
 
 	// Working Path
-	tmpDir, err := ioutil.TempDir("", "photo_test")
+	tmpDir, err := ioutil.TempDir("", "TestRename")
 	if err != nil {
 		t.Fatal(err)
 	}

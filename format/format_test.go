@@ -60,7 +60,7 @@ func TestFormatName(t *testing.T) {
 }
 
 func TestGetMediaFromDirectory(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "testing_media")
+	tmpDir, err := ioutil.TempDir("", "TestGetMediaFromDirectory")
 	if err != nil {
 		t.Fatal(err)
 	}
