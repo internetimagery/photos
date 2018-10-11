@@ -22,7 +22,7 @@ func TestRename(t *testing.T) {
 
 	eventName := "18-02-01 event"
 	rootPath := filepath.Join(tmpDir, eventName)
-	err = os.Mkdir(rootPath, 755)
+	err = os.Mkdir(rootPath, 0755)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +46,7 @@ func TestRename(t *testing.T) {
 
 	// Create files
 	for name := range testFiles {
-		err = ioutil.WriteFile(filepath.Join(rootPath, name), []byte("some data"), 655)
+		err = ioutil.WriteFile(filepath.Join(rootPath, name), []byte("some data"), 0644)
 		if err != nil {
 			t.Fatal(err)
 		}

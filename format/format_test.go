@@ -74,12 +74,12 @@ func TestGetMediaFromDirectory(t *testing.T) {
 		filepath.Join(rootPath, "12-10-12 event_034.png"):                Media{Event: "18-05-12 event", Ext: "png"},
 		filepath.Join(rootPath, "document_scanned.jpg"):                  Media{Event: "18-05-12 event", Ext: "jpg"},
 	}
-	err = os.Mkdir(rootPath, 755)
+	err = os.Mkdir(rootPath, 0755)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for path := range testFiles {
-		err = ioutil.WriteFile(path, []byte("testing123"), 644)
+		err = ioutil.WriteFile(path, []byte("testing123"), 0644)
 		if err != nil {
 			t.Fatal(err)
 		}

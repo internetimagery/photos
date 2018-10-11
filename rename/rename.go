@@ -74,7 +74,7 @@ func Rename(cxt *context.Context, compress bool) error {
 	//////////// Now make some changes! /////////////
 
 	// Make source file directory if it doesn't exist
-	if err = os.Mkdir(sourcePath, 755); err != nil && !os.IsExist(err) {
+	if err = os.Mkdir(sourcePath, 0755); err != nil && !os.IsExist(err) {
 		return err
 	}
 
