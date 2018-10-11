@@ -12,14 +12,6 @@ import (
 )
 
 func TestRename(t *testing.T) {
-	// Mock context
-	mockCxt := &context.Context{
-		Config: &config.Config{
-			Compress: config.CompressCategory{
-				config.Command{"*", `cp "$SOURCEPATH" "$DESTPATH"`},
-			},
-		},
-	}
 
 	// Working Path
 	tmpDir, err := ioutil.TempDir("", "photo_test")
@@ -33,6 +25,16 @@ func TestRename(t *testing.T) {
 	err = os.Mkdir(rootPath, 755)
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	// Mock context
+	mockCxt := &context.Context{
+		WorkingDir: rootPath,
+		Config: &config.Config{
+			Compress: config.CompressCategory{
+				config.Command{"*", `cp "$SOURCEPATH" "$DESTPATH"`},
+			},
+		},
 	}
 
 	// Prep some test files
@@ -51,7 +53,7 @@ func TestRename(t *testing.T) {
 	}
 
 	// Perform rename with compression
-	err = Rename(rootPath, mockCxt, true)
+	err = Rename(mockCxt, true)
 	if err != nil {
 		fmt.Println(err)
 		t.Fail()

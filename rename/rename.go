@@ -17,15 +17,15 @@ import (
 const SOURCEDIR = "Source Media Please check before removing"
 
 // Rename : Rename and compress files within an event (directory). Optionally compress while renaming.
-func Rename(directoryPath string, cxt *context.Context, compress bool) error {
+func Rename(cxt *context.Context, compress bool) error {
 	// Get event name from path
-	eventName := filepath.Base(directoryPath)
+	eventName := filepath.Base(cxt.WorkingDir)
 
 	// Get source path
-	sourcePath := filepath.Join(directoryPath, SOURCEDIR)
+	sourcePath := filepath.Join(cxt.WorkingDir, SOURCEDIR)
 
 	// Grab files from given path
-	mediaList, err := format.GetMediaFromDirectory(directoryPath)
+	mediaList, err := format.GetMediaFromDirectory(cxt.WorkingDir)
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func Rename(directoryPath string, cxt *context.Context, compress bool) error {
 			if err != nil {
 				return err
 			}
-			renameMap[media.Path] = filepath.Join(directoryPath, newName)
+			renameMap[media.Path] = filepath.Join(cxt.WorkingDir, newName)
 			sourceMap[media.Path] = filepath.Join(sourcePath, filepath.Base(media.Path))
 		}
 	}
