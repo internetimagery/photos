@@ -21,9 +21,9 @@ func sendHelp() {
 	fmt.Println("Command to manage photos naming, compression, backup.")
 	fmt.Println("Usage:")
 	root := filepath.Base(os.Args[0])
-	fmt.Println("\t", root, "init <name>", "\t\t// Set up a new project. Creates a config file also serving as the root of the project.")
-	fmt.Println("\t", root, "rename", "\t\t// Rename (and compress) files in current directory to their parent directory's namespace (event).")
-	fmt.Println("\t", root, "backup <name>", "\t// Execute specified procedure in config to backup files from the current directory.")
+	fmt.Println("    ", root, "init <name>  ", "// Set up a new project. Creates a config file also serving as the root of the project.")
+	fmt.Println("    ", root, "rename       ", "// Rename (and compress) files in current directory to their parent directory's namespace (event).")
+	fmt.Println("    ", root, "backup <name>", "// Execute specified procedure in config to backup files from the current directory.")
 }
 
 // question : Ask yes or no
