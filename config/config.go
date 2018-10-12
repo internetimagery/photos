@@ -77,7 +77,7 @@ func (command Command) GetCommand() string {
 
 // GetCommand : Get the first command (in config order) whose name filter satisfies filename
 func (compress CompressCategory) GetCommand(filename string) string {
-	lowName := filepath.ToSlash(strings.ToLower(filename))
+	lowName := filepath.Base(strings.ToLower(filename))
 	for _, command := range compress {
 		for _, pattern := range strings.Split(command.GetName(), " ") {
 			match, err := path.Match(pattern, lowName)

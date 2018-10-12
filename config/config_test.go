@@ -61,9 +61,9 @@ func TestCompressCommand(t *testing.T) {
 	tests := map[string]string{
 		"anything":                         "all",
 		"somepic.JPG":                      "image",
-		"path/to/other/pic.png":            "path",
+		"path/to/other/pic.png":            "image", // Ignoring paths
 		"video.mp4":                        "video",
-		filepath.Join("video", "file.vid"): "video",
+		filepath.Join("video", "file.vid"): "all",
 	}
 	for test, expect := range tests {
 		command := conf.Compress.GetCommand(test)
