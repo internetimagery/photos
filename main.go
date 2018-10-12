@@ -13,6 +13,9 @@ import (
 	"github.com/internetimagery/photos/rename"
 )
 
+// VERSION : Version information
+const VERSION = "0.0.1"
+
 // sendHelp : Print out helpful message.
 func sendHelp() {
 	fmt.Println("Command to manage photos naming, compression, backup.")
@@ -57,6 +60,14 @@ func main() {
 
 	case "--help":
 		sendHelp()
+		return
+
+	case "-v":
+		fmt.Println(VERSION)
+		return
+
+	case "version":
+		fmt.Println(VERSION)
 		return
 
 	case "init": // Create a starter config file at working directory, to signify the root of the project.
