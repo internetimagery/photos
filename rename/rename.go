@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	shlex "github.com/google/shlex"
 	"github.com/internetimagery/photos/context"
@@ -90,14 +89,8 @@ func Rename(cxt *context.Context, compress bool) error {
 			if command == "" {
 				command = `cp -a "$SOURCEPATH" "$DESTPATH"`
 			}
-			env := map[string]string{
-				"SOURCEPATH":  src,            // From where are we going?
-				"DESTPATH":    dest,           // To where are we headed?
-				"ROOTPATH":    cxt.Root,       // Where is the root of our project?
-				"WORKINGPATH": cxt.WorkingDir, // Where are we working right now?
-			}
 			log.Println("Compressing:", src)
-			if err = runCommand(command, env); err != nil {
+			if err = runCommand(os.Expand(command, cxt.GetEnv(src, dest))); err != nil {
 				return err
 			}
 		} else {
@@ -120,12 +113,8 @@ func Rename(cxt *context.Context, compress bool) error {
 }
 
 // runCommand : Helper to run commands, linking outputs to terminal outputs and replacing variables safely
-func runCommand(commandString string, environment map[string]string) error {
-	buildEnv := func(name string) string {
-		return strings.Replace(environment[name], `\`, `\\`, -1)
-	}
-	commandExpand := os.Expand(commandString, buildEnv)
-	commandParts, err := shlex.Split(commandExpand)
+func runCommand(commandString string) error {
+	commandParts, err := shlex.Split(commandString)
 	if err != nil {
 		return err
 	}
