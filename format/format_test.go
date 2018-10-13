@@ -40,20 +40,29 @@ func TestNewMedia(t *testing.T) {
 
 }
 
+type testCase struct {
+	Value string
+	Media Media
+}
+
 func TestFormatName(t *testing.T) {
-	tests := make(map[string]Media)
+	tests := []testCase{
+		testCase{"event01_020.png", Media{Event: "event01", Index: 20, Ext: "png"}},
+		testCase{"18-12-07 event_1234[one two].jpeg", Media{Event: "18-12-07 event", Index: 1234, Tags: []string{"one", "two"}, Ext: "jpeg"}},
+		testCase{"", Media{Event: "some event/event", Index: 2, Ext: "jpg"}},
+		testCase{"", Media{Event: "evento", Index: -1, Ext: "png"}},
+		testCase{"", Media{Event: "eventing", Index: 23, Ext: "$$$"}},
+		testCase{"", Media{Event: "  ", Index: 23, Ext: "thing"}},
+		testCase{"", Media{Event: "eventer", Index: 12, Ext: ""}},
+	}
 
-	tests["event01_020.png"] = Media{Event: "event01", Index: 20, Ext: "png"}
-	tests["18-12-07 event_1234[one two].jpeg"] = Media{Event: "18-12-07 event", Index: 1234, Tags: []string{"one", "two"}, Ext: "jpeg"}
-	tests[""] = Media{Event: "some event/event", Index: 0, Ext: "$$$"}
-
-	for expect, test := range tests {
-		result, err := test.FormatName()
-		if err != nil && expect != "" {
+	for _, expect := range tests {
+		result, err := expect.Media.FormatName()
+		if err != nil && expect.Value != "" {
 			fmt.Println(err)
 			t.Fail()
-		} else if result != expect {
-			fmt.Printf("Expected '%s', got '%s'\n", expect, result)
+		} else if result != expect.Value {
+			fmt.Printf("Expected '%s', got '%s'\n", expect.Value, result)
 			t.Fail()
 		}
 	}

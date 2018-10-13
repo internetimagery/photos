@@ -44,16 +44,16 @@ func NewMedia(filename string) *Media {
 // FormatName : Given the current settings (which may have been modified), validate and format a corresponding name.
 func (media *Media) FormatName() (string, error) {
 	// Validate our inputs
-	if !regexp.MustCompile(eventReg).MatchString(media.Event) || strings.TrimSpace(media.Event) == "" {
+	if !regexp.MustCompile("^"+eventReg+"$").MatchString(media.Event) || strings.TrimSpace(media.Event) == "" {
 		return "", fmt.Errorf("Bad Event: '%s'", media.Event)
 	}
 	if media.Index <= 0 {
 		return "", fmt.Errorf("Index value too low: '%d'", media.Index)
 	}
-	if !regexp.MustCompile(extReg).MatchString(media.Ext) || strings.TrimSpace(media.Ext) == "" {
+	if !regexp.MustCompile("^"+extReg+"$").MatchString(media.Ext) || strings.TrimSpace(media.Ext) == "" {
 		return "", fmt.Errorf("Bad extension: '%s'", media.Ext)
 	}
-	tagTest := regexp.MustCompile(tagReg)
+	tagTest := regexp.MustCompile("^" + tagReg + "$")
 	for _, tag := range media.Tags {
 		if !tagTest.MatchString(tag) || strings.TrimSpace(tag) == "" {
 			return "", fmt.Errorf("Bad tag: '%s'", tag)
