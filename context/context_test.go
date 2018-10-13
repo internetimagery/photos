@@ -59,3 +59,18 @@ func TestContext(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestGetEnv(t *testing.T) {
+	cxt := &Context{WorkingDir: "/path/to/place", Root: "/path/to"}
+	src := "/path/to/place/source.ext"
+	dst := "/path/to/place/destination.ext"
+
+	varString := "$SOURCEPATH $DESTPATH $ROOTPATH $WORKINGPATH"
+	testString := "/path/to/place/source.ext /path/to/place/destination.ext /path/to /path/to/place"
+	excString := os.Expand(varString, cxt.GetEnv(src, dst))
+	if excString != testString {
+		fmt.Println("Expected:", testString)
+		fmt.Println("Got:", excString)
+		t.Fail()
+	}
+}

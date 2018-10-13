@@ -3,6 +3,7 @@ package context
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/internetimagery/photos/config"
 )
@@ -44,4 +45,17 @@ func NewContext(workingDir string) (*Context, error) {
 		return nil, err
 	}
 	return &Context{Root: currentRoot, WorkingDir: workingDir, Config: conf}, nil
+}
+
+// GetEnv : Expand variables in commands
+func (cxt *Context) GetEnv(sourcePath, destPath string) func(string) string {
+	env := map[string]string{
+		"SOURCEPATH":  sourcePath,
+		"DESTPATH":    destPath,
+		"ROOTPATH":    cxt.Root,
+		"WORKINGPATH": cxt.WorkingDir,
+	}
+	return func(name string) string {
+		return strings.Replace(env[name], `\`, `\\`, -1)
+	}
 }
