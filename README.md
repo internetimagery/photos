@@ -13,6 +13,12 @@ photos init "some name"
 Initialize working directory as project root. Create a configuration file at that location that serves to mark the root, and also provides a space to add custom commands for backups / compression.
 
 ```
+photos sort
+```
+
+Take all loose media in working directory, and add them to a folder named based on their date.
+
+```
 photos rename
 ```
 
