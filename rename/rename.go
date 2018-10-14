@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 
-	shlex "github.com/google/shlex"
 	"github.com/internetimagery/photos/context"
 
 	"github.com/internetimagery/photos/format"
@@ -82,16 +80,29 @@ func Rename(cxt *context.Context, compress bool) error {
 
 		log.Println("Renaming:", src)
 
+		// Create environment for command
+		env := map[string]string{
+			"SOURCEPATH":  src,
+			"DESTPATH":    dest,
+			"ROOTPATH":    cxt.Root,
+			"WORKINGPATH": cxt.WorkingDir,
+		}
+
 		if compress {
 
 			// Grab compress command or use a default command. Do the compression.
-			command := cxt.Config.Compress.GetCommand(src)
+			command := cxt.Config.Compress.GetCommand(src, env)
 			if command == "" {
-				command = `cp -a "$SOURCEPATH" "$DESTPATH"`
-			}
-			log.Println("Compressing:", src)
-			if err = runCommand(os.Expand(command, cxt.GetEnv(src, dest))); err != nil {
-				return err
+				log.Println("Moving:", src)
+				err = os.Link(src, dest)
+				if err != nil {
+					return err
+				}
+			} else {
+				log.Println("Compressing:", src)
+				if err = context.RunCommand(command); err != nil {
+					return err
+				}
 			}
 		} else {
 			if err = os.Link(src, dest); err != nil {
@@ -110,17 +121,4 @@ func Rename(cxt *context.Context, compress bool) error {
 		}
 	}
 	return nil
-}
-
-// runCommand : Helper to run commands, linking outputs to terminal outputs and replacing variables safely
-func runCommand(commandString string) error {
-	commandParts, err := shlex.Split(commandString)
-	if err != nil {
-		return err
-	}
-	command := exec.Command(commandParts[0], commandParts[1:]...)
-	command.Stdout = os.Stdout
-	command.Stderr = os.Stderr
-	log.Println("Running:", commandParts)
-	return command.Run()
 }

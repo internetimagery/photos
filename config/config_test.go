@@ -24,6 +24,7 @@ func TestNewConfig(t *testing.T) {
 		fmt.Println(err)
 		t.Fail()
 	}
+
 	// Verify basic groups are present
 	if _, ok := verifyStruct["compress"]; !ok {
 		fmt.Println("Config missing compress group")
@@ -66,7 +67,7 @@ func TestCompressCommand(t *testing.T) {
 		filepath.Join("video", "file.vid"): "all",
 	}
 	for test, expect := range tests {
-		command := conf.Compress.GetCommand(test)
+		command := conf.Compress.GetCommand(test, make(map[string]string))
 		if command != expect {
 			fmt.Printf("Expected '%s' but got '%s' while testing '%s'\n", expect, command, test)
 			t.Fail()
@@ -95,7 +96,7 @@ func TestBackupCommand(t *testing.T) {
 		"remote*": map[string]bool{"dropbox": true, "amazon": true},
 	}
 	for test, expect := range tests {
-		commands := conf.Backup.GetCommands(test)
+		commands := conf.Backup.GetCommands(test, make(map[string]string))
 		if len(commands) == 0 {
 			fmt.Println("No commands returned for", test)
 			t.Fail()

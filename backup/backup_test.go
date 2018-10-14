@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/internetimagery/photos/config"
 	"github.com/internetimagery/photos/context"
 )
 
@@ -20,20 +21,17 @@ func TestRunBackup(t *testing.T) {
 
 	testFile := filepath.Join(tmpDir, "testfile.txt")
 
-	configData := []byte(fmt.Sprintf(`{
-    "backup":
-      ["test", "touch \"%s\""]
-    }`, strings.Replace(testFile, `\`, `\\`, -1)))
-	err = ioutil.WriteFile(filepath.Join(tmpDir, context.ROOTCONF), configData, 0644)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	cxt, err := context.NewContext(tmpDir)
-	if err != nil {
-		fmt.Println(string(configData))
-		fmt.Println(err)
-		t.Fail()
+	cxt := &context.Context{
+		Root:       tmpDir,
+		WorkingDir: tmpDir,
+		Config: &config.Config{
+			Backup: config.BackupCategory{
+				config.Command{
+					"test",
+					fmt.Sprintf("touch '%s'", strings.Replace(testFile, `\`, `\\`, -1)),
+				},
+			},
+		},
 	}
 
 	// Test missing command

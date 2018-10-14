@@ -1,10 +1,13 @@
 package context
 
 import (
+	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
+	"github.com/google/shlex"
 	"github.com/internetimagery/photos/config"
 )
 
@@ -58,4 +61,17 @@ func (cxt *Context) GetEnv(sourcePath, destPath string) func(string) string {
 	return func(name string) string {
 		return strings.Replace(env[name], `\`, `\\`, -1)
 	}
+}
+
+// RunCommand : Helper to run commands, linking outputs to terminal outputs and replacing variables safely
+func RunCommand(commandString string) error {
+	commandParts, err := shlex.Split(commandString)
+	if err != nil {
+		return err
+	}
+	command := exec.Command(commandParts[0], commandParts[1:]...)
+	command.Stdout = os.Stdout
+	command.Stderr = os.Stderr
+	log.Println("Running:", commandParts)
+	return command.Run()
 }
