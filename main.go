@@ -22,6 +22,7 @@ func sendHelp() {
 	fmt.Println("Usage:")
 	root := filepath.Base(os.Args[0])
 	fmt.Println("    ", root, "init <name>  ", "// Set up a new project. Creates a config file also serving as the root of the project.")
+	fmt.Println("    ", root, "sort         ", "// Sort files in the current directory, into folders named after their dates.")
 	fmt.Println("    ", root, "rename       ", "// Rename (and compress) files in current directory to their parent directory's namespace (event).")
 	fmt.Println("    ", root, "backup <name>", "// Execute specified procedure in config to backup files from the current directory.")
 }
@@ -108,6 +109,9 @@ func main() {
 
 	// Nab the rest of the commands
 	switch os.Args[1] {
+
+	case "sort": // Sort files in the working directory into folders of their date
+		fmt.Println("Sorting files sometime")
 
 	case "rename": // Rename files (and optionally compress them) within working directory
 		if cxt.WorkingDir == cxt.Root {
