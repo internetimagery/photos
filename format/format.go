@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+// TEMPPREFIX : Prefix for temporary working files. Ignore these files.
+var TEMPPREFIX = `tmp.`    // Prefix for temporary working files
 var eventReg = `[\w\-_ ]+` // Valid event
 var indexReg = `\d+`       // Valid Index
 var tagReg = `[\w\-_ ]+`   // Valid Tags
@@ -77,7 +79,7 @@ func GetMediaFromDirectory(dirPath string) ([]*Media, error) {
 		return mediaList, err
 	}
 	for _, file := range files {
-		if !file.IsDir() {
+		if !file.IsDir() && !strings.HasPrefix(file.Name(), TEMPPREFIX) {
 			fullPath := filepath.Join(dirPath, file.Name())
 			media := NewMedia(fullPath)
 			if media.Event != event {
