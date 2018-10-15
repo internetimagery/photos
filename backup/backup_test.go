@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/internetimagery/photos/config"
@@ -23,12 +22,16 @@ func TestRunBackup(t *testing.T) {
 	testFile2 := filepath.Join(tmpDir, "testfile2.txt")
 
 	cxt := &context.Context{
+		Env: map[string]string{
+			"TESTPATH1": testFile1,
+			"TESTPATH2": testFile2,
+		},
 		Root:       tmpDir,
 		WorkingDir: tmpDir,
 		Config: &config.Config{
 			Backup: config.BackupCategory{
-				config.Command{"test", fmt.Sprintf("touch '%s'", strings.Replace(testFile1, `\`, `\\`, -1))},
-				config.Command{"other", fmt.Sprintf("touch '%s'", strings.Replace(testFile2, `\`, `\\`, -1))},
+				config.Command{"test", "touch $TESTPATH1"},
+				config.Command{"other", "touch $TESTPATH2"},
 			},
 		},
 	}

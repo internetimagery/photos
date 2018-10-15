@@ -85,7 +85,7 @@ func TestSetEnviron(t *testing.T) {
 	destPath := "/path/to/other.file"
 
 	// Set up our environment
-	setEnviron(sourcePath, destPath, cxt)
+	setEnvironment(sourcePath, destPath, cxt)
 
 	testCase := map[string]string{
 		"SOURCEPATH":  sourcePath,

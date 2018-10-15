@@ -14,8 +14,8 @@ import (
 // SOURCEDIR : File to store originals for manual checking
 const SOURCEDIR = "Source Media - Please check before removing"
 
-// setEnviron : Set up environment variables for the command context
-func setEnviron(sourcePath, destPath string, cxt *context.Context) {
+// setEnvironment : Set up environment variables for the command context
+func setEnvironment(sourcePath, destPath string, cxt *context.Context) {
 	cxt.Env["SOURCEPATH"] = sourcePath
 	cxt.Env["DESTPATH"] = destPath
 	cxt.Env["ROOTPATH"] = cxt.Root
@@ -89,7 +89,7 @@ func Rename(cxt *context.Context, compress bool) error {
 		log.Println("Renaming:", src)
 
 		// Create environment for command
-		setEnviron(src, dest, cxt)
+		setEnvironment(src, dest, cxt)
 
 		if compress {
 
