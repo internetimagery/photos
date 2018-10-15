@@ -14,6 +14,14 @@ import (
 // SOURCEDIR : File to store originals for manual checking
 const SOURCEDIR = "Source Media - Please check before removing"
 
+// setEnviron : Set up environment variables for the command context
+func setEnviron(sourcePath, destPath string, cxt *context.Context) {
+	cxt.Env["SOURCEPATH"] = sourcePath
+	cxt.Env["DESTPATH"] = destPath
+	cxt.Env["ROOTPATH"] = cxt.Root
+	cxt.Env["WORKINGPATH"] = cxt.WorkingDir
+}
+
 // Rename : Rename and compress files within an event (directory). Optionally compress while renaming.
 func Rename(cxt *context.Context, compress bool) error {
 
@@ -81,26 +89,26 @@ func Rename(cxt *context.Context, compress bool) error {
 		log.Println("Renaming:", src)
 
 		// Create environment for command
-		env := map[string]string{
-			"SOURCEPATH":  src,
-			"DESTPATH":    dest,
-			"ROOTPATH":    cxt.Root,
-			"WORKINGPATH": cxt.WorkingDir,
-		}
+		setEnviron(src, dest, cxt)
 
 		if compress {
 
 			// Grab compress command or use a default command. Do the compression.
-			command := cxt.Config.Compress.GetCommand(src, env)
-			if command == "" {
+			command := cxt.Config.Compress.GetCommand(src)
+			if command == "" { // We have no command. Just copy the file across
 				log.Println("Moving:", src)
 				err = os.Link(src, dest)
 				if err != nil {
 					return err
 				}
-			} else {
+			} else { // We have a command. Prep and execute it.
 				log.Println("Compressing:", src)
-				if err = context.RunCommand(command); err != nil {
+				com, err := cxt.PrepCommand(command)
+				if err != nil {
+					return err
+				}
+				log.Println("Running:", com.Args)
+				if err = com.Run(); err != nil {
 					return err
 				}
 			}

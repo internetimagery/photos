@@ -19,17 +19,16 @@ func TestRunBackup(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	testFile := filepath.Join(tmpDir, "testfile.txt")
+	testFile1 := filepath.Join(tmpDir, "testfile1.txt")
+	testFile2 := filepath.Join(tmpDir, "testfile2.txt")
 
 	cxt := &context.Context{
 		Root:       tmpDir,
 		WorkingDir: tmpDir,
 		Config: &config.Config{
 			Backup: config.BackupCategory{
-				config.Command{
-					"test",
-					fmt.Sprintf("touch '%s'", strings.Replace(testFile, `\`, `\\`, -1)),
-				},
+				config.Command{"test", fmt.Sprintf("touch '%s'", strings.Replace(testFile1, `\`, `\\`, -1))},
+				config.Command{"other", fmt.Sprintf("touch '%s'", strings.Replace(testFile2, `\`, `\\`, -1))},
 			},
 		},
 	}
@@ -56,8 +55,22 @@ func TestRunBackup(t *testing.T) {
 	}
 
 	// File should now exist
-	if _, err = os.Stat(testFile); err != nil {
+	if _, err = os.Stat(testFile1); err != nil {
 		fmt.Println(err)
 		t.Fail()
 	}
+
+	// Test command star
+	err = RunBackup(cxt, "othe*")
+	if err != nil {
+		fmt.Println(err)
+		t.Fail()
+	}
+
+	// File should now exist
+	if _, err = os.Stat(testFile2); err != nil {
+		fmt.Println(err)
+		t.Fail()
+	}
+
 }

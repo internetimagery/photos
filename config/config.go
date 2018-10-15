@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
-	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -69,22 +68,15 @@ func (command Command) GetName() string {
 	return command[0]
 }
 
-// GetCommand : Get the raw command string associated with the command
-func (command Command) GetCommand(env map[string]string) string {
-	return os.Expand(command[1], expandEnv(env))
-}
-
-// expandEnv : Expand variables in the command to ones provided in map
-func expandEnv(env map[string]string) func(string) string {
-	return func(name string) string {
-		return strings.Replace(env[name], `\`, `\\`, -1)
-	}
+// GetCommand : Get thex command string associated with the command
+func (command Command) GetCommand() string {
+	return command[1]
 }
 
 // Compress functionality
 
 // GetCommand : Get the first command (in config order) whose name filter satisfies filename
-func (compress CompressCategory) GetCommand(filename string, env map[string]string) string {
+func (compress CompressCategory) GetCommand(filename string) string {
 	lowName := filepath.Base(strings.ToLower(filename))
 	for _, command := range compress {
 		for _, pattern := range strings.Split(command.GetName(), " ") {
@@ -93,7 +85,7 @@ func (compress CompressCategory) GetCommand(filename string, env map[string]stri
 				panic(err)
 			}
 			if match {
-				return command.GetCommand(env)
+				return command.GetCommand()
 			}
 		}
 	}
@@ -103,7 +95,7 @@ func (compress CompressCategory) GetCommand(filename string, env map[string]stri
 // Backup functionality
 
 // GetCommands : Get all backup commands that match the provided name
-func (backup BackupCategory) GetCommands(name string, env map[string]string) []string {
+func (backup BackupCategory) GetCommands(name string) []string {
 	commands := []string{}
 	for _, command := range backup {
 		match, err := filepath.Match(name, command.GetName())
@@ -111,7 +103,7 @@ func (backup BackupCategory) GetCommands(name string, env map[string]string) []s
 			panic(err) // Malformed name!
 		}
 		if match {
-			commands = append(commands, command.GetCommand(env))
+			commands = append(commands, command.GetCommand())
 		}
 	}
 	return commands

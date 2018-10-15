@@ -67,7 +67,7 @@ func TestCompressCommand(t *testing.T) {
 		filepath.Join("video", "file.vid"): "all",
 	}
 	for test, expect := range tests {
-		command := conf.Compress.GetCommand(test, make(map[string]string))
+		command := conf.Compress.GetCommand(test)
 		if command != expect {
 			fmt.Printf("Expected '%s' but got '%s' while testing '%s'\n", expect, command, test)
 			t.Fail()
@@ -96,7 +96,7 @@ func TestBackupCommand(t *testing.T) {
 		"remote*": map[string]bool{"dropbox": true, "amazon": true},
 	}
 	for test, expect := range tests {
-		commands := conf.Backup.GetCommands(test, make(map[string]string))
+		commands := conf.Backup.GetCommands(test)
 		if len(commands) == 0 {
 			fmt.Println("No commands returned for", test)
 			t.Fail()

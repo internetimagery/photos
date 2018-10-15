@@ -60,17 +60,46 @@ func TestContext(t *testing.T) {
 	}
 }
 
-func TestGetEnv(t *testing.T) {
-	cxt := &Context{WorkingDir: "/path/to/place", Root: "/path/to"}
-	src := "/path/to/place/source.ext"
-	dst := "/path/to/place/destination.ext"
+func TestContextEnv(t *testing.T) {
+	tmpDir, err := ioutil.TempDir("", "TestContextEnv")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+	err = ioutil.WriteFile(filepath.Join(tmpDir, ROOTCONF), []byte("{}"), 644)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	varString := "$SOURCEPATH $DESTPATH $ROOTPATH $WORKINGPATH"
-	testString := "/path/to/place/source.ext /path/to/place/destination.ext /path/to /path/to/place"
-	excString := os.Expand(varString, cxt.GetEnv(src, dst))
-	if excString != testString {
-		fmt.Println("Expected:", testString)
-		fmt.Println("Got:", excString)
+	// Set environment var
+	os.Setenv("TESTENV", "SUCCESS")
+
+	// Build context and check environment var came through
+	cxt, err := NewContext(tmpDir)
+	if err != nil {
+		fmt.Println(err)
 		t.Fail()
 	}
+	if cxt.Env["TESTENV"] != "SUCCESS" {
+		fmt.Println("Env was not passed into context")
+		t.Fail()
+	}
+}
+
+func TestContextPrepCommand(t *testing.T) {
+	cxt := &Context{Env: map[string]string{
+		"TESTENV": "VALUE",
+	}}
+
+	expectCommand := "echo $TESTENV"
+	command, err := cxt.PrepCommand(expectCommand)
+	if err != nil {
+		fmt.Println(err)
+		t.Fail()
+	}
+	if len(command.Args) != 2 && command.Args[1] != "VALUE" {
+		fmt.Println("Got args", command.Args)
+		t.Fail()
+	}
+
 }

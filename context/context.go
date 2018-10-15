@@ -1,7 +1,7 @@
 package context
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -16,9 +16,10 @@ const ROOTCONF = "photos-config.json"
 
 // Context : Collect and encapsulate information about project
 type Context struct {
-	Root       string         // Path to base of repository (location of config)
-	WorkingDir string         // Path of current working directory
-	Config     *config.Config // Configuration information
+	Root       string            // Path to base of repository (location of config)
+	WorkingDir string            // Path of current working directory
+	Env        map[string]string // Representation of the environment
+	Config     *config.Config    // Configuration information
 }
 
 // NewContext : Create a new context, gathering information
@@ -47,31 +48,41 @@ func NewContext(workingDir string) (*Context, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Context{Root: currentRoot, WorkingDir: workingDir, Config: conf}, nil
+
+	// Build out our environment vars
+	env := make(map[string]string)
+	for _, entry := range os.Environ() {
+		parts := strings.Split(entry, "=")
+		env[parts[0]] = parts[1]
+	}
+
+	return &Context{Root: currentRoot, WorkingDir: workingDir, Config: conf, Env: env}, nil
 }
 
-// GetEnv : Expand variables in commands
-func (cxt *Context) GetEnv(sourcePath, destPath string) func(string) string {
-	env := map[string]string{
-		"SOURCEPATH":  sourcePath,
-		"DESTPATH":    destPath,
-		"ROOTPATH":    cxt.Root,
-		"WORKINGPATH": cxt.WorkingDir,
-	}
-	return func(name string) string {
-		return strings.Replace(env[name], `\`, `\\`, -1)
-	}
+// expandEnv : Expand environment variables with those from context. Make safe the backslashes also!
+func (cxt *Context) expandEnv(name string) string {
+	return strings.Replace(cxt.Env[name], `\`, `\\`, -1)
 }
 
-// RunCommand : Helper to run commands, linking outputs to terminal outputs and replacing variables safely
-func RunCommand(commandString string) error {
-	commandParts, err := shlex.Split(commandString)
+// contractEnv : Turn environment map back into "KEY=VALUE" pairs for use in commands
+func (cxt *Context) contractEnv() []string {
+	env := []string{}
+	for key, value := range cxt.Env {
+		env = append(env, fmt.Sprintf("%s=%s", key, value))
+	}
+	return env
+}
+
+// PrepCommand : Take string. Prepare a command object from it, and expand variables with their environment counterparts
+func (cxt *Context) PrepCommand(commandRaw string) (*exec.Cmd, error) {
+	commandExpanded := os.Expand(commandRaw, cxt.expandEnv) // Expand variables in string name
+	commandParts, err := shlex.Split(commandExpanded)       // Split command into parts for execution
 	if err != nil {
-		return err
+		return nil, err
 	}
 	command := exec.Command(commandParts[0], commandParts[1:]...)
 	command.Stdout = os.Stdout
 	command.Stderr = os.Stderr
-	log.Println("Running:", commandParts)
-	return command.Run()
+	command.Env = cxt.contractEnv()
+	return command, nil
 }

@@ -29,6 +29,7 @@ func TestRename(t *testing.T) {
 
 	// Mock context
 	mockCxt := &context.Context{
+		Env:        map[string]string{},
 		WorkingDir: rootPath,
 		Config: &config.Config{
 			Compress: config.CompressCategory{
@@ -75,4 +76,29 @@ func TestRename(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestSetEnviron(t *testing.T) {
+	cxt := &context.Context{Env: map[string]string{}}
+
+	sourcePath := "/path/to/original.file"
+	destPath := "/path/to/other.file"
+
+	// Set up our environment
+	setEnviron(sourcePath, destPath, cxt)
+
+	testCase := map[string]string{
+		"SOURCEPATH":  sourcePath,
+		"DESTPATH":    destPath,
+		"ROOTPATH":    cxt.Root,
+		"WORKINGPATH": cxt.WorkingDir,
+	}
+
+	for name, value := range testCase {
+		if cxt.Env[name] != value {
+			fmt.Println("Expected", value, "Got", cxt.Env[name], "from key", name)
+			t.Fail()
+		}
+	}
+
 }
