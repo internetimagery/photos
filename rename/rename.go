@@ -85,23 +85,26 @@ func Rename(cxt *context.Context, compress bool) error {
 
 	// Run through files!
 	for src, dest := range renameMap {
+		tempDest := filepath.Join(filepath.Dir(src), format.TEMPPREFIX+filepath.Base(src)) // Temporary file to create before calling it complete.
 
 		log.Println("Renaming:", src)
 
 		// Create environment for command
-		setEnvironment(src, dest, cxt)
+		setEnvironment(src, tempDest, cxt)
 
 		if compress {
 
 			// Grab compress command or use a default command. Do the compression.
 			command := cxt.Config.Compress.GetCommand(src)
-			if command == "" { // We have no command. Just copy the file across
+			if command == "" {
+				// We have no command. Just copy the file across directly
 				log.Println("Moving:", src)
-				err = os.Link(src, dest)
+				err = os.Link(src, tempDest)
 				if err != nil {
 					return err
 				}
-			} else { // We have a command. Prep and execute it.
+			} else {
+				// We have a command. Prep and execute it.
 				log.Println("Compressing:", src)
 				com, err := cxt.PrepCommand(command)
 				if err != nil {
@@ -113,13 +116,18 @@ func Rename(cxt *context.Context, compress bool) error {
 				}
 			}
 		} else {
-			if err = os.Link(src, dest); err != nil {
+			if err = os.Link(src, tempDest); err != nil {
 				return err
 			}
 		}
 
 		// Verify file made it to its location
-		if _, err = os.Stat(dest); err != nil {
+		if _, err = os.Stat(tempDest); err != nil {
+			return err
+		}
+
+		// Move file to its correct location
+		if err = os.Rename(tempDest, dest); err != nil {
 			return err
 		}
 
