@@ -38,15 +38,15 @@ func TestRunBackup(t *testing.T) {
 
 	// Test missing command
 	err = RunBackup(cxt, "nocommand")
-	if err == nil {
-		fmt.Println("Missing command returned no error", "nocommand")
+	if err != nil {
+		fmt.Println(err)
 		t.Fail()
 	}
 
 	// Test no command
 	err = RunBackup(cxt, "")
-	if err == nil {
-		fmt.Println("Empty command returned no error")
+	if err != nil {
+		fmt.Println(err)
 		t.Fail()
 	}
 
