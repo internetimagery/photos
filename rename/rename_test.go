@@ -79,10 +79,17 @@ func TestRename(t *testing.T) {
 }
 
 func TestSetEnviron(t *testing.T) {
-	cxt := &context.Context{Env: map[string]string{}}
 
 	sourcePath := "/path/to/original.file"
 	destPath := "/path/to/other.file"
+	working := "/path/to"
+	root := "/path"
+
+	cxt := &context.Context{
+		Env:        map[string]string{},
+		WorkingDir: working,
+		Root:       root,
+	}
 
 	// Set up our environment
 	setEnvironment(sourcePath, destPath, cxt)
@@ -90,8 +97,8 @@ func TestSetEnviron(t *testing.T) {
 	testCase := map[string]string{
 		"SOURCEPATH":  sourcePath,
 		"DESTPATH":    destPath,
-		"ROOTPATH":    cxt.Root,
-		"WORKINGPATH": cxt.WorkingDir,
+		"ROOTPATH":    root,
+		"WORKINGPATH": working,
 	}
 
 	for name, value := range testCase {

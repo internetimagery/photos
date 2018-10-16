@@ -77,3 +77,34 @@ func TestRunBackup(t *testing.T) {
 	}
 
 }
+
+func TestSetEnviron(t *testing.T) {
+
+	working := "/path/to/files"
+	root := "/path"
+	relworking := "to/files"
+
+	cxt := &context.Context{
+		Env:        map[string]string{},
+		WorkingDir: working,
+		Root:       root,
+	}
+
+	// Set up our environment
+	setEnvironment(cxt)
+
+	testCase := map[string]string{
+		"SOURCEPATH":  working,
+		"ROOTPATH":    root,
+		"WORKINGPATH": working,
+		"RELPATH":     relworking,
+	}
+
+	for name, value := range testCase {
+		if cxt.Env[name] != value {
+			fmt.Println("Expected", value, "Got", cxt.Env[name], "from key", name)
+			t.Fail()
+		}
+	}
+
+}

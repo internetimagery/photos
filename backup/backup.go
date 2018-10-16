@@ -14,7 +14,7 @@ func setEnvironment(cxt *context.Context) {
 	cxt.Env["SOURCEPATH"] = cxt.WorkingDir
 	cxt.Env["ROOTPATH"] = cxt.Root
 	cxt.Env["WORKINGPATH"] = cxt.WorkingDir
-	cxt.Env["RELPATH"] = relpath
+	cxt.Env["RELPATH"] = filepath.ToSlash(relpath)
 }
 
 func RunBackup(cxt *context.Context, name string) error {
