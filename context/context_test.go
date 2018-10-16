@@ -66,7 +66,7 @@ func TestContextEnv(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer os.RemoveAll(tmpDir)
-	err = ioutil.WriteFile(filepath.Join(tmpDir, ROOTCONF), []byte("{}"), 644)
+	err = ioutil.WriteFile(filepath.Join(tmpDir, ROOTCONF), []byte("{}"), 0644)
 	if err != nil {
 		t.Fatal(err)
 	}
