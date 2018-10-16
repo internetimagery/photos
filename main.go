@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/internetimagery/photos/backup"
 	"github.com/internetimagery/photos/config"
 	"github.com/internetimagery/photos/context"
 	"github.com/internetimagery/photos/rename"
@@ -120,6 +121,7 @@ func main() {
 			fmt.Printf("About to rename media in '%s'\n", cxt.WorkingDir)
 			if question() {
 				fmt.Printf("Renaming media in '%s'\n", cxt.WorkingDir)
+				// TODO: Add --no-compress option
 				if err = rename.Rename(cxt, true); err != nil {
 					panic(err)
 				}
@@ -127,7 +129,17 @@ func main() {
 		}
 
 	case "backup": // Backup files within working directory to specified destination
-		fmt.Println("When this is functioning, life will be grand!")
+		if len(os.Args) < 3 {
+			fmt.Println("Please provide a name for the backup script you wish to run.")
+		} else {
+			fmt.Printf("About to run backup scripts that match the name '%s'.\nTo backup the media in '%s'\n", os.Args[2], cxt.WorkingDir)
+			if question() {
+				fmt.Printf("Backing up media in '%s'\n", cxt.WorkingDir)
+				if err = backup.RunBackup(cxt, os.Args[2]); err != nil {
+					panic(err)
+				}
+			}
+		}
 
 	default:
 		fmt.Println("Unrecognized command", os.Args[1])

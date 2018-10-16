@@ -1,7 +1,6 @@
 package backup
 
 import (
-	"fmt"
 	"log"
 	"path/filepath"
 
@@ -17,6 +16,7 @@ func setEnvironment(cxt *context.Context) {
 	cxt.Env["RELPATH"] = filepath.ToSlash(relpath)
 }
 
+// RunBackup : Run backup commands given a name. Can accept wildcards to run more than one.
 func RunBackup(cxt *context.Context, name string) error {
 
 	// Prep our environment for command
@@ -44,7 +44,7 @@ func RunBackup(cxt *context.Context, name string) error {
 
 	// Check if we ran anything at all
 	if run == 0 {
-		return fmt.Errorf("No commands match the name '%s'", name)
+		log.Printf("No commands match the name '%s'\n", name)
 	}
 	return nil
 }
