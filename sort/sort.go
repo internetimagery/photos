@@ -1,6 +1,7 @@
 package sort
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -37,4 +38,8 @@ func UniqueName(filename string) string {
 		}
 	}
 	return filename
+}
+
+func SortMedia(cxt *context.Context) error {
+	return nil
 }
