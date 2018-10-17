@@ -9,6 +9,22 @@ import (
 	"time"
 )
 
+func TestFormatDate(t *testing.T) {
+	testDate := "08-10-16"
+	location, err := time.LoadLocation("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	testTime := time.Date(2008, 10, 16, 12, 0, 0, 0, location)
+
+	compareDate := FormatDate(testTime)
+	if compareDate != testDate {
+		fmt.Println("Expected", testDate)
+		fmt.Println("Got", compareDate)
+		t.Fail()
+	}
+}
+
 func TestGetMediaDate(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "TestGetMediaDate")
 	if err != nil {
