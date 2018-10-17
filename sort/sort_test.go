@@ -50,3 +50,38 @@ func TestGetMediaDate(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestUniqueName(t *testing.T) {
+	tmpDir, err := ioutil.TempDir("", "TestUniqueName")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	testFile1 := filepath.Join(tmpDir, "test1.file")
+	testFile2 := filepath.Join(tmpDir, "test2.file")
+	testExt := ".file"
+	if err = ioutil.WriteFile(testFile1, []byte("stuff"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	compareFile1 := UniqueName(testFile1)
+	compareFile2 := UniqueName(testFile2)
+	compareExt := filepath.Ext(compareFile2)
+
+	if compareFile1 == testFile1 {
+		fmt.Println("Filename not unique", testFile1)
+		t.Fail()
+	}
+	if compareFile2 != testFile2 {
+		fmt.Println("Expected", testFile2)
+		fmt.Println("Got", compareFile2)
+		t.Fail()
+	}
+	if compareExt != testExt {
+		fmt.Println("Expected", testExt)
+		fmt.Println("Got", compareExt)
+		t.Fail()
+	}
+
+}

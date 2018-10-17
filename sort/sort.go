@@ -1,7 +1,9 @@
 package sort
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -17,4 +19,22 @@ func GetMediaDate(filePath string) (time.Time, error) {
 // FormatDate : Format date into simple YY-MM-DD style
 func FormatDate(date time.Time) string {
 	return date.Format("06-01-02")
+}
+
+// UniqueName : Ensure name is a unique filename so as to not override existing
+func UniqueName(filename string) string {
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		return filename
+	}
+	ext := filepath.Ext(filename)
+	name := filename[:len(ext)]
+	index := 0
+	for {
+		index++
+		filename = fmt.Sprintf("%s_%d%s", name, index, ext)
+		if _, err := os.Stat(filename); os.IsNotExist(err) {
+			break
+		}
+	}
+	return filename
 }
