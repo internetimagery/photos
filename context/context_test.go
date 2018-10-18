@@ -6,15 +6,15 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/internetimagery/photos/testutil"
 )
 
 func TestNewContext(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "TestNewContext")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(tmpDir)
-	if _, err := NewContext(tmpDir); !os.IsNotExist(err) {
+	tmpDir := testutil.NewTempDir(t, "TestNewContext")
+	defer tmpDir.Close()
+
+	if _, err := NewContext(tmpDir.Dir); !os.IsNotExist(err) {
 		fmt.Println(err)
 		t.Fail()
 	}
@@ -27,17 +27,14 @@ func TestContext(t *testing.T) {
 	]
 }`)
 
-	tmpDir, err := ioutil.TempDir("", "TestContext")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(tmpDir)
+	tmpDir := testutil.NewTempDir(t, "TestContext")
+	defer tmpDir.Close()
 
 	// Make a couple files
-	workingDir := filepath.Join(tmpDir, "some-event")
-	rootConf := filepath.Join(tmpDir, ROOTCONF)
+	workingDir := filepath.Join(tmpDir.Dir, "some-event")
+	rootConf := filepath.Join(tmpDir.Dir, ROOTCONF)
 
-	err = os.Mkdir(workingDir, 0755)
+	err := os.Mkdir(workingDir, 0755)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,19 +51,17 @@ func TestContext(t *testing.T) {
 	}
 
 	// Check we reached root file
-	if cxt.Root != tmpDir {
+	if cxt.Root != tmpDir.Dir {
 		fmt.Println("Couldn't find config file.", cxt.Root)
 		t.Fail()
 	}
 }
 
 func TestContextEnv(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "TestContextEnv")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(tmpDir)
-	err = ioutil.WriteFile(filepath.Join(tmpDir, ROOTCONF), []byte("{}"), 0644)
+	tmpDir := testutil.NewTempDir(t, "TestContextEnv")
+	defer tmpDir.Close()
+
+	err := ioutil.WriteFile(filepath.Join(tmpDir.Dir, ROOTCONF), []byte("{}"), 0644)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,7 +70,7 @@ func TestContextEnv(t *testing.T) {
 	os.Setenv("TESTENV", "SUCCESS")
 
 	// Build context and check environment var came through
-	cxt, err := NewContext(tmpDir)
+	cxt, err := NewContext(tmpDir.Dir)
 	if err != nil {
 		fmt.Println(err)
 		t.Fail()

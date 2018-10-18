@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	"github.com/internetimagery/photos/testutil"
 )
 
 func generateExec(tmpDir string, t *testing.T) string {
@@ -18,15 +21,36 @@ func generateExec(tmpDir string, t *testing.T) string {
 	return executable
 }
 
-func TestInit(t *testing.T) {
-	// TODO: Get this working...
-	// wd, _ := os.Getwd()
-	// tmpDir, err := ioutil.TempDir(wd, "phototest")
+// Test init on a clean directory
+func TestInitClean(t *testing.T) {
+	tmpDir := testutil.NewTempDir(t, "TestInitClean")
+	defer tmpDir.Close()
+
+	// err := os.Chdir(tmpDir.Dir)
 	// if err != nil {
+	// 	fmt.Println(err)
 	// 	t.Fatal(err)
 	// }
-	// defer os.RemoveAll(tmpDir)
+
+	fmt.Println(os.Args)
+
+	// Generate and run command
 	// executable := generateExec(tmpDir, t)
+	// fmt.Println(os.Stat(executable))
+	// cmd := exec.Command(os.Args[0], "init")
+	// cmd.Dir = tmpDir
+	// cmd.Stdout = os.Stdout
+	// cmd.Stdin = strings.NewReader("n\n")
+	// output, err := cmd.CombinedOutput()
+	// err = cmd.Run()
+	//
+	// if err != nil {
+	// 	// fmt.Println(string(output))
+	// 	fmt.Println(err)
+	// 	t.Fail()
+	// }
+
+	// fmt.Println(os.Stat(executable))
 	//
 	// // Test init in empty dir
 	// com := exec.Command(executable, "init")

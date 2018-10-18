@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/internetimagery/photos/context"
+	"github.com/internetimagery/photos/testutil"
 )
 
 func TestFormatDate(t *testing.T) {
@@ -28,15 +29,12 @@ func TestFormatDate(t *testing.T) {
 }
 
 func TestGetMediaDate(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "TestGetMediaDate")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(tmpDir)
+	tmpDir := testutil.NewTempDir(t, "TestGetMediaDate")
+	defer tmpDir.Close()
 
-	testFile1 := filepath.Join(tmpDir, "testfile.test")
+	testFile1 := filepath.Join(tmpDir.Dir, "testfile.test")
 	testTime1 := time.Now()
-	if err = ioutil.WriteFile(testFile1, []byte("some stuff here"), 0644); err != nil {
+	if err := ioutil.WriteFile(testFile1, []byte("some stuff here"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -56,20 +54,17 @@ func TestGetMediaDate(t *testing.T) {
 }
 
 func TestUniqueName(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "TestUniqueName")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(tmpDir)
+	tmpDir := testutil.NewTempDir(t, "TestUniqueName")
+	defer tmpDir.Close()
 
-	testFile1 := filepath.Join(tmpDir, "test1.file") // File exists
-	testFile2 := filepath.Join(tmpDir, "test2.file") // File does not exist
+	testFile1 := filepath.Join(tmpDir.Dir, "test1.file") // File exists
+	testFile2 := filepath.Join(tmpDir.Dir, "test2.file") // File does not exist
 	testExt := ".file"
-	if err = ioutil.WriteFile(testFile1, []byte("stuff"), 0644); err != nil {
+	if err := ioutil.WriteFile(testFile1, []byte("stuff"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	expectFile1 := filepath.Join(tmpDir, "test1_1.file")
+	expectFile1 := filepath.Join(tmpDir.Dir, "test1_1.file")
 	compareFile1 := UniqueName(testFile1)
 	compareFile2 := UniqueName(testFile2)
 	compareExt := filepath.Ext(compareFile2)
@@ -93,13 +88,10 @@ func TestUniqueName(t *testing.T) {
 }
 
 func TestSortMedia(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "TestSortMedia")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(tmpDir)
+	tmpDir := testutil.NewTempDir(t, "TestSortMedia")
+	defer tmpDir.Close()
 
-	cxt := &context.Context{WorkingDir: tmpDir}
+	cxt := &context.Context{WorkingDir: tmpDir.Dir}
 
 	location, err := time.LoadLocation("")
 	if err != nil {
@@ -109,12 +101,12 @@ func TestSortMedia(t *testing.T) {
 	folder := "18-10-16"
 
 	testFiles := []string{
-		filepath.Join(tmpDir, "file1.txt"),
-		filepath.Join(tmpDir, "file2.txt"),
-		filepath.Join(tmpDir, folder, "file2.txt"),
+		filepath.Join(tmpDir.Dir, "file1.txt"),
+		filepath.Join(tmpDir.Dir, "file2.txt"),
+		filepath.Join(tmpDir.Dir, folder, "file2.txt"),
 	}
 
-	if err = os.Mkdir(filepath.Join(tmpDir, folder), 0755); err != nil {
+	if err = os.Mkdir(filepath.Join(tmpDir.Dir, folder), 0755); err != nil {
 		t.Fatal(err)
 	}
 	for _, filename := range testFiles {
@@ -127,9 +119,9 @@ func TestSortMedia(t *testing.T) {
 	}
 
 	expectFiles := []string{
-		filepath.Join(tmpDir, folder, "file1.txt"),
-		filepath.Join(tmpDir, folder, "file2_1.txt"),
-		filepath.Join(tmpDir, folder, "file2.txt"),
+		filepath.Join(tmpDir.Dir, folder, "file1.txt"),
+		filepath.Join(tmpDir.Dir, folder, "file2_1.txt"),
+		filepath.Join(tmpDir.Dir, folder, "file2.txt"),
 	}
 
 	// Run our sort

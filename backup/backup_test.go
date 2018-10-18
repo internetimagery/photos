@@ -2,32 +2,29 @@ package backup
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/internetimagery/photos/config"
 	"github.com/internetimagery/photos/context"
+	"github.com/internetimagery/photos/testutil"
 )
 
 func TestRunBackup(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "TestRunBackup")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(tmpDir)
+	tmpDir := testutil.NewTempDir(t, "TestRunBackup")
+	defer tmpDir.Close()
 
-	testFile1 := filepath.Join(tmpDir, "testfile1.txt")
-	testFile2 := filepath.Join(tmpDir, "testfile2.txt")
+	testFile1 := filepath.Join(tmpDir.Dir, "testfile1.txt")
+	testFile2 := filepath.Join(tmpDir.Dir, "testfile2.txt")
 
 	cxt := &context.Context{
 		Env: map[string]string{
 			"TESTPATH1": testFile1,
 			"TESTPATH2": testFile2,
 		},
-		Root:       tmpDir,
-		WorkingDir: tmpDir,
+		Root:       tmpDir.Dir,
+		WorkingDir: tmpDir.Dir,
 		Config: &config.Config{
 			Backup: config.BackupCategory{
 				config.Command{"test", "touch $TESTPATH1"},
@@ -37,7 +34,7 @@ func TestRunBackup(t *testing.T) {
 	}
 
 	// Test missing command
-	err = RunBackup(cxt, "nocommand")
+	err := RunBackup(cxt, "nocommand")
 	if err != nil {
 		fmt.Println(err)
 		t.Fail()

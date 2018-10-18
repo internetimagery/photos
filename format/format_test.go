@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/internetimagery/photos/testutil"
 )
 
 func TestNewMedia(t *testing.T) {
@@ -69,14 +71,11 @@ func TestFormatName(t *testing.T) {
 }
 
 func TestGetMediaFromDirectory(t *testing.T) {
-	tmpDir, err := ioutil.TempDir("", "TestGetMediaFromDirectory")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(tmpDir)
+	tmpDir := testutil.NewTempDir(t, "TestGetMediaFromDirectory")
+	defer tmpDir.Close()
 
 	rootName := "18-05-12 event"
-	rootPath := filepath.Join(tmpDir, rootName)
+	rootPath := filepath.Join(tmpDir.Dir, rootName)
 	testFiles := map[string]*Media{
 		filepath.Join(rootPath, "18-05-12 event_034.img"):                &Media{Event: "18-05-12 event", Index: 34, Ext: "img"},
 		filepath.Join(rootPath, "18-05-12 event_034[one two-three].img"): &Media{Event: "18-05-12 event", Index: 34, Tags: []string{"one", "two-three"}, Ext: "img"},
@@ -84,7 +83,7 @@ func TestGetMediaFromDirectory(t *testing.T) {
 		filepath.Join(rootPath, "document_scanned.jpg"):                  &Media{Event: "18-05-12 event", Ext: "jpg"},
 		filepath.Join(rootPath, TEMPPREFIX+"document_scanned.jpg"):       nil,
 	}
-	err = os.Mkdir(rootPath, 0755)
+	err := os.Mkdir(rootPath, 0755)
 	if err != nil {
 		t.Fatal(err)
 	}

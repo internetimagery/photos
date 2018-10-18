@@ -9,20 +9,18 @@ import (
 
 	"github.com/internetimagery/photos/config"
 	"github.com/internetimagery/photos/context"
+	"github.com/internetimagery/photos/testutil"
 )
 
 func TestRename(t *testing.T) {
 
 	// Working Path
-	tmpDir, err := ioutil.TempDir("", "TestRename")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(tmpDir)
+	tmpDir := testutil.NewTempDir(t, "TestRename")
+	defer tmpDir.Close()
 
 	eventName := "18-02-01 event"
-	rootPath := filepath.Join(tmpDir, eventName)
-	err = os.Mkdir(rootPath, 0755)
+	rootPath := filepath.Join(tmpDir.Dir, eventName)
+	err := os.Mkdir(rootPath, 0755)
 	if err != nil {
 		t.Fatal(err)
 	}
