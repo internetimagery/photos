@@ -12,6 +12,7 @@ import (
 	"github.com/internetimagery/photos/config"
 	"github.com/internetimagery/photos/context"
 	"github.com/internetimagery/photos/rename"
+	"github.com/internetimagery/photos/sort"
 )
 
 // VERSION : Version information
@@ -112,7 +113,17 @@ func main() {
 	switch os.Args[1] {
 
 	case "sort": // Sort files in the working directory into folders of their date
-		fmt.Println("Sorting files sometime")
+		if cxt.WorkingDir == cxt.Root {
+			fmt.Println("Cannot run Sort in the root directory (same place as config file.)")
+		} else {
+			fmt.Printf("About to sort media in '%s'\n", cxt.WorkingDir)
+			if question() {
+				fmt.Println("Sorting...")
+				if err = sort.SortMedia(cxt); err != nil {
+					panic(err)
+				}
+			}
+		}
 
 	case "rename": // Rename files (and optionally compress them) within working directory
 		if cxt.WorkingDir == cxt.Root {
