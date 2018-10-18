@@ -1,11 +1,14 @@
 package sort
 
 import (
-	"context"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/internetimagery/photos/context"
 )
 
 // GetMediaDate : Get modification date, or date taken (EXIF data) from file
@@ -28,7 +31,7 @@ func UniqueName(filename string) string {
 		return filename
 	}
 	ext := filepath.Ext(filename)
-	name := filename[:len(ext)]
+	name := filename[:len(filename)-len(ext)]
 	index := 0
 	for {
 		index++
@@ -40,6 +43,32 @@ func UniqueName(filename string) string {
 	return filename
 }
 
+// SortMedia : Grab dates assosicated with media in working directory, and place them in corresponding folders
 func SortMedia(cxt *context.Context) error {
+	infos, err := ioutil.ReadDir(cxt.WorkingDir)
+	if err != nil {
+		return err
+	}
+
+	// Move files into their folders
+	for _, info := range infos {
+		if !info.IsDir() {
+			sourcePath := filepath.Join(cxt.WorkingDir, info.Name())
+			date, err := GetMediaDate(sourcePath)
+			if err != nil {
+				return err
+			}
+			folderPath := filepath.Join(cxt.WorkingDir, FormatDate(date))
+			if err = os.Mkdir(folderPath, 0755); err != nil && !os.IsExist(err) {
+				return err
+			}
+			fmt.Println("destPath", folderPath, info.Name())
+			destPath := UniqueName(filepath.Join(folderPath, info.Name()))
+			log.Println("Moving:", sourcePath, "--->", destPath)
+			if err = os.Rename(sourcePath, destPath); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }

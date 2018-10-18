@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/internetimagery/photos/context"
 )
 
 func TestFormatDate(t *testing.T) {
@@ -46,7 +48,7 @@ func TestGetMediaDate(t *testing.T) {
 
 	layout := "06-01-02-15-04-05"
 
-	if !(testTime1.Format(layout) == compareTime.Format(layout)) {
+	if testTime1.Format(layout) != compareTime.Format(layout) {
 		fmt.Println("Expected", testTime1)
 		fmt.Println("Got", compareTime)
 		t.Fail()
@@ -60,19 +62,21 @@ func TestUniqueName(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	testFile1 := filepath.Join(tmpDir, "test1.file")
-	testFile2 := filepath.Join(tmpDir, "test2.file")
+	testFile1 := filepath.Join(tmpDir, "test1.file") // File exists
+	testFile2 := filepath.Join(tmpDir, "test2.file") // File does not exist
 	testExt := ".file"
 	if err = ioutil.WriteFile(testFile1, []byte("stuff"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
+	expectFile1 := filepath.Join(tmpDir, "test1_1.file")
 	compareFile1 := UniqueName(testFile1)
 	compareFile2 := UniqueName(testFile2)
 	compareExt := filepath.Ext(compareFile2)
 
-	if compareFile1 == testFile1 {
-		fmt.Println("Filename not unique", testFile1)
+	if compareFile1 != expectFile1 {
+		fmt.Println("Expected", expectFile1)
+		fmt.Println("Got", compareFile1)
 		t.Fail()
 	}
 	if compareFile2 != testFile2 {
@@ -95,18 +99,59 @@ func TestSortMedia(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
+	cxt := &context.Context{WorkingDir: tmpDir}
+
+	location, err := time.LoadLocation("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	modtime := time.Date(2018, 10, 16, 0, 0, 0, 0, location)
+	folder := "18-10-16"
+
 	testFiles := []string{
 		filepath.Join(tmpDir, "file1.txt"),
 		filepath.Join(tmpDir, "file2.txt"),
-		filepath.Join(tmpDir, "18-10-16", "file3.txt"),
+		filepath.Join(tmpDir, folder, "file2.txt"),
 	}
 
-	if err = os.Mkdir(filepath.Join(tmpDir, "18-10-16"), 0755); err != nil {
+	if err = os.Mkdir(filepath.Join(tmpDir, folder), 0755); err != nil {
 		t.Fatal(err)
 	}
 	for _, filename := range testFiles {
 		if err = ioutil.WriteFile(filename, []byte("info"), 0644); err != nil {
 			t.Fatal(err)
 		}
+		if err = os.Chtimes(filename, modtime, modtime); err != nil {
+			t.Fatal(err)
+		}
 	}
+
+	expectFiles := []string{
+		filepath.Join(tmpDir, folder, "file1.txt"),
+		filepath.Join(tmpDir, folder, "file2_1.txt"),
+		filepath.Join(tmpDir, folder, "file2.txt"),
+	}
+
+	// Run our sort
+	err = SortMedia(cxt)
+	if err != nil {
+		fmt.Println(err)
+		t.Fail()
+	}
+
+	// Check our files made it to where they should be
+	for _, file := range expectFiles {
+		_, err := os.Stat(file)
+		if err != nil {
+			if os.IsNotExist(err) {
+				fmt.Println("Missing file", file)
+				t.Fail()
+			} else {
+				fmt.Println(err)
+				t.Fail()
+			}
+
+		}
+	}
+
 }
