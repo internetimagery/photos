@@ -40,9 +40,9 @@ func question() bool {
 	return strings.TrimSpace(response) == "y"
 }
 
-func main() {
+func run(cwd string, args []string) {
 	// Check for no arguments
-	if len(os.Args) == 1 {
+	if len(args) == 1 {
 		sendHelp()
 		return
 	}
@@ -55,7 +55,7 @@ func main() {
 	// We have an argument, nab it and do stuff!
 
 	// Start with special cases
-	switch os.Args[1] {
+	switch args[1] {
 
 	case "-h":
 		sendHelp()
@@ -75,10 +75,10 @@ func main() {
 
 	case "init": // Create a starter config file at working directory, to signify the root of the project.
 		if os.IsNotExist(err) {
-			if len(os.Args) < 3 {
+			if len(args) < 3 {
 				fmt.Println("Please provide a name for your project.")
 			} else {
-				name := os.Args[2]
+				name := args[2]
 				fmt.Printf("About to initialize your project '%s' in '%s'\n", name, cwd)
 				if question() {
 					configPath := filepath.Join(cwd, context.ROOTCONF)
@@ -110,7 +110,7 @@ func main() {
 	}
 
 	// Nab the rest of the commands
-	switch os.Args[1] {
+	switch args[1] {
 
 	case "sort": // Sort files in the working directory into folders of their date
 		if cxt.WorkingDir == cxt.Root {
@@ -140,22 +140,30 @@ func main() {
 		}
 
 	case "backup": // Backup files within working directory to specified destination
-		if len(os.Args) < 3 {
+		if len(args) < 3 {
 			fmt.Println("Please provide a name for the backup script you wish to run.")
 		} else {
-			fmt.Printf("About to run backup scripts that match the name '%s'.\nTo backup the media in '%s'\n", os.Args[2], cxt.WorkingDir)
+			fmt.Printf("About to run backup scripts that match the name '%s'.\nTo backup the media in '%s'\n", args[2], cxt.WorkingDir)
 			if question() {
 				fmt.Printf("Backing up media in '%s'\n", cxt.WorkingDir)
-				if err = backup.RunBackup(cxt, os.Args[2]); err != nil {
+				if err = backup.RunBackup(cxt, args[2]); err != nil {
 					panic(err)
 				}
 			}
 		}
 
 	default:
-		fmt.Println("Unrecognized command", os.Args[1])
+		fmt.Println("Unrecognized command", args[1])
 		sendHelp()
 	}
+}
+
+func main() {
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	run(cwd, os.Args)
 }
 
 //
