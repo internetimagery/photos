@@ -50,4 +50,14 @@ func TestInit(t *testing.T) {
 		t.Fail()
 	}
 
+	// Run in subfolder in setup directory
+	subDir := filepath.Join(tmpDir.Dir, "subdir")
+	if err := os.Mkdir(subDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	defer testutil.UserInput(t, "y\n")()
+	if err := run(subDir, []string{"exe", "init", "projectname3"}); err == nil {
+		fmt.Println("No error on already set up project in subfolder.")
+		t.Fail()
+	}
 }
