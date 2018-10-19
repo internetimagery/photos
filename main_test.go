@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 
+	"github.com/internetimagery/photos/context"
 	"github.com/internetimagery/photos/testutil"
 )
 
@@ -22,22 +25,22 @@ func TestQuestion(t *testing.T) {
 
 }
 
-//
-// func generateExec(tmpDir string, t *testing.T) string {
-// 	executable := filepath.Join(tmpDir, "main")
-// 	com := exec.Command("go", "build", "-o", executable)
-// 	output, err := com.CombinedOutput()
-// 	if err != nil {
-// 		fmt.Println(string(output))
-// 		t.Fatal(err)
-// 	}
-// 	return executable
-// }
-
 // Test init on a clean directory
 func TestInitClean(t *testing.T) {
 	tmpDir := testutil.NewTempDir(t, "TestInitClean")
 	defer tmpDir.Close()
+
+	defer testutil.UserInput(t, "y\n\nthing")
+
+	if err := run(tmpDir.Dir, []string{"exe", "init"}); err != nil {
+		fmt.Println(err)
+		t.Fail()
+	}
+
+	if _, err := os.Stat(filepath.Join(tmpDir.Dir, context.ROOTCONF)); err != nil {
+		fmt.Println(err)
+		t.Fail()
+	}
 
 	// err := os.Chdir(tmpDir.Dir)
 	// if err != nil {

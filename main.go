@@ -40,15 +40,16 @@ func question() bool {
 	return strings.TrimSpace(response) == "y"
 }
 
-func run(cwd string, args []string) {
+// run : Do the thing
+func run(cwd string, args []string) error {
 	// Check for no arguments
 	if len(args) == 1 {
 		sendHelp()
-		return
+		return nil
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
-		panic(err)
+		return err
 	}
 	cxt, err := context.NewContext(cwd)
 
@@ -59,19 +60,19 @@ func run(cwd string, args []string) {
 
 	case "-h":
 		sendHelp()
-		return
+		return nil
 
 	case "--help":
 		sendHelp()
-		return
+		return nil
 
 	case "-v":
 		fmt.Println(VERSION)
-		return
+		return nil
 
 	case "version":
 		fmt.Println(VERSION)
-		return
+		return nil
 
 	case "init": // Create a starter config file at working directory, to signify the root of the project.
 		if os.IsNotExist(err) {
@@ -87,7 +88,7 @@ func run(cwd string, args []string) {
 					fmt.Println("Be sure to edit it later with what you need. :)")
 					handle, err := os.Create(configPath)
 					if err != nil {
-						panic(err)
+						return err
 					}
 					defer handle.Close()
 					newConfig.Save(handle)
@@ -96,17 +97,17 @@ func run(cwd string, args []string) {
 		} else if err == nil {
 			fmt.Println("Already within a project. Cannot initialize...")
 		} else {
-			panic(err)
+			return err
 		}
-		return
+		return nil
 	}
 
 	// Handle being outside project. Common error across the rest of the functions
 	if os.IsNotExist(err) {
 		fmt.Println("Project has not been set up. Run 'init' to do an intial setup, then add commands to the file created.")
-		return
+		return nil
 	} else if err != nil {
-		panic(err)
+		return err
 	}
 
 	// Nab the rest of the commands
@@ -120,7 +121,7 @@ func run(cwd string, args []string) {
 			if question() {
 				fmt.Println("Sorting...")
 				if err = sort.SortMedia(cxt); err != nil {
-					panic(err)
+					return err
 				}
 			}
 		}
@@ -134,7 +135,7 @@ func run(cwd string, args []string) {
 				fmt.Printf("Renaming media in '%s'\n", cxt.WorkingDir)
 				// TODO: Add --no-compress option
 				if err = rename.Rename(cxt, true); err != nil {
-					panic(err)
+					return err
 				}
 			}
 		}
@@ -147,7 +148,7 @@ func run(cwd string, args []string) {
 			if question() {
 				fmt.Printf("Backing up media in '%s'\n", cxt.WorkingDir)
 				if err = backup.RunBackup(cxt, args[2]); err != nil {
-					panic(err)
+					return err
 				}
 			}
 		}
@@ -156,6 +157,7 @@ func run(cwd string, args []string) {
 		fmt.Println("Unrecognized command", args[1])
 		sendHelp()
 	}
+	return nil
 }
 
 func main() {
@@ -163,7 +165,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	run(cwd, os.Args)
+	if err = run(cwd, os.Args); err != nil {
+		panic(err)
+	}
 }
 
 //
