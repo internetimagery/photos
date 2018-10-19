@@ -92,7 +92,7 @@ func run(cwd string, args []string) error {
 				}
 			}
 		} else if err == nil {
-			fmt.Println("Already within a project. Cannot initialize...")
+			return fmt.Errorf("Already within a project. Cannot initialize...")
 		} else {
 			return err
 		}

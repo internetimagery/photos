@@ -25,57 +25,29 @@ func TestQuestion(t *testing.T) {
 
 }
 
-// Test init on a clean directory
-func TestInitClean(t *testing.T) {
+// Test init
+func TestInit(t *testing.T) {
 	tmpDir := testutil.NewTempDir(t, "TestInitClean")
 	defer tmpDir.Close()
 
+	// Run init on empty directory
 	defer testutil.UserInput(t, "y\n")()
-
 	if err := run(tmpDir.Dir, []string{"exe", "init", "projectname"}); err != nil {
 		fmt.Println(err)
 		t.Fail()
 	}
 
+	// Ensure config file is created
 	if _, err := os.Stat(filepath.Join(tmpDir.Dir, context.ROOTCONF)); err != nil {
 		fmt.Println(err)
 		t.Fail()
 	}
 
-	// err := os.Chdir(tmpDir.Dir)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	t.Fatal(err)
-	// }
+	// Run init on already set up directory
+	defer testutil.UserInput(t, "y\n")()
+	if err := run(tmpDir.Dir, []string{"exe", "init", "projectname2"}); err == nil {
+		fmt.Println("No error on already set up project.")
+		t.Fail()
+	}
 
-	// fmt.Println(os.Args)
-
-	// Generate and run command
-	// executable := generateExec(tmpDir, t)
-	// fmt.Println(os.Stat(executable))
-	// cmd := exec.Command(os.Args[0], "init")
-	// cmd.Dir = tmpDir
-	// cmd.Stdout = os.Stdout
-	// cmd.Stdin = strings.NewReader("n\n")
-	// output, err := cmd.CombinedOutput()
-	// err = cmd.Run()
-	//
-	// if err != nil {
-	// 	// fmt.Println(string(output))
-	// 	fmt.Println(err)
-	// 	t.Fail()
-	// }
-
-	// fmt.Println(os.Stat(executable))
-	//
-	// // Test init in empty dir
-	// com := exec.Command(executable, "init")
-	// com.Stdin = bytes.NewReader([]byte("y"))
-	// output, err := com.Output()
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	fmt.Println("Running")
-	// 	t.Fail()
-	// }
-	// fmt.Println(output)
 }
