@@ -17,8 +17,8 @@ func TestNewMedia(t *testing.T) {
 	test1 := event + "_002[one-two three].jpg"
 	media1 := NewMedia(test1)
 	if media1.Event != event || media1.Index != 2 || media1.Path != test1 || media1.Ext != "jpg" || len(media1.Tags) != 2 {
-		fmt.Println("Failed on", test1)
-		fmt.Println(media1)
+		t.Log("Failed on", test1)
+		t.Log(media1)
 		t.Fail()
 	}
 
@@ -26,8 +26,8 @@ func TestNewMedia(t *testing.T) {
 	test2 := event + "_202.png"
 	media2 := NewMedia(test2)
 	if media2.Event != event || media2.Index != 202 || media2.Path != test2 || media2.Ext != "png" || len(media2.Tags) != 0 {
-		fmt.Println("Failed on", test2)
-		fmt.Println(media2)
+		t.Log("Failed on", test2)
+		t.Log(media2)
 		t.Fail()
 	}
 
@@ -35,8 +35,8 @@ func TestNewMedia(t *testing.T) {
 	test3 := "my_fav_picture.jpeg"
 	media3 := NewMedia(test3)
 	if media3.Index != 0 {
-		fmt.Println("Failed on", test3)
-		fmt.Println(media3)
+		t.Log("Failed on", test3)
+		t.Log(media3)
 		t.Fail()
 	}
 
@@ -61,7 +61,7 @@ func TestFormatName(t *testing.T) {
 	for _, expect := range tests {
 		result, err := expect.Media.FormatName()
 		if err != nil && expect.Value != "" {
-			fmt.Println(err)
+			t.Log(err)
 			t.Fail()
 		} else if result != expect.Value {
 			fmt.Printf("Expected '%s', got '%s'\n", expect.Value, result)
@@ -95,7 +95,7 @@ func TestGetMediaFromDirectory(t *testing.T) {
 	}
 	result, err := GetMediaFromDirectory(rootPath)
 	if err != nil {
-		fmt.Println(err)
+		t.Log(err)
 		t.Fail()
 	}
 	if len(result) != 4 {
@@ -104,12 +104,12 @@ func TestGetMediaFromDirectory(t *testing.T) {
 	}
 	for _, test := range result {
 		if test == nil {
-			fmt.Println("Should not have picked up", test.Path)
+			t.Log("Should not have picked up", test.Path)
 		} else {
 			expect := testFiles[test.Path]
 			if test.Event != expect.Event || test.Ext != expect.Ext || len(test.Tags) != len(expect.Tags) {
-				fmt.Println("Test failed at", test.Path)
-				fmt.Println(test)
+				t.Log("Test failed at", test.Path)
+				t.Log(test)
 				t.Fail()
 			}
 		}

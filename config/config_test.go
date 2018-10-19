@@ -14,30 +14,30 @@ func TestNewConfig(t *testing.T) {
 	conf := NewConfig("test") // Create new config data
 	err := conf.Save(handle)
 	if err != nil {
-		fmt.Println(err)
+		t.Log(err)
 		t.Fail()
 	}
 	testData := handle.Bytes()
 	verifyStruct := make(map[string]interface{}) // Load config for basic test
 	err = json.Unmarshal(testData, &verifyStruct)
 	if err != nil {
-		fmt.Println(err)
+		t.Log(err)
 		t.Fail()
 	}
 
 	// Verify basic groups are present
 	if _, ok := verifyStruct["compress"]; !ok {
-		fmt.Println("Config missing compress group")
+		t.Log("Config missing compress group")
 		t.Fail()
 	}
 
 	if _, ok := verifyStruct["backup"]; !ok {
-		fmt.Println("Config missing backup group")
+		t.Log("Config missing backup group")
 		t.Fail()
 	}
 
 	if _, ok := verifyStruct["id"]; !ok {
-		fmt.Println("Config missing id group")
+		t.Log("Config missing id group")
 		t.Fail()
 	}
 }
@@ -55,7 +55,7 @@ func TestCompressCommand(t *testing.T) {
 	handle := bytes.NewReader([]byte(testData))
 	conf, err := LoadConfig(handle)
 	if err != nil {
-		fmt.Println(err)
+		t.Log(err)
 		t.Fail()
 	}
 	// Do some testing!
@@ -87,7 +87,7 @@ func TestBackupCommand(t *testing.T) {
 	handle := bytes.NewReader([]byte(testData))
 	conf, err := LoadConfig(handle)
 	if err != nil {
-		fmt.Println(err)
+		t.Log(err)
 		t.Fail()
 	}
 	// Do some testing!
@@ -98,7 +98,7 @@ func TestBackupCommand(t *testing.T) {
 	for test, expect := range tests {
 		commands := conf.Backup.GetCommands(test)
 		if len(commands) == 0 {
-			fmt.Println("No commands returned for", test)
+			t.Log("No commands returned for", test)
 			t.Fail()
 		}
 		for _, command := range commands {

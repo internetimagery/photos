@@ -1,7 +1,6 @@
 package backup
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -36,40 +35,40 @@ func TestRunBackup(t *testing.T) {
 	// Test missing command
 	err := RunBackup(cxt, "nocommand")
 	if err != nil {
-		fmt.Println(err)
+		t.Log(err)
 		t.Fail()
 	}
 
 	// Test no command
 	err = RunBackup(cxt, "")
 	if err != nil {
-		fmt.Println(err)
+		t.Log(err)
 		t.Fail()
 	}
 
 	// Test command
 	err = RunBackup(cxt, "test")
 	if err != nil {
-		fmt.Println(err)
+		t.Log(err)
 		t.Fail()
 	}
 
 	// File should now exist
 	if _, err = os.Stat(testFile1); err != nil {
-		fmt.Println(err)
+		t.Log(err)
 		t.Fail()
 	}
 
 	// Test command star
 	err = RunBackup(cxt, "othe*")
 	if err != nil {
-		fmt.Println(err)
+		t.Log(err)
 		t.Fail()
 	}
 
 	// File should now exist
 	if _, err = os.Stat(testFile2); err != nil {
-		fmt.Println(err)
+		t.Log(err)
 		t.Fail()
 	}
 
@@ -99,7 +98,7 @@ func TestSetEnviron(t *testing.T) {
 
 	for name, value := range testCase {
 		if cxt.Env[name] != value {
-			fmt.Println("Expected", value, "Got", cxt.Env[name], "from key", name)
+			t.Log("Expected", value, "Got", cxt.Env[name], "from key", name)
 			t.Fail()
 		}
 	}

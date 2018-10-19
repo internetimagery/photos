@@ -1,7 +1,6 @@
 package context
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -15,7 +14,7 @@ func TestNewContext(t *testing.T) {
 	defer tmpDir.Close()
 
 	if _, err := NewContext(tmpDir.Dir); !os.IsNotExist(err) {
-		fmt.Println(err)
+		t.Log(err)
 		t.Fail()
 	}
 }
@@ -46,13 +45,13 @@ func TestContext(t *testing.T) {
 	// Start within event directory
 	cxt, err := NewContext(workingDir)
 	if err != nil {
-		fmt.Println(err)
+		t.Log(err)
 		t.Fail()
 	}
 
 	// Check we reached root file
 	if cxt.Root != tmpDir.Dir {
-		fmt.Println("Couldn't find config file.", cxt.Root)
+		t.Log("Couldn't find config file.", cxt.Root)
 		t.Fail()
 	}
 }
@@ -72,11 +71,11 @@ func TestContextEnv(t *testing.T) {
 	// Build context and check environment var came through
 	cxt, err := NewContext(tmpDir.Dir)
 	if err != nil {
-		fmt.Println(err)
+		t.Log(err)
 		t.Fail()
 	}
 	if cxt.Env["TESTENV"] != "SUCCESS" {
-		fmt.Println("Env was not passed into context")
+		t.Log("Env was not passed into context")
 		t.Fail()
 	}
 }
@@ -89,11 +88,11 @@ func TestContextPrepCommand(t *testing.T) {
 	expectCommand := "echo $TESTENV"
 	command, err := cxt.PrepCommand(expectCommand)
 	if err != nil {
-		fmt.Println(err)
+		t.Log(err)
 		t.Fail()
 	}
 	if len(command.Args) != 2 && command.Args[1] != "VALUE" {
-		fmt.Println("Got args", command.Args)
+		t.Log("Got args", command.Args)
 		t.Fail()
 	}
 

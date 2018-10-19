@@ -1,7 +1,6 @@
 package rename
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -54,7 +53,7 @@ func TestRename(t *testing.T) {
 	// Perform rename with compression
 	err = Rename(mockCxt, true)
 	if err != nil {
-		fmt.Println(err)
+		t.Log(err)
 		t.Fail()
 	}
 
@@ -64,12 +63,12 @@ func TestRename(t *testing.T) {
 		if src != dst {
 			// Check renamed
 			if _, err = os.Stat(filepath.Join(rootPath, dst)); err != nil {
-				fmt.Println(err)
+				t.Log(err)
 				t.Fail()
 			}
 			// Check original source
 			if _, err = os.Stat(filepath.Join(sourcePath, src)); err != nil {
-				fmt.Println(err)
+				t.Log(err)
 				t.Fail()
 			}
 		}
@@ -101,7 +100,7 @@ func TestSetEnviron(t *testing.T) {
 
 	for name, value := range testCase {
 		if cxt.Env[name] != value {
-			fmt.Println("Expected", value, "Got", cxt.Env[name], "from key", name)
+			t.Log("Expected", value, "Got", cxt.Env[name], "from key", name)
 			t.Fail()
 		}
 	}

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -15,13 +14,13 @@ import (
 func TestQuestion(t *testing.T) {
 	defer testutil.UserInput(t, "y\n")()
 	if !question() {
-		fmt.Println("Question did not pass with 'y'")
+		t.Log("Question did not pass with 'y'")
 		t.Fail()
 	}
 
 	defer testutil.UserInput(t, "n\n")
 	if question() {
-		fmt.Println("Question passed with 'n'")
+		t.Log("Question passed with 'n'")
 		t.Fail()
 	}
 
@@ -32,23 +31,30 @@ func TestInit(t *testing.T) {
 	tmpDir := testutil.NewTempDir(t, "TestInitClean")
 	defer tmpDir.Close()
 
+	// Run init without a name
+	defer testutil.UserInput(t, "y\n")()
+	if err := run(tmpDir.Dir, []string{"exe", "init"}); err == nil {
+		t.Log("Allowed project with no name.")
+		t.Fail()
+	}
+
 	// Run init on empty directory
 	defer testutil.UserInput(t, "y\n")()
 	if err := run(tmpDir.Dir, []string{"exe", "init", "projectname"}); err != nil {
-		fmt.Println(err)
+		t.Log(err)
 		t.Fail()
 	}
 
 	// Ensure config file is created
 	if _, err := os.Stat(filepath.Join(tmpDir.Dir, context.ROOTCONF)); err != nil {
-		fmt.Println(err)
+		t.Log(err)
 		t.Fail()
 	}
 
 	// Run init on already set up directory
 	defer testutil.UserInput(t, "y\n")()
 	if err := run(tmpDir.Dir, []string{"exe", "init", "projectname2"}); err == nil {
-		fmt.Println("No error on already set up project.")
+		t.Log("No error on already set up project.")
 		t.Fail()
 	}
 
@@ -59,7 +65,7 @@ func TestInit(t *testing.T) {
 	}
 	defer testutil.UserInput(t, "y\n")()
 	if err := run(subDir, []string{"exe", "init", "projectname3"}); err == nil {
-		fmt.Println("No error on already set up project in subfolder.")
+		t.Log("No error on already set up project in subfolder.")
 		t.Fail()
 	}
 }
@@ -114,21 +120,21 @@ func TestSort(t *testing.T) {
 	// Run sort on root directory
 	defer testutil.UserInput(t, "y\n")()
 	if err := run(tmpDir.Dir, []string{"exe", "sort"}); err == nil {
-		fmt.Println("Allowing running sort in root... don't do that!")
+		t.Log("Allowing running sort in root... don't do that!")
 		t.Fail()
 	}
 
 	// Run sort on root subdirectory
 	defer testutil.UserInput(t, "y\n")()
 	if err := run(subDir, []string{"exe", "sort"}); err != nil {
-		fmt.Println(err)
+		t.Log(err)
 		t.Fail()
 	}
 
 	// Check our files match!
 	for _, testFile := range testFiles {
 		if _, err := os.Stat(testFile.Expect); err != nil {
-			fmt.Println(err)
+			t.Log(err)
 			t.Fail()
 		}
 	}
