@@ -112,7 +112,7 @@ func run(cwd string, args []string) error {
 
 	case "sort": // Sort files in the working directory into folders of their date
 		if cxt.WorkingDir == cxt.Root {
-			fmt.Println("Cannot run Sort in the root directory (same place as config file.)")
+			return fmt.Errorf("Cannot run Sort in the root directory (same place as config file.)")
 		} else {
 			fmt.Printf("About to sort media in '%s'\n", cxt.WorkingDir)
 			if question() {
@@ -160,9 +160,10 @@ func run(cwd string, args []string) error {
 func main() {
 	cwd, err := os.Getwd()
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return
 	}
 	if err = run(cwd, os.Args); err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 }
