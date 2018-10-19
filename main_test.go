@@ -2,24 +2,37 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
-	"path/filepath"
 	"testing"
 
 	"github.com/internetimagery/photos/testutil"
 )
 
-func generateExec(tmpDir string, t *testing.T) string {
-	executable := filepath.Join(tmpDir, "main")
-	com := exec.Command("go", "build", "-o", executable)
-	output, err := com.CombinedOutput()
-	if err != nil {
-		fmt.Println(string(output))
-		t.Fatal(err)
+func TestQuestion(t *testing.T) {
+	defer testutil.UserInput(t, "y\n")
+	if !question() {
+		fmt.Println("Question did not pass with 'y'")
+		t.Fail()
 	}
-	return executable
+
+	defer testutil.UserInput(t, "n\n")
+	if question() {
+		fmt.Println("Question passed with 'n'")
+		t.Fail()
+	}
+
 }
+
+//
+// func generateExec(tmpDir string, t *testing.T) string {
+// 	executable := filepath.Join(tmpDir, "main")
+// 	com := exec.Command("go", "build", "-o", executable)
+// 	output, err := com.CombinedOutput()
+// 	if err != nil {
+// 		fmt.Println(string(output))
+// 		t.Fatal(err)
+// 	}
+// 	return executable
+// }
 
 // Test init on a clean directory
 func TestInitClean(t *testing.T) {
@@ -32,7 +45,7 @@ func TestInitClean(t *testing.T) {
 	// 	t.Fatal(err)
 	// }
 
-	fmt.Println(os.Args)
+	// fmt.Println(os.Args)
 
 	// Generate and run command
 	// executable := generateExec(tmpDir, t)

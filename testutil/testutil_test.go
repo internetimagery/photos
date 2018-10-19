@@ -19,3 +19,21 @@ func TestTempDir(t *testing.T) {
 	}
 
 }
+
+func TestUserInput(t *testing.T) {
+	testMessage := "Hello"
+	defer UserInput(t, testMessage+"\n")()
+
+	resultMessage := ""
+	_, err := fmt.Scanln(&resultMessage)
+	if err != nil {
+		fmt.Println(err)
+		t.Fail()
+	}
+	if resultMessage != testMessage {
+		fmt.Println("Expected", testMessage)
+		fmt.Println("Got", resultMessage)
+		t.Fail()
+	}
+
+}

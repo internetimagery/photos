@@ -28,3 +28,27 @@ func (tmp TempDir) Close() {
 		tmp.T.Fatal(err)
 	}
 }
+
+// UserInput : Apply user input to stdin
+func UserInput(t *testing.T, input string) func() {
+	tmpFile, err := ioutil.TempFile("", "NewUserInput")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = tmpFile.WriteString(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = tmpFile.Seek(0, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	oldStdin := os.Stdin
+	os.Stdin = tmpFile
+
+	return func() {
+		os.Stdin = oldStdin
+		os.Remove(tmpFile.Name())
+	}
+}
