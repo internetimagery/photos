@@ -11,7 +11,7 @@ import (
 )
 
 func TestQuestion(t *testing.T) {
-	defer testutil.UserInput(t, "y\n")
+	defer testutil.UserInput(t, "y\n")()
 	if !question() {
 		fmt.Println("Question did not pass with 'y'")
 		t.Fail()
@@ -30,9 +30,9 @@ func TestInitClean(t *testing.T) {
 	tmpDir := testutil.NewTempDir(t, "TestInitClean")
 	defer tmpDir.Close()
 
-	defer testutil.UserInput(t, "y\n\nthing")
+	defer testutil.UserInput(t, "y\n")()
 
-	if err := run(tmpDir.Dir, []string{"exe", "init"}); err != nil {
+	if err := run(tmpDir.Dir, []string{"exe", "init", "projectname"}); err != nil {
 		fmt.Println(err)
 		t.Fail()
 	}

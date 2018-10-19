@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -34,7 +35,7 @@ func question() bool {
 	fmt.Print("Is this ok? (y|n) : ")
 	var response string
 	_, err := fmt.Scanln(&response)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		panic(err)
 	}
 	return strings.TrimSpace(response) == "y"
@@ -46,10 +47,6 @@ func run(cwd string, args []string) error {
 	if len(args) == 1 {
 		sendHelp()
 		return nil
-	}
-	cwd, err := os.Getwd()
-	if err != nil {
-		return err
 	}
 	cxt, err := context.NewContext(cwd)
 
