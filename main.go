@@ -74,7 +74,7 @@ func run(cwd string, args []string) error {
 	case "init": // Create a starter config file at working directory, to signify the root of the project.
 		if os.IsNotExist(err) {
 			if len(args) < 3 {
-				fmt.Println("Please provide a name for your project.")
+				return fmt.Errorf("Please provide a name for your project.")
 			} else {
 				name := args[2]
 				fmt.Printf("About to initialize your project '%s' in '%s'\n", name, cwd)
@@ -101,8 +101,7 @@ func run(cwd string, args []string) error {
 
 	// Handle being outside project. Common error across the rest of the functions
 	if os.IsNotExist(err) {
-		fmt.Println("Project has not been set up. Run 'init' to do an intial setup, then add commands to the file created.")
-		return nil
+		return fmt.Errorf("Project has not been set up. Run 'init' to do an intial setup, then add commands to the file created.")
 	} else if err != nil {
 		return err
 	}
@@ -125,7 +124,7 @@ func run(cwd string, args []string) error {
 
 	case "rename": // Rename files (and optionally compress them) within working directory
 		if cxt.WorkingDir == cxt.Root {
-			fmt.Println("Cannot rename media in the root directory (same place as config file.)")
+			return fmt.Errorf("Cannot rename media in the root directory (same place as config file.)")
 		} else {
 			fmt.Printf("About to rename media in '%s'\n", cxt.WorkingDir)
 			if question() {

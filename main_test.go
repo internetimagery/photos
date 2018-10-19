@@ -81,6 +81,13 @@ func TestSort(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// Run sort on project not set up
+	defer testutil.UserInput(t, "y\n")()
+	if err := run(tmpDir.Dir, []string{"exe", "sort"}); err == nil {
+		t.Log("Allowed usage on non-project folder.")
+		t.Fail()
+	}
+
 	// Set up project
 	defer testutil.UserInput(t, "y\n")()
 	if err := run(tmpDir.Dir, []string{"exe", "init", "projectname"}); err != nil {
