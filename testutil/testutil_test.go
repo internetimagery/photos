@@ -42,7 +42,7 @@ func TestUserInput(t *testing.T) {
 	}
 
 	if resultMessage != testMessage {
-		tu.Fail(fmt.Sprintf("Expected '%s'\nGot '%s'", testMessage, resultMessage))
+		tu.FailE(testMessage, resultMessage)
 	}
 
 }

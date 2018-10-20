@@ -23,7 +23,7 @@ func TestFormatDate(t *testing.T) {
 
 	compareDate := FormatDate(testTime)
 	if compareDate != testDate {
-		tu.Fail(fmt.Sprintf("Expected '%s'\nGot '%s'", testDate, compareDate))
+		tu.FailE(testDate, compareDate)
 	}
 }
 
@@ -45,7 +45,7 @@ func TestGetMediaDate(t *testing.T) {
 	layout := "06-01-02-15-04-05"
 
 	if testTime1.Format(layout) != compareTime.Format(layout) {
-		tu.Fail(fmt.Sprintf("Expected '%s'\nGot '%s'", testTime1, compareTime))
+		tu.FailE(testTime1, compareTime)
 	}
 }
 
@@ -66,15 +66,13 @@ func TestUniqueName(t *testing.T) {
 	compareExt := filepath.Ext(compareFile2)
 
 	if compareFile1 != expectFile1 {
-		tu.Fail(fmt.Sprintf("Expected '%s'\nGot '%s'", expectFile1, compareFile1))
+		tu.FailE(expectFile1, compareFile1)
 	}
 	if compareFile2 != testFile2 {
-		tu.Fail(fmt.Sprintf("Expected '%s'\nGot '%s'", testFile2, compareFile2))
+		tu.FailE(testFile2, compareFile2)
 	}
 	if compareExt != testExt {
-		fmt.Println("Expected", testExt)
-		fmt.Println("Got", compareExt)
-		t.Fail()
+		tu.FailE(testExt, compareExt)
 	}
 
 }
