@@ -13,71 +13,63 @@ import (
 )
 
 func TestFormatDate(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
 	testDate := "08-10-16"
 	location, err := time.LoadLocation("")
 	if err != nil {
-		t.Fatal(err)
+		tu.Fatal(err)
 	}
 	testTime := time.Date(2008, 10, 16, 12, 0, 0, 0, location)
 
 	compareDate := FormatDate(testTime)
 	if compareDate != testDate {
-		fmt.Println("Expected", testDate)
-		fmt.Println("Got", compareDate)
-		t.Fail()
+		tu.Fail(fmt.Sprintf("Expected '%s'\nGot '%s'", testDate, compareDate))
 	}
 }
 
 func TestGetMediaDate(t *testing.T) {
-	tmpDir := testutil.NewTempDir(t, "TestGetMediaDate")
-	defer tmpDir.Close()
+	tu := testutil.NewTestUtil(t)
+	defer tu.TempDir("TestGetMediaDate")()
 
-	testFile1 := filepath.Join(tmpDir.Dir, "testfile.test")
+	testFile1 := filepath.Join(tu.Dir, "testfile.test")
 	testTime1 := time.Now()
 	if err := ioutil.WriteFile(testFile1, []byte("some stuff here"), 0644); err != nil {
-		t.Fatal(err)
+		tu.Fatal(err)
 	}
 
 	compareTime, err := GetMediaDate(testFile1)
 	if err != nil {
-		fmt.Println(err)
-		t.Fail()
+		tu.Fail(err)
 	}
 
 	layout := "06-01-02-15-04-05"
 
 	if testTime1.Format(layout) != compareTime.Format(layout) {
-		fmt.Println("Expected", testTime1)
-		fmt.Println("Got", compareTime)
-		t.Fail()
+		tu.Fail(fmt.Sprintf("Expected '%s'\nGot '%s'", testTime1, compareTime))
 	}
 }
 
 func TestUniqueName(t *testing.T) {
-	tmpDir := testutil.NewTempDir(t, "TestUniqueName")
-	defer tmpDir.Close()
+	tu := testutil.NewTestUtil(t)
+	defer tu.TempDir("TestUniqueName")()
 
-	testFile1 := filepath.Join(tmpDir.Dir, "test1.file") // File exists
-	testFile2 := filepath.Join(tmpDir.Dir, "test2.file") // File does not exist
+	testFile1 := filepath.Join(tu.Dir, "test1.file") // File exists
+	testFile2 := filepath.Join(tu.Dir, "test2.file") // File does not exist
 	testExt := ".file"
 	if err := ioutil.WriteFile(testFile1, []byte("stuff"), 0644); err != nil {
-		t.Fatal(err)
+		tu.Fatal(err)
 	}
 
-	expectFile1 := filepath.Join(tmpDir.Dir, "test1_1.file")
+	expectFile1 := filepath.Join(tu.Dir, "test1_1.file")
 	compareFile1 := UniqueName(testFile1)
 	compareFile2 := UniqueName(testFile2)
 	compareExt := filepath.Ext(compareFile2)
 
 	if compareFile1 != expectFile1 {
-		fmt.Println("Expected", expectFile1)
-		fmt.Println("Got", compareFile1)
-		t.Fail()
+		tu.Fail(fmt.Sprintf("Expected '%s'\nGot '%s'", expectFile1, compareFile1))
 	}
 	if compareFile2 != testFile2 {
-		fmt.Println("Expected", testFile2)
-		fmt.Println("Got", compareFile2)
-		t.Fail()
+		tu.Fail(fmt.Sprintf("Expected '%s'\nGot '%s'", testFile2, compareFile2))
 	}
 	if compareExt != testExt {
 		fmt.Println("Expected", testExt)

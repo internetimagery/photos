@@ -48,6 +48,13 @@ func (util *TestUtil) Fail(err interface{}) {
 	util.T.Fail()
 }
 
+// FailE : Override fail to require messages "expected" and "got"
+func (util *TestUtil) FailE(expected, got interface{}) {
+	util.T.Log("Expected:", expected)
+	util.T.Log("Got:", got)
+	util.T.Fail()
+}
+
 // TempDir : Container for temporary directory
 type TempDir struct {
 	Dir string
