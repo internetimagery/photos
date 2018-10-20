@@ -1,12 +1,12 @@
 package rename
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/internetimagery/photos/context"
+	"github.com/internetimagery/photos/sort"
 
 	"github.com/internetimagery/photos/format"
 )
@@ -69,13 +69,6 @@ func Rename(cxt *context.Context, compress bool) error {
 		return nil
 	}
 
-	// Check files aren't already in the source directory
-	for _, source := range sourceMap {
-		if _, err = os.Stat(source); !os.IsNotExist(err) {
-			return fmt.Errorf("File already exists: '%s'", source)
-		}
-	}
-
 	//////////// Now make some changes! /////////////
 
 	// Make source file directory if it doesn't exist
@@ -132,7 +125,7 @@ func Rename(cxt *context.Context, compress bool) error {
 		}
 
 		// Move source file to source folder.
-		if err = os.Rename(src, sourceMap[src]); err != nil {
+		if err = os.Rename(src, sort.UniqueName(sourceMap[src])); err != nil {
 			return err
 		}
 	}

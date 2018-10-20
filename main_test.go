@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/internetimagery/photos/context"
+	"github.com/internetimagery/photos/rename"
 	"github.com/internetimagery/photos/testutil"
 )
 
@@ -28,7 +29,7 @@ func TestQuestion(t *testing.T) {
 
 // Test init
 func TestInit(t *testing.T) {
-	tmpDir := testutil.NewTempDir(t, "TestInitClean")
+	tmpDir := testutil.NewTempDir(t, "TestInit")
 	defer tmpDir.Close()
 
 	// Run init without a name
@@ -72,7 +73,7 @@ func TestInit(t *testing.T) {
 
 // Test sort functionality
 func TestSort(t *testing.T) {
-	tmpDir := testutil.NewTempDir(t, "TestInitClean")
+	tmpDir := testutil.NewTempDir(t, "TestSort")
 	defer tmpDir.Close()
 
 	// Create subfolder
@@ -145,4 +146,98 @@ func TestSort(t *testing.T) {
 			t.Fail()
 		}
 	}
+}
+
+// Testing rename command
+func TestRename(t *testing.T) {
+	tmpDir := testutil.NewTempDir(t, "TestRename")
+	defer tmpDir.Close()
+
+	// Create an event
+	subDir := filepath.Join(tmpDir.Dir, "event01")
+	if err := os.Mkdir(subDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Make some test files
+	testFiles := map[string]string{
+		filepath.Join(subDir, "event01_002.test"):          filepath.Join(subDir, "event01_002.test"),
+		filepath.Join(subDir, "event01_002[one two].test"): filepath.Join(subDir, "event01_002[one two].test"),
+		filepath.Join(subDir, "newfile.test"):              filepath.Join(subDir, "event01_003.test"),
+	}
+	sourceTestFiles := []string{
+		filepath.Join(subDir, rename.SOURCEDIR, "newfile.test"),
+	}
+	for testFile := range testFiles {
+		if err := ioutil.WriteFile(testFile, []byte("some info"), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Run without setting up project
+	defer testutil.UserInput(t, "y\n")()
+	if err := run(subDir, []string{"exe", "rename"}); err == nil {
+		t.Log("Allowed running without project setup")
+		t.Fail()
+	}
+
+	// Set up project
+	defer testutil.UserInput(t, "y\n")()
+	if err := run(tmpDir.Dir, []string{"exe", "init", "projectname"}); err != nil {
+		t.Fatal(err)
+	}
+
+	// Test rename in root folder
+	defer testutil.UserInput(t, "y\n")()
+	if err := run(tmpDir.Dir, []string{"exe", "rename"}); err == nil {
+		t.Log("Allowed running in root of project")
+		t.Fail()
+	}
+
+	// Test rename
+	defer testutil.UserInput(t, "y\n")()
+	if err := run(subDir, []string{"exe", "rename"}); err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+
+	// Check files are where they should be
+	for _, testFile := range sourceTestFiles {
+		if _, err := os.Stat(testFile); err != nil {
+			t.Log(err)
+			t.Fail()
+		}
+	}
+	for _, testFile := range testFiles {
+		if _, err := os.Stat(testFile); err != nil {
+			t.Log(err)
+			t.Fail()
+		}
+	}
+
+	sourceDir := filepath.Join(subDir, rename.SOURCEDIR)
+	testFiles = map[string]string{
+		filepath.Join(sourceDir, "anotherfile.test"): filepath.Join(sourceDir, "anotherfile.test"),
+		filepath.Join(subDir, "anotherfile.test"):    filepath.Join(sourceDir, "anotherfile_1.test"),
+	}
+	for testFile := range testFiles {
+		if err := ioutil.WriteFile(testFile, []byte("testing"), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Test rename again
+	defer testutil.UserInput(t, "y\n")()
+	if err := run(subDir, []string{"exe", "rename"}); err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+
+	for _, testFile := range testFiles {
+		if _, err := os.Stat(testFile); err != nil {
+			t.Log(err)
+			t.Fail()
+		}
+	}
+
 }

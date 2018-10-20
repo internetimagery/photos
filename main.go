@@ -138,7 +138,7 @@ func run(cwd string, args []string) error {
 
 	case "backup": // Backup files within working directory to specified destination
 		if len(args) < 3 {
-			fmt.Println("Please provide a name for the backup script you wish to run.")
+			return fmt.Errorf("Please provide a name for the backup script you wish to run.")
 		} else {
 			fmt.Printf("About to run backup scripts that match the name '%s'.\nTo backup the media in '%s'\n", args[2], cxt.WorkingDir)
 			if question() {
