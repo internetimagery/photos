@@ -73,7 +73,7 @@ func TestUniqueName(t *testing.T) {
 
 func TestSortMedia(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
-	defer tu.TempDir("TestSortMedia")
+	defer tu.TempDir("TestSortMedia")()
 
 	cxt := &context.Context{WorkingDir: tu.Dir}
 
