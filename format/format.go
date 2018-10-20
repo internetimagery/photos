@@ -10,7 +10,7 @@ import (
 )
 
 // TEMPPREFIX : Prefix for temporary working files. Ignore these files.
-var TEMPPREFIX = `tmp.`    // Prefix for temporary working files
+var TEMPPREFIX = `tmp-`    // Prefix for temporary working files
 var eventReg = `[\w\-_ ]+` // Valid event
 var indexReg = `\d+`       // Valid Index
 var tagReg = `[\w\-_ ]+`   // Valid Tags

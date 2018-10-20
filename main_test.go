@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/internetimagery/photos/context"
+	"github.com/internetimagery/photos/format"
 	"github.com/internetimagery/photos/rename"
 	"github.com/internetimagery/photos/testutil"
 )
@@ -156,10 +157,10 @@ func TestRename(t *testing.T) {
 	}
 
 	// Set up project
-	defer tu.UserInput("y\n")()
-	if err := run(tu.Dir, []string{"exe", "init", "projectname"}); err != nil {
-		tu.Fatal(err)
-	}
+	tu.NewFile(filepath.Join(tu.Dir, context.ROOTCONF), `{
+		"compress": [
+			["*.missing", "cp -v \"$SOURCEPATH\" \"$DESTPATH.here\""]
+		]}`)
 
 	// Test rename in root folder
 	defer tu.UserInput("y\n")()
@@ -200,4 +201,20 @@ func TestRename(t *testing.T) {
 		tu.AssertExists(testFile)
 	}
 
+	// Test compress command is run
+	tu.NewFile(filepath.Join(subDir, "testfile.missing"), "")
+	expectFile := filepath.Join(subDir, format.TEMPPREFIX+"testfile.missing.here")
+
+	// Expect rename to fail not finding compressed file
+	defer tu.UserInput("y\n")()
+	if err := run(subDir, []string{"exe", "rename"}); !os.IsNotExist(err) {
+		if err == nil {
+			tu.Fail("Did not alert failure to find compressed file.")
+		} else {
+			tu.Fail(err)
+		}
+	}
+
+	// Check file was copied
+	tu.AssertExists(expectFile)
 }

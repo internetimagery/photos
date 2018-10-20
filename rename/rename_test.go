@@ -25,7 +25,7 @@ func TestRename(t *testing.T) {
 		WorkingDir: rootPath,
 		Config: &config.Config{
 			Compress: config.CompressCategory{
-				config.Command{"*", `cp "$SOURCEPATH" "$DESTPATH"`},
+				config.Command{"*", `cp -v "$SOURCEPATH" "$DESTPATH"`},
 			},
 		},
 	}
@@ -89,5 +89,4 @@ func TestSetEnviron(t *testing.T) {
 			tu.FailE(value, cxt.Env[name])
 		}
 	}
-
 }
