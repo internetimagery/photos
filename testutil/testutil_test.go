@@ -3,37 +3,46 @@ package testutil
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
-func TestTempDir(t *testing.T) {
-	tmpDir := NewTempDir(t, "TestTempDir")
-	if _, err := os.Stat(tmpDir.Dir); err != nil {
-		fmt.Println(err)
-		t.Fail()
+func TestNewFile(t *testing.T) {
+	tu := NewTestUtil(t)
+	defer tu.TempDir("TestNewFile")()
+
+	testFile := filepath.Join(tu.Dir, "test.file")
+	tu.NewFile(testFile)
+	if _, err := os.Stat(testFile); err != nil {
+		tu.Fail(err)
 	}
-	tmpDir.Close()
-	if _, err := os.Stat(tmpDir.Dir); !os.IsNotExist(err) {
-		fmt.Println("Tempdir not removed.")
-		t.Fail()
+}
+
+func TestTempDir(t *testing.T) {
+	tu := NewTestUtil(t)
+	close := tu.TempDir("TestTempDir")
+	if _, err := os.Stat(tu.Dir); err != nil {
+		tu.Fail(err)
+	}
+	close()
+	if _, err := os.Stat(tu.Dir); !os.IsNotExist(err) {
+		tu.Fail("Tempdir not removed.")
 	}
 
 }
 
 func TestUserInput(t *testing.T) {
+	tu := NewTestUtil(t)
 	testMessage := "Hello"
-	defer UserInput(t, testMessage+"\n")()
+	defer tu.UserInput(testMessage + "\n")()
 
 	resultMessage := ""
-	_, err := fmt.Scanln(&resultMessage)
-	if err != nil {
-		fmt.Println(err)
-		t.Fail()
+	if _, err := fmt.Scanln(&resultMessage); err != nil {
+		tu.Fail(err)
 	}
+
 	if resultMessage != testMessage {
-		fmt.Println("Expected", testMessage)
-		fmt.Println("Got", resultMessage)
-		t.Fail()
+		tu.Fail(fmt.Sprintf("Expected '%s'\nGot '%s'", testMessage, resultMessage))
 	}
 
 }

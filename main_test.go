@@ -13,86 +13,79 @@ import (
 )
 
 func TestQuestion(t *testing.T) {
-	defer testutil.UserInput(t, "y\n")()
+	tu := testutil.NewTestUtil(t)
+	defer tu.UserInput("y\n")()
 	if !question() {
-		t.Log("Question did not pass with 'y'")
-		t.Fail()
+		tu.Fail("Question did not pass with 'y'")
 	}
 
-	defer testutil.UserInput(t, "n\n")
+	defer tu.UserInput("n\n")
 	if question() {
-		t.Log("Question passed with 'n'")
-		t.Fail()
+		tu.Fail("Question passed with 'n'")
 	}
 
 }
 
 // Test init
 func TestInit(t *testing.T) {
-	tmpDir := testutil.NewTempDir(t, "TestInit")
-	defer tmpDir.Close()
+	tu := testutil.NewTestUtil(t)
+	defer tu.TempDir("TestInit")()
 
 	// Run init without a name
-	defer testutil.UserInput(t, "y\n")()
-	if err := run(tmpDir.Dir, []string{"exe", "init"}); err == nil {
-		t.Log("Allowed project with no name.")
-		t.Fail()
+	defer tu.UserInput("y\n")()
+	if err := run(tu.Dir, []string{"exe", "init"}); err == nil {
+		tu.Fail("Allowed project with no name.")
 	}
 
 	// Run init on empty directory
-	defer testutil.UserInput(t, "y\n")()
-	if err := run(tmpDir.Dir, []string{"exe", "init", "projectname"}); err != nil {
-		t.Log(err)
-		t.Fail()
+	defer tu.UserInput("y\n")()
+	if err := run(tu.Dir, []string{"exe", "init", "projectname"}); err != nil {
+		tu.Fail(err)
 	}
 
 	// Ensure config file is created
-	if _, err := os.Stat(filepath.Join(tmpDir.Dir, context.ROOTCONF)); err != nil {
-		t.Log(err)
-		t.Fail()
+	if _, err := os.Stat(filepath.Join(tu.Dir, context.ROOTCONF)); err != nil {
+		tu.Fail(err)
 	}
 
 	// Run init on already set up directory
-	defer testutil.UserInput(t, "y\n")()
-	if err := run(tmpDir.Dir, []string{"exe", "init", "projectname2"}); err == nil {
-		t.Log("No error on already set up project.")
-		t.Fail()
+	defer tu.UserInput("y\n")()
+	if err := run(tu.Dir, []string{"exe", "init", "projectname2"}); err == nil {
+		tu.Fail("No error on already set up project.")
 	}
 
 	// Run in subfolder in setup directory
-	subDir := filepath.Join(tmpDir.Dir, "subdir")
+	subDir := filepath.Join(tu.Dir, "subdir")
 	if err := os.Mkdir(subDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	defer testutil.UserInput(t, "y\n")()
+	defer tu.UserInput("y\n")()
 	if err := run(subDir, []string{"exe", "init", "projectname3"}); err == nil {
-		t.Log("No error on already set up project in subfolder.")
-		t.Fail()
+		tu.Fail("No error on already set up project in subfolder.")
 	}
 }
 
 // Test sort functionality
 func TestSort(t *testing.T) {
-	tmpDir := testutil.NewTempDir(t, "TestSort")
-	defer tmpDir.Close()
+	tu := testutil.NewTestUtil(t)
+	defer tu.TempDir("TestSort")()
 
 	// Create subfolder
-	subDir := filepath.Join(tmpDir.Dir, "subDir")
+	subDir := filepath.Join(tu.Dir, "subDir")
 	if err := os.Mkdir(subDir, 0755); err != nil {
-		t.Fatal(err)
+		tu.Fatal(err)
 	}
 
 	// Run sort on project not set up
-	defer testutil.UserInput(t, "y\n")()
-	if err := run(tmpDir.Dir, []string{"exe", "sort"}); err == nil {
-		t.Log("Allowed usage on non-project folder.")
-		t.Fail()
+	defer tu.UserInput("y\n")()
+	if err := run(tu.Dir, []string{"exe", "sort"}); err == nil {
+		tu.Fail("Allowed usage on non-project folder.")
 	}
 
 	// Set up project
-	defer testutil.UserInput(t, "y\n")()
-	if err := run(tmpDir.Dir, []string{"exe", "init", "projectname"}); err != nil {
-		t.Fatal(err)
+	defer tu.UserInput("y\n")()
+	if err := run(tu.Dir, []string{"exe", "init", "projectname"}); err != nil {
+		tu.Fatal(err)
 	}
 
 	// Set up test files
@@ -100,12 +93,12 @@ func TestSort(t *testing.T) {
 	testFolder2 := filepath.Join(subDir, "18-10-17")
 	loc, err := time.LoadLocation("")
 	if err != nil {
-		t.Fatal(err)
+		tu.Fatal(err)
 	}
 	testDate1 := time.Date(2018, 10, 16, 0, 0, 0, 0, loc)
 	testDate2 := time.Date(2018, 10, 17, 0, 0, 0, 0, loc)
 	if err := os.Mkdir(testFolder2, 0755); err != nil {
-		t.Fatal(err)
+		tu.Fatal(err)
 	}
 	type testCase struct {
 		Test, Expect string
@@ -118,45 +111,42 @@ func TestSort(t *testing.T) {
 	}
 	for _, testFile := range testFiles {
 		if err := ioutil.WriteFile(testFile.Test, []byte("info"), 0644); err != nil {
-			t.Fatal(err)
+			tu.Fatal(err)
 		}
 		if err := os.Chtimes(testFile.Test, testFile.Date, testFile.Date); err != nil {
-			t.Fatal(err)
+			tu.Fatal(err)
 		}
 	}
 
 	// Run sort on root directory
-	defer testutil.UserInput(t, "y\n")()
-	if err := run(tmpDir.Dir, []string{"exe", "sort"}); err == nil {
-		t.Log("Allowing running sort in root... don't do that!")
-		t.Fail()
+	defer tu.UserInput("y\n")()
+	if err := run(tu.Dir, []string{"exe", "sort"}); err == nil {
+		tu.Fail("Allowing running sort in root... don't do that!")
 	}
 
 	// Run sort on root subdirectory
-	defer testutil.UserInput(t, "y\n")()
+	defer tu.UserInput("y\n")()
 	if err := run(subDir, []string{"exe", "sort"}); err != nil {
-		t.Log(err)
-		t.Fail()
+		tu.Fail(err)
 	}
 
 	// Check our files match!
 	for _, testFile := range testFiles {
 		if _, err := os.Stat(testFile.Expect); err != nil {
-			t.Log(err)
-			t.Fail()
+			tu.Fail(err)
 		}
 	}
 }
 
 // Testing rename command
 func TestRename(t *testing.T) {
-	tmpDir := testutil.NewTempDir(t, "TestRename")
-	defer tmpDir.Close()
+	tu := testutil.NewTestUtil(t)
+	defer tu.TempDir("TestRename")()
 
 	// Create an event
-	subDir := filepath.Join(tmpDir.Dir, "event01")
+	subDir := filepath.Join(tu.Dir, "event01")
 	if err := os.Mkdir(subDir, 0755); err != nil {
-		t.Fatal(err)
+		tu.Fatal(err)
 	}
 
 	// Make some test files
@@ -170,48 +160,43 @@ func TestRename(t *testing.T) {
 	}
 	for testFile := range testFiles {
 		if err := ioutil.WriteFile(testFile, []byte("some info"), 0644); err != nil {
-			t.Fatal(err)
+			tu.Fatal(err)
 		}
 	}
 
 	// Run without setting up project
-	defer testutil.UserInput(t, "y\n")()
+	defer tu.UserInput("y\n")()
 	if err := run(subDir, []string{"exe", "rename"}); err == nil {
-		t.Log("Allowed running without project setup")
-		t.Fail()
+		tu.Fail("Allowed running without project setup")
 	}
 
 	// Set up project
-	defer testutil.UserInput(t, "y\n")()
-	if err := run(tmpDir.Dir, []string{"exe", "init", "projectname"}); err != nil {
-		t.Fatal(err)
+	defer tu.UserInput("y\n")()
+	if err := run(tu.Dir, []string{"exe", "init", "projectname"}); err != nil {
+		tu.Fatal(err)
 	}
 
 	// Test rename in root folder
-	defer testutil.UserInput(t, "y\n")()
-	if err := run(tmpDir.Dir, []string{"exe", "rename"}); err == nil {
-		t.Log("Allowed running in root of project")
-		t.Fail()
+	defer tu.UserInput("y\n")()
+	if err := run(tu.Dir, []string{"exe", "rename"}); err == nil {
+		tu.Fail("Allowed running in root of project")
 	}
 
 	// Test rename
-	defer testutil.UserInput(t, "y\n")()
+	defer tu.UserInput("y\n")()
 	if err := run(subDir, []string{"exe", "rename"}); err != nil {
-		t.Log(err)
-		t.Fail()
+		tu.Fail(err)
 	}
 
 	// Check files are where they should be
 	for _, testFile := range sourceTestFiles {
 		if _, err := os.Stat(testFile); err != nil {
-			t.Log(err)
-			t.Fail()
+			tu.Fail(err)
 		}
 	}
 	for _, testFile := range testFiles {
 		if _, err := os.Stat(testFile); err != nil {
-			t.Log(err)
-			t.Fail()
+			tu.Fail(err)
 		}
 	}
 
@@ -222,21 +207,19 @@ func TestRename(t *testing.T) {
 	}
 	for testFile := range testFiles {
 		if err := ioutil.WriteFile(testFile, []byte("testing"), 0644); err != nil {
-			t.Fatal(err)
+			tu.Fatal(err)
 		}
 	}
 
 	// Test rename again
-	defer testutil.UserInput(t, "y\n")()
+	defer tu.UserInput("y\n")()
 	if err := run(subDir, []string{"exe", "rename"}); err != nil {
-		t.Log(err)
-		t.Fail()
+		tu.Fail(err)
 	}
 
 	for _, testFile := range testFiles {
 		if _, err := os.Stat(testFile); err != nil {
-			t.Log(err)
-			t.Fail()
+			tu.Fail(err)
 		}
 	}
 
