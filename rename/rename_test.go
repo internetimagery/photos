@@ -1,7 +1,6 @@
 package rename
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,16 +11,16 @@ import (
 )
 
 func TestRename(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
 
 	// Working Path
-	tmpDir := testutil.NewTempDir(t, "TestRename")
-	defer tmpDir.Close()
+	defer tu.TempDir("TestRename")()
 
 	eventName := "18-02-01 event"
-	rootPath := filepath.Join(tmpDir.Dir, eventName)
+	rootPath := filepath.Join(tu.Dir, eventName)
 	err := os.Mkdir(rootPath, 0755)
 	if err != nil {
-		t.Fatal(err)
+		tu.Fatal(err)
 	}
 
 	// Mock context
@@ -44,17 +43,13 @@ func TestRename(t *testing.T) {
 
 	// Create files
 	for name := range testFiles {
-		err = ioutil.WriteFile(filepath.Join(rootPath, name), []byte("some data"), 0644)
-		if err != nil {
-			t.Fatal(err)
-		}
+		tu.NewFile(filepath.Join(rootPath, name), "")
 	}
 
 	// Perform rename with compression
 	err = Rename(mockCxt, true)
 	if err != nil {
-		t.Log(err)
-		t.Fail()
+		tu.Fail(err)
 	}
 
 	// Check files made it to where they need to be
@@ -62,20 +57,16 @@ func TestRename(t *testing.T) {
 	for src, dst := range testFiles {
 		if src != dst {
 			// Check renamed
-			if _, err = os.Stat(filepath.Join(rootPath, dst)); err != nil {
-				t.Log(err)
-				t.Fail()
-			}
+			tu.AssertExists(filepath.Join(rootPath, dst))
+
 			// Check original source
-			if _, err = os.Stat(filepath.Join(sourcePath, src)); err != nil {
-				t.Log(err)
-				t.Fail()
-			}
+			tu.AssertExists(filepath.Join(sourcePath, src))
 		}
 	}
 }
 
 func TestSetEnviron(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
 
 	sourcePath := "/path/to/original.file"
 	destPath := "/path/to/other.file"
@@ -100,8 +91,7 @@ func TestSetEnviron(t *testing.T) {
 
 	for name, value := range testCase {
 		if cxt.Env[name] != value {
-			t.Log("Expected", value, "Got", cxt.Env[name], "from key", name)
-			t.Fail()
+			tu.FailE(value, cxt.Env[name])
 		}
 	}
 

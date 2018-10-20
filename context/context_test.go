@@ -1,7 +1,6 @@
 package context
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -10,77 +9,68 @@ import (
 )
 
 func TestNewContext(t *testing.T) {
-	tmpDir := testutil.NewTempDir(t, "TestNewContext")
-	defer tmpDir.Close()
+	tu := testutil.NewTestUtil(t)
+	defer tu.TempDir("TestNewContext")()
 
-	if _, err := NewContext(tmpDir.Dir); !os.IsNotExist(err) {
-		t.Log(err)
-		t.Fail()
+	if _, err := NewContext(tu.Dir); !os.IsNotExist(err) {
+		tu.Fail(err)
 	}
 }
 
 func TestContext(t *testing.T) {
-	configData := []byte(`{
+	tu := testutil.NewTestUtil(t)
+	defer tu.TempDir("TestContext")()
+
+	configData := `{
 	"compress": [
 		["*", "some command"]
 	]
-}`)
-
-	tmpDir := testutil.NewTempDir(t, "TestContext")
-	defer tmpDir.Close()
+}`
 
 	// Make a couple files
-	workingDir := filepath.Join(tmpDir.Dir, "some-event")
-	rootConf := filepath.Join(tmpDir.Dir, ROOTCONF)
+	workingDir := filepath.Join(tu.Dir, "some-event")
+	rootConf := filepath.Join(tu.Dir, ROOTCONF)
 
-	err := os.Mkdir(workingDir, 0755)
-	if err != nil {
-		t.Fatal(err)
+	if err := os.Mkdir(workingDir, 0755); err != nil {
+		tu.Fatal(err)
 	}
-	err = ioutil.WriteFile(rootConf, configData, 0644)
-	if err != nil {
-		t.Fatal(err)
-	}
+
+	tu.NewFile(rootConf, configData)
 
 	// Start within event directory
 	cxt, err := NewContext(workingDir)
 	if err != nil {
-		t.Log(err)
-		t.Fail()
+		tu.Fail(err)
 	}
 
 	// Check we reached root file
-	if cxt.Root != tmpDir.Dir {
-		t.Log("Couldn't find config file.", cxt.Root)
-		t.Fail()
+	if cxt.Root != tu.Dir {
+		tu.Fail("Couldn't find config file.", cxt.Root)
 	}
 }
 
 func TestContextEnv(t *testing.T) {
-	tmpDir := testutil.NewTempDir(t, "TestContextEnv")
-	defer tmpDir.Close()
+	tu := testutil.NewTestUtil(t)
+	defer tu.TempDir("TestContextEnv")()
 
-	err := ioutil.WriteFile(filepath.Join(tmpDir.Dir, ROOTCONF), []byte("{}"), 0644)
-	if err != nil {
-		t.Fatal(err)
-	}
+	tu.NewFile(filepath.Join(tu.Dir, ROOTCONF), "{}")
 
 	// Set environment var
 	os.Setenv("TESTENV", "SUCCESS")
 
 	// Build context and check environment var came through
-	cxt, err := NewContext(tmpDir.Dir)
+	cxt, err := NewContext(tu.Dir)
 	if err != nil {
-		t.Log(err)
-		t.Fail()
+		tu.Fail(err)
 	}
 	if cxt.Env["TESTENV"] != "SUCCESS" {
-		t.Log("Env was not passed into context")
-		t.Fail()
+		tu.Fail("Env was not passed into context")
 	}
 }
 
 func TestContextPrepCommand(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+
 	cxt := &Context{Env: map[string]string{
 		"TESTENV": "VALUE",
 	}}
@@ -88,12 +78,10 @@ func TestContextPrepCommand(t *testing.T) {
 	expectCommand := "echo $TESTENV"
 	command, err := cxt.PrepCommand(expectCommand)
 	if err != nil {
-		t.Log(err)
-		t.Fail()
+		tu.Fail(err)
 	}
 	if len(command.Args) != 2 && command.Args[1] != "VALUE" {
-		t.Log("Got args", command.Args)
-		t.Fail()
+		tu.Fail("Got args", command.Args)
 	}
 
 }

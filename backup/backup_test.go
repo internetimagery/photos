@@ -1,7 +1,6 @@
 package backup
 
 import (
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -11,19 +10,19 @@ import (
 )
 
 func TestRunBackup(t *testing.T) {
-	tmpDir := testutil.NewTempDir(t, "TestRunBackup")
-	defer tmpDir.Close()
+	tu := testutil.NewTestUtil(t)
+	defer tu.TempDir("TestRunBackup")()
 
-	testFile1 := filepath.Join(tmpDir.Dir, "testfile1.txt")
-	testFile2 := filepath.Join(tmpDir.Dir, "testfile2.txt")
+	testFile1 := filepath.Join(tu.Dir, "testfile1.txt")
+	testFile2 := filepath.Join(tu.Dir, "testfile2.txt")
 
 	cxt := &context.Context{
 		Env: map[string]string{
 			"TESTPATH1": testFile1,
 			"TESTPATH2": testFile2,
 		},
-		Root:       tmpDir.Dir,
-		WorkingDir: tmpDir.Dir,
+		Root:       tu.Dir,
+		WorkingDir: tu.Dir,
 		Config: &config.Config{
 			Backup: config.BackupCategory{
 				config.Command{"test", "touch $TESTPATH1"},
@@ -35,46 +34,37 @@ func TestRunBackup(t *testing.T) {
 	// Test missing command
 	err := RunBackup(cxt, "nocommand")
 	if err != nil {
-		t.Log(err)
-		t.Fail()
+		tu.Fail(err)
 	}
 
 	// Test no command
 	err = RunBackup(cxt, "")
 	if err != nil {
-		t.Log(err)
-		t.Fail()
+		tu.Fail(err)
 	}
 
 	// Test command
 	err = RunBackup(cxt, "test")
 	if err != nil {
-		t.Log(err)
-		t.Fail()
+		tu.Fail(err)
 	}
 
 	// File should now exist
-	if _, err = os.Stat(testFile1); err != nil {
-		t.Log(err)
-		t.Fail()
-	}
+	tu.AssertExists(testFile1)
 
 	// Test command star
 	err = RunBackup(cxt, "othe*")
 	if err != nil {
-		t.Log(err)
-		t.Fail()
+		tu.Fail(err)
 	}
 
 	// File should now exist
-	if _, err = os.Stat(testFile2); err != nil {
-		t.Log(err)
-		t.Fail()
-	}
+	tu.AssertExists(testFile2)
 
 }
 
 func TestSetEnviron(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
 
 	working := "/path/to/files"
 	root := "/path"
@@ -98,9 +88,7 @@ func TestSetEnviron(t *testing.T) {
 
 	for name, value := range testCase {
 		if cxt.Env[name] != value {
-			t.Log("Expected", value, "Got", cxt.Env[name], "from key", name)
-			t.Fail()
+			tu.FailE(value, cxt.Env[name])
 		}
 	}
-
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -44,7 +43,7 @@ func TestInit(t *testing.T) {
 	}
 
 	// Ensure config file is created
-	tu.Exists(filepath.Join(tu.Dir, context.ROOTCONF))
+	tu.AssertExists(filepath.Join(tu.Dir, context.ROOTCONF))
 
 	// Run init on already set up directory
 	defer tu.UserInput("y\n")()
@@ -108,9 +107,7 @@ func TestSort(t *testing.T) {
 		testCase{Test: filepath.Join(testFolder2, "file2.txt"), Expect: filepath.Join(testFolder2, "file2.txt"), Date: testDate2}, // File of same name
 	}
 	for _, testFile := range testFiles {
-		if err := ioutil.WriteFile(testFile.Test, []byte("info"), 0644); err != nil {
-			tu.Fatal(err)
-		}
+		tu.NewFile(testFile.Test, "")
 		if err := os.Chtimes(testFile.Test, testFile.Date, testFile.Date); err != nil {
 			tu.Fatal(err)
 		}
@@ -130,7 +127,7 @@ func TestSort(t *testing.T) {
 
 	// Check our files match!
 	for _, testFile := range testFiles {
-		tu.Exists(testFile.Expect)
+		tu.AssertExists(testFile.Expect)
 	}
 }
 
@@ -155,9 +152,7 @@ func TestRename(t *testing.T) {
 		filepath.Join(subDir, rename.SOURCEDIR, "newfile.test"),
 	}
 	for testFile := range testFiles {
-		if err := ioutil.WriteFile(testFile, []byte("some info"), 0644); err != nil {
-			tu.Fatal(err)
-		}
+		tu.NewFile(testFile, "")
 	}
 
 	// Run without setting up project
@@ -186,10 +181,10 @@ func TestRename(t *testing.T) {
 
 	// Check files are where they should be
 	for _, testFile := range sourceTestFiles {
-		tu.Exists(testFile)
+		tu.AssertExists(testFile)
 	}
 	for _, testFile := range testFiles {
-		tu.Exists(testFile)
+		tu.AssertExists(testFile)
 	}
 
 	sourceDir := filepath.Join(subDir, rename.SOURCEDIR)
@@ -198,9 +193,7 @@ func TestRename(t *testing.T) {
 		filepath.Join(subDir, "anotherfile.test"):    filepath.Join(sourceDir, "anotherfile_1.test"),
 	}
 	for testFile := range testFiles {
-		if err := ioutil.WriteFile(testFile, []byte("testing"), 0644); err != nil {
-			tu.Fatal(err)
-		}
+		tu.NewFile(testFile, "")
 	}
 
 	// Test rename again
@@ -210,7 +203,7 @@ func TestRename(t *testing.T) {
 	}
 
 	for _, testFile := range testFiles {
-		tu.Exists(testFile)
+		tu.AssertExists(testFile)
 	}
 
 }

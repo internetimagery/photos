@@ -18,14 +18,14 @@ func NewTestUtil(t *testing.T) *TestUtil {
 }
 
 // NewFile : Create a new file
-func (util *TestUtil) NewFile(filePath string) {
-	if err := ioutil.WriteFile(filePath, []byte("some info"), 0644); err != nil {
+func (util *TestUtil) NewFile(filePath, content string) {
+	if err := ioutil.WriteFile(filePath, []byte(content), 0644); err != nil {
 		util.Fatal(err)
 	}
 }
 
-// Exists : Check if file exists. Fail if not
-func (util *TestUtil) Exists(filePath string) {
+// AssertExists : Check if file exists. Fail if not
+func (util *TestUtil) AssertExists(filePath string) {
 	if _, err := os.Stat(filePath); err != nil {
 		util.Fail(err)
 	}

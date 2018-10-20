@@ -1,7 +1,6 @@
 package sort
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -32,9 +31,7 @@ func TestGetMediaDate(t *testing.T) {
 
 	testFile1 := filepath.Join(tu.Dir, "testfile.test")
 	testTime1 := time.Now()
-	if err := ioutil.WriteFile(testFile1, []byte("some stuff here"), 0644); err != nil {
-		tu.Fatal(err)
-	}
+	tu.NewFile(testFile1, "")
 
 	compareTime, err := GetMediaDate(testFile1)
 	if err != nil {
@@ -55,9 +52,7 @@ func TestUniqueName(t *testing.T) {
 	testFile1 := filepath.Join(tu.Dir, "test1.file") // File exists
 	testFile2 := filepath.Join(tu.Dir, "test2.file") // File does not exist
 	testExt := ".file"
-	if err := ioutil.WriteFile(testFile1, []byte("stuff"), 0644); err != nil {
-		tu.Fatal(err)
-	}
+	tu.NewFile(testFile1, "")
 
 	expectFile1 := filepath.Join(tu.Dir, "test1_1.file")
 	compareFile1 := UniqueName(testFile1)
@@ -99,18 +94,16 @@ func TestSortMedia(t *testing.T) {
 		tu.Fatal(err)
 	}
 	for _, filename := range testFiles {
-		if err = ioutil.WriteFile(filename, []byte("info"), 0644); err != nil {
-			tu.Fatal(err)
-		}
+		tu.NewFile(filename, "")
 		if err = os.Chtimes(filename, modtime, modtime); err != nil {
 			tu.Fatal(err)
 		}
 	}
 
 	expectFiles := []string{
-		filepath.Join(tmpDir.Dir, folder, "file1.txt"),
-		filepath.Join(tmpDir.Dir, folder, "file2_1.txt"),
-		filepath.Join(tmpDir.Dir, folder, "file2.txt"),
+		filepath.Join(tu.Dir, folder, "file1.txt"),
+		filepath.Join(tu.Dir, folder, "file2_1.txt"),
+		filepath.Join(tu.Dir, folder, "file2.txt"),
 	}
 
 	// Run our sort
@@ -121,15 +114,7 @@ func TestSortMedia(t *testing.T) {
 
 	// Check our files made it to where they should be
 	for _, file := range expectFiles {
-		_, err := os.Stat(file)
-		if err != nil {
-			if os.IsNotExist(err) {
-				tu.Fail("Missing file", file)
-			} else {
-				tu.Fail(err)
-			}
-
-		}
+		tu.AssertExists(file)
 	}
 
 }

@@ -12,7 +12,7 @@ func TestNewFile(t *testing.T) {
 	defer tu.TempDir("TestNewFile")()
 
 	testFile := filepath.Join(tu.Dir, "test.file")
-	tu.NewFile(testFile)
+	tu.NewFile(testFile, "")
 	if _, err := os.Stat(testFile); err != nil {
 		tu.Fail(err)
 	}
@@ -23,8 +23,8 @@ func TestExists(t *testing.T) {
 	defer tu.TempDir("TestExists")()
 
 	testFile := filepath.Join(tu.Dir, "test.file")
-	tu.NewFile(testFile)
-	tu.Exists(testFile)
+	tu.NewFile(testFile, "")
+	tu.AssertExists(testFile)
 }
 
 func TestTempDir(t *testing.T) {

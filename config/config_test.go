@@ -4,45 +4,45 @@ package config
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"path/filepath"
 	"testing"
+
+	"github.com/internetimagery/photos/testutil"
 )
 
 func TestNewConfig(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+
 	handle := new(bytes.Buffer)
 	conf := NewConfig("test") // Create new config data
 	err := conf.Save(handle)
 	if err != nil {
-		t.Log(err)
-		t.Fail()
+		tu.Fail(err)
 	}
 	testData := handle.Bytes()
 	verifyStruct := make(map[string]interface{}) // Load config for basic test
 	err = json.Unmarshal(testData, &verifyStruct)
 	if err != nil {
-		t.Log(err)
-		t.Fail()
+		tu.Fail(err)
 	}
 
 	// Verify basic groups are present
 	if _, ok := verifyStruct["compress"]; !ok {
-		t.Log("Config missing compress group")
-		t.Fail()
+		tu.Fail("Config missing compress group")
 	}
 
 	if _, ok := verifyStruct["backup"]; !ok {
-		t.Log("Config missing backup group")
-		t.Fail()
+		tu.Fail("Config missing backup group")
 	}
 
 	if _, ok := verifyStruct["id"]; !ok {
-		t.Log("Config missing id group")
-		t.Fail()
+		tu.Fail("Config missing id group")
 	}
 }
 
 func TestCompressCommand(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+
 	testData := `
 	{
 	 "compress":[
@@ -55,8 +55,7 @@ func TestCompressCommand(t *testing.T) {
 	handle := bytes.NewReader([]byte(testData))
 	conf, err := LoadConfig(handle)
 	if err != nil {
-		t.Log(err)
-		t.Fail()
+		tu.Fail(err)
 	}
 	// Do some testing!
 	tests := map[string]string{
@@ -69,13 +68,14 @@ func TestCompressCommand(t *testing.T) {
 	for test, expect := range tests {
 		command := conf.Compress.GetCommand(test)
 		if command != expect {
-			fmt.Printf("Expected '%s' but got '%s' while testing '%s'\n", expect, command, test)
-			t.Fail()
+			tu.FailE(expect, command)
 		}
 	}
 }
 
 func TestBackupCommand(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+
 	testData := `
 	{
 	 "backup":[
@@ -87,8 +87,7 @@ func TestBackupCommand(t *testing.T) {
 	handle := bytes.NewReader([]byte(testData))
 	conf, err := LoadConfig(handle)
 	if err != nil {
-		t.Log(err)
-		t.Fail()
+		tu.Fail(err)
 	}
 	// Do some testing!
 	tests := map[string]map[string]bool{
@@ -98,13 +97,11 @@ func TestBackupCommand(t *testing.T) {
 	for test, expect := range tests {
 		commands := conf.Backup.GetCommands(test)
 		if len(commands) == 0 {
-			t.Log("No commands returned for", test)
-			t.Fail()
+			tu.Fail("No commands returned for", test)
 		}
 		for _, command := range commands {
 			if !expect[command] {
-				fmt.Printf("Got '%s' while testing '%s'\n", command, test)
-				t.Fail()
+				tu.FailE(command, test)
 			}
 		}
 	}
