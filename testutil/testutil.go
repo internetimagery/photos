@@ -24,6 +24,13 @@ func (util *TestUtil) NewFile(filePath, content string) {
 	}
 }
 
+// NewDir : Create a new directory
+func (util *TestUtil) NewDir(filePath string) {
+	if err := os.MkdirAll(filePath, 0755); err != nil {
+		util.Fatal(err)
+	}
+}
+
 // AssertExists : Check if file exists. Fail if not
 func (util *TestUtil) AssertExists(filePath string) {
 	if _, err := os.Stat(filePath); err != nil {

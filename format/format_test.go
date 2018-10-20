@@ -1,7 +1,6 @@
 package format
 
 import (
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -76,10 +75,7 @@ func TestGetMediaFromDirectory(t *testing.T) {
 		filepath.Join(rootPath, "document_scanned.jpg"):                  &Media{Event: "18-05-12 event", Ext: "jpg"},
 		filepath.Join(rootPath, TEMPPREFIX+"document_scanned.jpg"):       nil,
 	}
-	err := os.Mkdir(rootPath, 0755)
-	if err != nil {
-		tu.Fatal(err)
-	}
+	tu.NewDir(rootPath)
 	for path := range testFiles {
 		tu.NewFile(path, "")
 	}

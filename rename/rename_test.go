@@ -1,7 +1,6 @@
 package rename
 
 import (
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -18,10 +17,7 @@ func TestRename(t *testing.T) {
 
 	eventName := "18-02-01 event"
 	rootPath := filepath.Join(tu.Dir, eventName)
-	err := os.Mkdir(rootPath, 0755)
-	if err != nil {
-		tu.Fatal(err)
-	}
+	tu.NewDir(rootPath)
 
 	// Mock context
 	mockCxt := &context.Context{
@@ -47,8 +43,7 @@ func TestRename(t *testing.T) {
 	}
 
 	// Perform rename with compression
-	err = Rename(mockCxt, true)
-	if err != nil {
+	if err := Rename(mockCxt, true); err != nil {
 		tu.Fail(err)
 	}
 

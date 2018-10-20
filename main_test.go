@@ -53,9 +53,8 @@ func TestInit(t *testing.T) {
 
 	// Run in subfolder in setup directory
 	subDir := filepath.Join(tu.Dir, "subdir")
-	if err := os.Mkdir(subDir, 0755); err != nil {
-		tu.Fatal(err)
-	}
+	tu.NewDir(subDir)
+
 	defer tu.UserInput("y\n")()
 	if err := run(subDir, []string{"exe", "init", "projectname3"}); err == nil {
 		tu.Fail("No error on already set up project in subfolder.")
@@ -69,9 +68,7 @@ func TestSort(t *testing.T) {
 
 	// Create subfolder
 	subDir := filepath.Join(tu.Dir, "subDir")
-	if err := os.Mkdir(subDir, 0755); err != nil {
-		tu.Fatal(err)
-	}
+	tu.NewDir(subDir)
 
 	// Run sort on project not set up
 	defer tu.UserInput("y\n")()
@@ -94,9 +91,8 @@ func TestSort(t *testing.T) {
 	}
 	testDate1 := time.Date(2018, 10, 16, 0, 0, 0, 0, loc)
 	testDate2 := time.Date(2018, 10, 17, 0, 0, 0, 0, loc)
-	if err := os.Mkdir(testFolder2, 0755); err != nil {
-		tu.Fatal(err)
-	}
+	tu.NewDir(testFolder2)
+
 	type testCase struct {
 		Test, Expect string
 		Date         time.Time
@@ -138,9 +134,7 @@ func TestRename(t *testing.T) {
 
 	// Create an event
 	subDir := filepath.Join(tu.Dir, "event01")
-	if err := os.Mkdir(subDir, 0755); err != nil {
-		tu.Fatal(err)
-	}
+	tu.NewDir(subDir)
 
 	// Make some test files
 	testFiles := map[string]string{

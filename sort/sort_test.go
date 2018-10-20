@@ -90,9 +90,7 @@ func TestSortMedia(t *testing.T) {
 		filepath.Join(tu.Dir, folder, "file2.txt"),
 	}
 
-	if err = os.Mkdir(filepath.Join(tu.Dir, folder), 0755); err != nil {
-		tu.Fatal(err)
-	}
+	tu.NewDir(filepath.Join(tu.Dir, folder))
 	for _, filename := range testFiles {
 		tu.NewFile(filename, "")
 		if err = os.Chtimes(filename, modtime, modtime); err != nil {
