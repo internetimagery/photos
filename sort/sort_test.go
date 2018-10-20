@@ -1,7 +1,6 @@
 package sort
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -78,33 +77,33 @@ func TestUniqueName(t *testing.T) {
 }
 
 func TestSortMedia(t *testing.T) {
-	tmpDir := testutil.NewTempDir(t, "TestSortMedia")
-	defer tmpDir.Close()
+	tu := testutil.NewTestUtil(t)
+	defer tu.TempDir("TestSortMedia")
 
-	cxt := &context.Context{WorkingDir: tmpDir.Dir}
+	cxt := &context.Context{WorkingDir: tu.Dir}
 
 	location, err := time.LoadLocation("")
 	if err != nil {
-		t.Fatal(err)
+		tu.Fatal(err)
 	}
 	modtime := time.Date(2018, 10, 16, 0, 0, 0, 0, location)
 	folder := "18-10-16"
 
 	testFiles := []string{
-		filepath.Join(tmpDir.Dir, "file1.txt"),
-		filepath.Join(tmpDir.Dir, "file2.txt"),
-		filepath.Join(tmpDir.Dir, folder, "file2.txt"),
+		filepath.Join(tu.Dir, "file1.txt"),
+		filepath.Join(tu.Dir, "file2.txt"),
+		filepath.Join(tu.Dir, folder, "file2.txt"),
 	}
 
-	if err = os.Mkdir(filepath.Join(tmpDir.Dir, folder), 0755); err != nil {
-		t.Fatal(err)
+	if err = os.Mkdir(filepath.Join(tu.Dir, folder), 0755); err != nil {
+		tu.Fatal(err)
 	}
 	for _, filename := range testFiles {
 		if err = ioutil.WriteFile(filename, []byte("info"), 0644); err != nil {
-			t.Fatal(err)
+			tu.Fatal(err)
 		}
 		if err = os.Chtimes(filename, modtime, modtime); err != nil {
-			t.Fatal(err)
+			tu.Fatal(err)
 		}
 	}
 
@@ -117,8 +116,7 @@ func TestSortMedia(t *testing.T) {
 	// Run our sort
 	err = SortMedia(cxt)
 	if err != nil {
-		fmt.Println(err)
-		t.Fail()
+		tu.Fail(err)
 	}
 
 	// Check our files made it to where they should be
@@ -126,11 +124,9 @@ func TestSortMedia(t *testing.T) {
 		_, err := os.Stat(file)
 		if err != nil {
 			if os.IsNotExist(err) {
-				fmt.Println("Missing file", file)
-				t.Fail()
+				tu.Fail("Missing file", file)
 			} else {
-				fmt.Println(err)
-				t.Fail()
+				tu.Fail(err)
 			}
 
 		}

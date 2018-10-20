@@ -18,6 +18,15 @@ func TestNewFile(t *testing.T) {
 	}
 }
 
+func TestExists(t *testing.T) {
+	tu := NewTestUtil(t)
+	defer tu.TempDir("TestExists")()
+
+	testFile := filepath.Join(tu.Dir, "test.file")
+	tu.NewFile(testFile)
+	tu.Exists(testFile)
+}
+
 func TestTempDir(t *testing.T) {
 	tu := NewTestUtil(t)
 	close := tu.TempDir("TestTempDir")

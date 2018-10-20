@@ -44,9 +44,7 @@ func TestInit(t *testing.T) {
 	}
 
 	// Ensure config file is created
-	if _, err := os.Stat(filepath.Join(tu.Dir, context.ROOTCONF)); err != nil {
-		tu.Fail(err)
-	}
+	tu.Exists(filepath.Join(tu.Dir, context.ROOTCONF))
 
 	// Run init on already set up directory
 	defer tu.UserInput("y\n")()
@@ -57,7 +55,7 @@ func TestInit(t *testing.T) {
 	// Run in subfolder in setup directory
 	subDir := filepath.Join(tu.Dir, "subdir")
 	if err := os.Mkdir(subDir, 0755); err != nil {
-		t.Fatal(err)
+		tu.Fatal(err)
 	}
 	defer tu.UserInput("y\n")()
 	if err := run(subDir, []string{"exe", "init", "projectname3"}); err == nil {
@@ -132,9 +130,7 @@ func TestSort(t *testing.T) {
 
 	// Check our files match!
 	for _, testFile := range testFiles {
-		if _, err := os.Stat(testFile.Expect); err != nil {
-			tu.Fail(err)
-		}
+		tu.Exists(testFile.Expect)
 	}
 }
 
@@ -190,14 +186,10 @@ func TestRename(t *testing.T) {
 
 	// Check files are where they should be
 	for _, testFile := range sourceTestFiles {
-		if _, err := os.Stat(testFile); err != nil {
-			tu.Fail(err)
-		}
+		tu.Exists(testFile)
 	}
 	for _, testFile := range testFiles {
-		if _, err := os.Stat(testFile); err != nil {
-			tu.Fail(err)
-		}
+		tu.Exists(testFile)
 	}
 
 	sourceDir := filepath.Join(subDir, rename.SOURCEDIR)
@@ -218,9 +210,7 @@ func TestRename(t *testing.T) {
 	}
 
 	for _, testFile := range testFiles {
-		if _, err := os.Stat(testFile); err != nil {
-			tu.Fail(err)
-		}
+		tu.Exists(testFile)
 	}
 
 }

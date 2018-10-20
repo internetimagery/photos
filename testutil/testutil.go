@@ -24,6 +24,13 @@ func (util *TestUtil) NewFile(filePath string) {
 	}
 }
 
+// Exists : Check if file exists. Fail if not
+func (util *TestUtil) Exists(filePath string) {
+	if _, err := os.Stat(filePath); err != nil {
+		util.Fail(err)
+	}
+}
+
 // TempDir : Create a new temporary directory
 func (util *TestUtil) TempDir(name string) func() {
 	if util.Dir != "" {
@@ -43,8 +50,8 @@ func (util *TestUtil) TempDir(name string) func() {
 }
 
 // Fail : Override fail to require message
-func (util *TestUtil) Fail(err interface{}) {
-	util.T.Log(err)
+func (util *TestUtil) Fail(err ...interface{}) {
+	util.T.Log(err...)
 	util.T.Fail()
 }
 
@@ -53,29 +60,6 @@ func (util *TestUtil) FailE(expected, got interface{}) {
 	util.T.Log("Expected:", expected)
 	util.T.Log("Got:", got)
 	util.T.Fail()
-}
-
-// TempDir : Container for temporary directory
-type TempDir struct {
-	Dir string
-	T   *testing.T
-}
-
-// NewTempDir : Create a new temporary directory
-func NewTempDir(t *testing.T, prefix string) TempDir {
-	tmpDir, err := ioutil.TempDir("", prefix)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return TempDir{tmpDir, t}
-}
-
-// Close : Cleanup
-func (tmp TempDir) Close() {
-	err := os.RemoveAll(tmp.Dir)
-	if err != nil {
-		tmp.T.Fatal(err)
-	}
 }
 
 // UserInput : Apply user input to stdin
