@@ -41,15 +41,18 @@ func TestExists(t *testing.T) {
 	tu.AssertNotExists(testFile2)
 }
 
-func TestNewFile(t *testing.T) {
+func TestNew(t *testing.T) {
 	tu := NewTestUtil(t)
-	defer tu.TempDir("TestNewFile")()
+	defer tu.LoadTestdata()()
 
 	testFile := filepath.Join(tu.Dir, "test.file")
-	tu.NewFile(testFile, "")
-	if _, err := os.Stat(testFile); err != nil {
-		tu.Fail(err)
-	}
+	testDir := filepath.Join(tu.Dir, "test-dir")
+
+	tu.NewFile(testFile, "testing")
+	tu.NewDir(testDir)
+
+	tu.AssertExists(testFile)
+	tu.AssertExists(testDir)
 }
 
 func TestTempDir(t *testing.T) {
