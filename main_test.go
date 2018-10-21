@@ -203,7 +203,7 @@ func TestRename(t *testing.T) {
 
 	// Test compress command is run
 	tu.NewFile(filepath.Join(subDir, "testfile.missing"), "")
-	expectFile := filepath.Join(subDir, format.TEMPPREFIX+"testfile.missing.here")
+	expectFile := filepath.Join(subDir, format.TEMPPREFIX+"testfile.missing")
 
 	// Expect rename to fail not finding compressed file
 	defer tu.UserInput("y\n")()

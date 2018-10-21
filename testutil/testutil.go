@@ -3,6 +3,8 @@ package testutil
 import (
 	"io/ioutil"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"testing"
 )
 
@@ -15,6 +17,37 @@ type TestUtil struct {
 // NewTestUtil : Create new testutil
 func NewTestUtil(t *testing.T) *TestUtil {
 	return &TestUtil{T: t}
+}
+
+// LoadTestdata : Copy across testdata into temporary directory
+func (util *TestUtil) LoadTestdata() func() {
+	testdata, err := filepath.Abs(filepath.Join("testdata", util.Name()))
+	if err != nil {
+		util.Fatal()
+	}
+	if _, err = os.Stat(testdata); err != nil {
+		if os.IsNotExist(err) {
+			util.Fatal("Test data does not exist with name", util.Name())
+		} else {
+			util.Fatal(err)
+		}
+	}
+	tmpDir, err := ioutil.TempDir("", util.Name())
+	if err != nil {
+		util.Fatal(err)
+	}
+	cmd := exec.Command("cp", "-avT", testdata, tmpDir)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		util.Log(string(output))
+		util.Fatal(err)
+	}
+	util.Dir = tmpDir
+	return func() {
+		if err := os.RemoveAll(tmpDir); err != nil {
+			util.Fatal(err)
+		}
+		util.Dir = ""
+	}
 }
 
 // NewFile : Create a new file
@@ -35,6 +68,17 @@ func (util *TestUtil) NewDir(filePath string) {
 func (util *TestUtil) AssertExists(filePath string) {
 	if _, err := os.Stat(filePath); err != nil {
 		util.Fail(err)
+	}
+}
+
+// AssertNotExists : Check if file is missing. Fail if it exists.
+func (util *TestUtil) AssertNotExists(filePath string) {
+	if _, err := os.Stat(filePath); !os.IsNotExist(err) {
+		if err == nil {
+			util.Fail("File exists, but shouldn't:", filePath)
+		} else {
+			util.Fail(err)
+		}
 	}
 }
 

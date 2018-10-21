@@ -7,6 +7,40 @@ import (
 	"testing"
 )
 
+// LoadTestdata : Load in testdata for testing
+func TestLoadTestdata(t *testing.T) {
+	tu := NewTestUtil(t)
+
+	// Create test testdata
+	close := tu.LoadTestdata()
+
+	// Check file exists in testdata
+	testFile := filepath.Join(tu.Dir, "test.file")
+	if _, err := os.Stat(testFile); err != nil {
+		tu.Fail(err)
+	}
+
+	// Cleanup testdata and check it's gone
+	close()
+	if _, err := os.Stat(tu.Dir); !os.IsNotExist(err) {
+		if err == nil {
+			tu.Fail("Tempfile was not removed")
+		} else {
+			tu.Fail(err)
+		}
+	}
+}
+
+func TestExists(t *testing.T) {
+	tu := NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	testFile1 := filepath.Join(tu.Dir, "test.file")
+	testFile2 := filepath.Join(tu.Dir, "not-test.file")
+	tu.AssertExists(testFile1)
+	tu.AssertNotExists(testFile2)
+}
+
 func TestNewFile(t *testing.T) {
 	tu := NewTestUtil(t)
 	defer tu.TempDir("TestNewFile")()
@@ -16,15 +50,6 @@ func TestNewFile(t *testing.T) {
 	if _, err := os.Stat(testFile); err != nil {
 		tu.Fail(err)
 	}
-}
-
-func TestExists(t *testing.T) {
-	tu := NewTestUtil(t)
-	defer tu.TempDir("TestExists")()
-
-	testFile := filepath.Join(tu.Dir, "test.file")
-	tu.NewFile(testFile, "")
-	tu.AssertExists(testFile)
 }
 
 func TestTempDir(t *testing.T) {
