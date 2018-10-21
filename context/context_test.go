@@ -10,7 +10,7 @@ import (
 
 func TestNewContext(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
-	defer tu.TempDir("TestNewContext")()
+	defer tu.LoadTestdata()()
 
 	if _, err := NewContext(tu.Dir); !os.IsNotExist(err) {
 		tu.Fail(err)
@@ -19,23 +19,9 @@ func TestNewContext(t *testing.T) {
 
 func TestContext(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
-	defer tu.TempDir("TestContext")()
+	defer tu.LoadTestdata()()
 
-	configData := `{
-	"compress": [
-		["*", "some command"]
-	]
-}`
-
-	// Make a couple files
 	workingDir := filepath.Join(tu.Dir, "some-event")
-	rootConf := filepath.Join(tu.Dir, ROOTCONF)
-
-	tu.NewDir(workingDir)
-
-	tu.NewFile(rootConf, configData)
-
-	// Start within event directory
 	cxt, err := NewContext(workingDir)
 	if err != nil {
 		tu.Fail(err)
@@ -49,9 +35,7 @@ func TestContext(t *testing.T) {
 
 func TestContextEnv(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
-	defer tu.TempDir("TestContextEnv")()
-
-	tu.NewFile(filepath.Join(tu.Dir, ROOTCONF), "{}")
+	defer tu.LoadTestdata()()
 
 	// Set environment var
 	os.Setenv("TESTENV", "SUCCESS")
@@ -59,7 +43,7 @@ func TestContextEnv(t *testing.T) {
 	// Build context and check environment var came through
 	cxt, err := NewContext(tu.Dir)
 	if err != nil {
-		tu.Fail(err)
+		tu.Fatal(err)
 	}
 	if cxt.Env["TESTENV"] != "SUCCESS" {
 		tu.Fail("Env was not passed into context")
