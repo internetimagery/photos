@@ -1,7 +1,6 @@
 package sort
 
 import (
-	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -27,34 +26,34 @@ func TestFormatDate(t *testing.T) {
 
 func TestGetMediaDate(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
-	defer tu.TempDir("TestGetMediaDate")()
+	defer tu.LoadTestdata()()
 
-	testFile1 := filepath.Join(tu.Dir, "testfile.test")
-	testTime1 := time.Now()
-	tu.NewFile(testFile1, "")
+	testFile1 := filepath.Join(tu.Dir, "testfile.txt")
+	testTime1 := "18-10-22"
 
 	compareTime, err := GetMediaDate(testFile1)
 	if err != nil {
 		tu.Fail(err)
 	}
 
-	layout := "06-01-02-15-04-05"
+	layout := "06-01-02"
 
-	if testTime1.Format(layout) != compareTime.Format(layout) {
+	if testTime1 != compareTime.Format(layout) {
 		tu.FailE(testTime1, compareTime)
 	}
 }
 
 func TestUniqueName(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
-	defer tu.TempDir("TestUniqueName")()
+	defer tu.LoadTestdata()()
 
 	testFile1 := filepath.Join(tu.Dir, "test1.file") // File exists
 	testFile2 := filepath.Join(tu.Dir, "test2.file") // File does not exist
 	testExt := ".file"
-	tu.NewFile(testFile1, "")
 
 	expectFile1 := filepath.Join(tu.Dir, "test1_1.file")
+	expectFile2 := filepath.Join(tu.Dir, "test2.file")
+
 	compareFile1 := UniqueName(testFile1)
 	compareFile2 := UniqueName(testFile2)
 	compareExt := filepath.Ext(compareFile2)
@@ -62,46 +61,22 @@ func TestUniqueName(t *testing.T) {
 	if compareFile1 != expectFile1 {
 		tu.FailE(expectFile1, compareFile1)
 	}
-	if compareFile2 != testFile2 {
-		tu.FailE(testFile2, compareFile2)
+	if compareFile2 != expectFile2 {
+		tu.FailE(expectFile2, compareFile2)
 	}
 	if compareExt != testExt {
 		tu.FailE(testExt, compareExt)
 	}
-
 }
 
 func TestSortMedia(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
-	defer tu.TempDir("TestSortMedia")()
+	defer tu.LoadTestdata()()
 
-	cxt := &context.Context{WorkingDir: tu.Dir}
-
-	location, err := time.LoadLocation("")
+	// Get our context
+	cxt, err := context.NewContext(tu.Dir)
 	if err != nil {
 		tu.Fatal(err)
-	}
-	modtime := time.Date(2018, 10, 16, 0, 0, 0, 0, location)
-	folder := "18-10-16"
-
-	testFiles := []string{
-		filepath.Join(tu.Dir, "file1.txt"),
-		filepath.Join(tu.Dir, "file2.txt"),
-		filepath.Join(tu.Dir, folder, "file2.txt"),
-	}
-
-	tu.NewDir(filepath.Join(tu.Dir, folder))
-	for _, filename := range testFiles {
-		tu.NewFile(filename, "")
-		if err = os.Chtimes(filename, modtime, modtime); err != nil {
-			tu.Fatal(err)
-		}
-	}
-
-	expectFiles := []string{
-		filepath.Join(tu.Dir, folder, "file1.txt"),
-		filepath.Join(tu.Dir, folder, "file2_1.txt"),
-		filepath.Join(tu.Dir, folder, "file2.txt"),
 	}
 
 	// Run our sort
@@ -110,9 +85,10 @@ func TestSortMedia(t *testing.T) {
 		tu.Fail(err)
 	}
 
-	// Check our files made it to where they should be
-	for _, file := range expectFiles {
-		tu.AssertExists(file)
-	}
-
+	date := filepath.Join(tu.Dir, "18-10-22")
+	tu.AssertExistsAll(
+		filepath.Join(date, "file1.txt"),
+		filepath.Join(date, "file2.txt"),
+		filepath.Join(date, "file2_1.txt"),
+	)
 }
