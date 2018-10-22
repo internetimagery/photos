@@ -71,6 +71,13 @@ func (util *TestUtil) AssertExists(filePath string) {
 	}
 }
 
+// AssertExistsAll : Assert a bunch of files exist
+func (util *TestUtil) AssertExistsAll(filePaths ...string) {
+	for _, filePath := range filePaths {
+		util.AssertExists(filePath)
+	}
+}
+
 // AssertNotExists : Check if file is missing. Fail if it exists.
 func (util *TestUtil) AssertNotExists(filePath string) {
 	if _, err := os.Stat(filePath); !os.IsNotExist(err) {

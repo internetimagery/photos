@@ -4,60 +4,53 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/internetimagery/photos/config"
 	"github.com/internetimagery/photos/context"
 	"github.com/internetimagery/photos/testutil"
 )
 
 func TestRename(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
 
-	// Working Path
-	defer tu.TempDir("TestRename")()
-
-	eventName := "18-02-01 event"
-	rootPath := filepath.Join(tu.Dir, eventName)
-	tu.NewDir(rootPath)
-
-	// Mock context
-	mockCxt := &context.Context{
-		Env:        map[string]string{},
-		WorkingDir: rootPath,
-		Config: &config.Config{
-			Compress: config.CompressCategory{
-				config.Command{"*", `cp -v "$SOURCEPATH" "$DESTPATH"`},
-			},
-		},
-	}
-
-	// Prep some test files
-	testFiles := map[string]string{
-		"someimage.img":                 eventName + "_003.img",
-		eventName + "_001.jpg":          eventName + "_001.jpg",
-		eventName + "_002[one two].jpg": eventName + "_002[one two].jpg",
-	}
-
-	// Create files
-	for name := range testFiles {
-		tu.NewFile(filepath.Join(rootPath, name), "")
+	// Get context
+	cxt, err := context.NewContext(tu.Dir)
+	if err != nil {
+		tu.Fatal(err)
 	}
 
 	// Perform rename with compression
-	if err := Rename(mockCxt, true); err != nil {
+	if err := Rename(cxt, true); err != nil {
 		tu.Fail(err)
 	}
 
-	// Check files made it to where they need to be
-	sourcePath := filepath.Join(rootPath, SOURCEDIR)
-	for src, dst := range testFiles {
-		if src != dst {
-			// Check renamed
-			tu.AssertExists(filepath.Join(rootPath, dst))
+	// expecting these files
+	tu.AssertExistsAll(
+		filepath.Join(tu.Dir, "18-02-01 event", "18-02-01 event_001.jpg"),
+		filepath.Join(tu.Dir, "18-02-01 event", "18-02-01 event_002[one two].jpg"),
+		filepath.Join(tu.Dir, "18-02-01 event", "18-02-01 event_003.img"),
+	)
+}
 
-			// Check original source
-			tu.AssertExists(filepath.Join(sourcePath, src))
-		}
+func TestRenameNoNew(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	// Get context
+	cxt, err := context.NewContext(tu.Dir)
+	if err != nil {
+		tu.Fatal(err)
 	}
+
+	// Perform rename with compression
+	if err := Rename(cxt, true); err != nil {
+		tu.Fail(err)
+	}
+
+	// expecting these files
+	tu.AssertExistsAll(
+		filepath.Join(tu.Dir, "event01", "event01_001.img"),
+		filepath.Join(tu.Dir, "event01", "event01_003[tags].img"),
+	)
 }
 
 func TestSetEnviron(t *testing.T) {
