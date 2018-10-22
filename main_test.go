@@ -24,12 +24,17 @@ func TestQuestion(t *testing.T) {
 		tu.Fail("Question passed with 'n'")
 	}
 
+	defer tu.UserInput("anything\n")
+	if question() {
+		tu.Fail("Question passed with something other than 'y' / 'n'")
+	}
+
 }
 
 // Test init
-func TestInit(t *testing.T) {
+func TestInitClean(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
-	defer tu.TempDir("TestInit")()
+	defer tu.LoadTestdata()()
 
 	// Run init without a name
 	defer tu.UserInput("y\n")()
@@ -45,6 +50,11 @@ func TestInit(t *testing.T) {
 
 	// Ensure config file is created
 	tu.AssertExists(filepath.Join(tu.Dir, context.ROOTCONF))
+}
+
+func TestInitExisting(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
 
 	// Run init on already set up directory
 	defer tu.UserInput("y\n")()
@@ -54,7 +64,6 @@ func TestInit(t *testing.T) {
 
 	// Run in subfolder in setup directory
 	subDir := filepath.Join(tu.Dir, "subdir")
-	tu.NewDir(subDir)
 
 	defer tu.UserInput("y\n")()
 	if err := run(subDir, []string{"exe", "init", "projectname3"}); err == nil {
