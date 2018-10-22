@@ -120,6 +120,12 @@ func (util *TestUtil) FailE(expected, got interface{}) {
 	util.T.Fail()
 }
 
+// FailNow : Override fail now to require message
+func (util *TestUtil) FailNow(err ...interface{}) {
+	util.T.Log(err...)
+	util.T.FailNow()
+}
+
 // UserInput : Apply user input to stdin
 func (util *TestUtil) UserInput(input string) func() {
 	tmpFile, err := ioutil.TempFile("", "NewUserInput")

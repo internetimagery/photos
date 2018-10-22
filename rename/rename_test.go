@@ -13,21 +13,22 @@ func TestRename(t *testing.T) {
 	defer tu.LoadTestdata()()
 
 	// Get context
-	cxt, err := context.NewContext(tu.Dir)
+	event := filepath.Join(tu.Dir, "18-02-01 event")
+	cxt, err := context.NewContext(event)
 	if err != nil {
 		tu.Fatal(err)
 	}
 
 	// Perform rename with compression
 	if err := Rename(cxt, true); err != nil {
-		tu.Fail(err)
+		tu.FailNow(err)
 	}
 
 	// expecting these files
 	tu.AssertExistsAll(
-		filepath.Join(tu.Dir, "18-02-01 event", "18-02-01 event_001.jpg"),
-		filepath.Join(tu.Dir, "18-02-01 event", "18-02-01 event_002[one two].jpg"),
-		filepath.Join(tu.Dir, "18-02-01 event", "18-02-01 event_003.img"),
+		filepath.Join(event, "18-02-01 event_001.jpg"),
+		filepath.Join(event, "18-02-01 event_002[one two].jpg"),
+		filepath.Join(event, "18-02-01 event_003.img"),
 	)
 }
 
@@ -36,20 +37,21 @@ func TestRenameNoNew(t *testing.T) {
 	defer tu.LoadTestdata()()
 
 	// Get context
-	cxt, err := context.NewContext(tu.Dir)
+	event := filepath.Join(tu.Dir, "event01")
+	cxt, err := context.NewContext(event)
 	if err != nil {
 		tu.Fatal(err)
 	}
 
 	// Perform rename with compression
 	if err := Rename(cxt, true); err != nil {
-		tu.Fail(err)
+		tu.FailNow(err)
 	}
 
 	// expecting these files
 	tu.AssertExistsAll(
-		filepath.Join(tu.Dir, "event01", "event01_001.img"),
-		filepath.Join(tu.Dir, "event01", "event01_003[tags].img"),
+		filepath.Join(event, "event01_001.img"),
+		filepath.Join(event, "event01_003[tags].img"),
 	)
 }
 
