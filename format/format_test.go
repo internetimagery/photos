@@ -64,36 +64,30 @@ func TestFormatName(t *testing.T) {
 
 func TestGetMediaFromDirectory(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
-	defer tu.TempDir("TestGetMediaFromDirectory")()
+	defer tu.LoadTestdata()()
 
-	rootName := "18-05-12 event"
-	rootPath := filepath.Join(tu.Dir, rootName)
-	testFiles := map[string]*Media{
-		filepath.Join(rootPath, "18-05-12 event_034.img"):                &Media{Event: "18-05-12 event", Index: 34, Ext: "img"},
-		filepath.Join(rootPath, "18-05-12 event_034[one two-three].img"): &Media{Event: "18-05-12 event", Index: 34, Tags: []string{"one", "two-three"}, Ext: "img"},
-		filepath.Join(rootPath, "12-10-12 event_034.png"):                &Media{Event: "18-05-12 event", Ext: "png"},
-		filepath.Join(rootPath, "document_scanned.jpg"):                  &Media{Event: "18-05-12 event", Ext: "jpg"},
-		filepath.Join(rootPath, TEMPPREFIX+"document_scanned.jpg"):       nil,
-	}
-	tu.NewDir(rootPath)
-	for path := range testFiles {
-		tu.NewFile(path, "")
-	}
-	result, err := GetMediaFromDirectory(rootPath)
+	event := filepath.Join(tu.Dir, "18-05-12 event")
+	result, err := GetMediaFromDirectory(event)
 	if err != nil {
 		tu.Fail(err)
 	}
+
 	if len(result) != 4 {
 		tu.Fail("Expected 4 media items. Got", len(result))
 	}
-	for _, test := range result {
-		if test == nil {
-			t.Log("Should not have picked up", test.Path)
-		} else {
-			expect := testFiles[test.Path]
-			if test.Event != expect.Event || test.Ext != expect.Ext || len(test.Tags) != len(expect.Tags) {
-				tu.Fail("Test failed at", test.Path)
-			}
+
+	testFiles := map[string]Media{
+		filepath.Join(event, "18-05-12 event_034.img"):                Media{Event: "18-05-12 event", Index: 34, Ext: "img"},
+		filepath.Join(event, "18-05-12 event_034[one two-three].img"): Media{Event: "18-05-12 event", Index: 34, Tags: []string{"one", "two-three"}, Ext: "img"},
+		filepath.Join(event, "12-10-12 event_034.png"):                Media{Event: "18-05-12 event", Ext: "png"},
+		filepath.Join(event, "document_scanned.jpg"):                  Media{Event: "18-05-12 event", Ext: "jpg"},
+	}
+
+	for _, testFile := range result {
+		tu.AssertExists(testFile.Path)
+		expect := testFiles[testFile.Path]
+		if testFile.Event != expect.Event || testFile.Ext != expect.Ext || len(testFile.Tags) != len(expect.Tags) {
+			tu.Fail("Test failed at", testFile.Path)
 		}
 	}
 
