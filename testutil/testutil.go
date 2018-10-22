@@ -65,26 +65,23 @@ func (util *TestUtil) NewDir(filePath string) {
 }
 
 // AssertExists : Check if file exists. Fail if not
-func (util *TestUtil) AssertExists(filePath string) {
-	if _, err := os.Stat(filePath); err != nil {
-		util.Fail(err)
-	}
-}
-
-// AssertExistsAll : Assert a bunch of files exist
-func (util *TestUtil) AssertExistsAll(filePaths ...string) {
+func (util *TestUtil) AssertExists(filePaths ...string) {
 	for _, filePath := range filePaths {
-		util.AssertExists(filePath)
+		if _, err := os.Stat(filePath); err != nil {
+			util.Fail(err)
+		}
 	}
 }
 
 // AssertNotExists : Check if file is missing. Fail if it exists.
-func (util *TestUtil) AssertNotExists(filePath string) {
-	if _, err := os.Stat(filePath); !os.IsNotExist(err) {
-		if err == nil {
-			util.Fail("File exists, but shouldn't:", filePath)
-		} else {
-			util.Fail(err)
+func (util *TestUtil) AssertNotExists(filePaths ...string) {
+	for _, filePath := range filePaths {
+		if _, err := os.Stat(filePath); !os.IsNotExist(err) {
+			if err == nil {
+				util.Fail("File exists, but shouldn't:", filePath)
+			} else {
+				util.Fail(err)
+			}
 		}
 	}
 }

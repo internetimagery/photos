@@ -25,7 +25,7 @@ func TestRename(t *testing.T) {
 	}
 
 	// expecting these files
-	tu.AssertExistsAll(
+	tu.AssertExists(
 		filepath.Join(event, "18-02-01 event_001.jpg"),
 		filepath.Join(event, "18-02-01 event_002[one two].jpg"),
 		filepath.Join(event, "18-02-01 event_003.img"),
@@ -49,7 +49,7 @@ func TestRenameNoNew(t *testing.T) {
 	}
 
 	// expecting these files
-	tu.AssertExistsAll(
+	tu.AssertExists(
 		filepath.Join(event, "event01_001.img"),
 		filepath.Join(event, "event01_003[tags].img"),
 	)

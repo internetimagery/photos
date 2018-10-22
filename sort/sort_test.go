@@ -86,7 +86,7 @@ func TestSortMedia(t *testing.T) {
 	}
 
 	date := filepath.Join(tu.Dir, "18-10-22")
-	tu.AssertExistsAll(
+	tu.AssertExists(
 		filepath.Join(date, "file1.txt"),
 		filepath.Join(date, "file2.txt"),
 		filepath.Join(date, "file2_1.txt"),
