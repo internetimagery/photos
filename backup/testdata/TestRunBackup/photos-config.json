@@ -1,6 +1,7 @@
 {
   "backup" : [
     ["test", "touch \"$TESTPATH1\""],
-    ["other", "touch \"$TESTPATH2\""]
+    ["other1", "touch \"$TESTPATH2\""],
+    ["other2", "touch \"$TESTPATH3\""]
   ]
 }

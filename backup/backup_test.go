@@ -21,6 +21,7 @@ func TestRunBackup(t *testing.T) {
 	// Set environment
 	cxt.Env["TESTPATH1"] = filepath.Join(event, "testfile1.txt")
 	cxt.Env["TESTPATH2"] = filepath.Join(event, "testfile2.txt")
+	cxt.Env["TESTPATH3"] = filepath.Join(event, "testfile3.txt")
 
 	// Test missing command
 	if err = RunBackup(cxt, "nocommand"); err != nil {
@@ -45,8 +46,9 @@ func TestRunBackup(t *testing.T) {
 		tu.Fail(err)
 	}
 
-	// File should now exist
+	// Files should now exist
 	tu.AssertExists(cxt.Env["TESTFILE2"])
+	tu.AssertExists(cxt.Env["TESTFILE3"])
 
 }
 
