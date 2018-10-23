@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 // TestUtil : Wrapper for helper functions
@@ -47,6 +48,17 @@ func (util *TestUtil) LoadTestdata() func() {
 			util.Fatal(err)
 		}
 		util.Dir = ""
+	}
+}
+
+// ModTime : Set modification time of file
+func (util *TestUtil) ModTime(year, month, day int, filePaths ...string) {
+	date := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
+
+	for _, filePath := range filePaths {
+		if err := os.Chtimes(filePath, date, date); err != nil {
+			util.Fatal(err)
+		}
 	}
 }
 

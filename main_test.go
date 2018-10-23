@@ -99,6 +99,9 @@ func TestSort(t *testing.T) {
 
 	unsorted := filepath.Join(tu.Dir, "unsorted")
 
+	tu.ModTime(2018, 10, 10, filepath.Join(tu.Dir, "file1.txt"))
+	tu.ModTime(2018, 10, 23, filepath.Join(tu.Dir, "file2.txt"))
+
 	// Run sort on root subdirectory
 	defer tu.UserInput("y\n")()
 	if err := run(unsorted, []string{"exe", "sort"}); err != nil {
@@ -107,7 +110,7 @@ func TestSort(t *testing.T) {
 
 	// Check files are where we expect them.
 	tu.AssertExists(
-		filepath.Join(unsorted, "18-10-23", "file1.txt"),
+		filepath.Join(unsorted, "18-10-10", "file1.txt"),
 		filepath.Join(unsorted, "18-10-23", "file2.txt"),
 		filepath.Join(unsorted, "18-10-23", "file2_1.txt"),
 	)

@@ -1,7 +1,6 @@
 package sort
 
 import (
-	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -31,16 +30,7 @@ func TestGetMediaDate(t *testing.T) {
 
 	testFile1 := filepath.Join(tu.Dir, "testfile.txt")
 	testTime1 := "18-10-22"
-	loc, err := time.LoadLocation("")
-	if err != nil {
-		tu.Fatal(err)
-	}
-
-	// Set mod time of file manually
-	testDate1 := time.Date(2018, 10, 22, 0, 0, 0, 0, loc)
-	if err = os.Chtimes(testFile1, testDate1, testDate1); err != nil {
-		tu.Fatal(err)
-	}
+	tu.ModTime(2018, 10, 22, testFile1)
 
 	compareTime, err := GetMediaDate(testFile1)
 	if err != nil {
@@ -91,21 +81,10 @@ func TestSortMedia(t *testing.T) {
 	}
 
 	dateDir := filepath.Join(tu.Dir, "18-10-22")
-	loc, err := time.LoadLocation("")
-	if err != nil {
-		tu.Fatal(err)
-	}
-	testDate1 := time.Date(2018, 10, 22, 0, 0, 0, 0, loc)
-
-	// Set mod time of file manually
-	for _, filePath := range []string{
+	tu.ModTime(2018, 10, 22,
 		filepath.Join(tu.Dir, "file1.txt"),
 		filepath.Join(tu.Dir, "file2.txt"),
-	} {
-		if err = os.Chtimes(filePath, testDate1, testDate1); err != nil {
-			tu.Fatal(err)
-		}
-	}
+	)
 
 	// Run our sort
 	err = SortMedia(cxt)
