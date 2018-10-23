@@ -2,6 +2,7 @@ package format
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/internetimagery/photos/testutil"
@@ -84,6 +85,9 @@ func TestGetMediaFromDirectory(t *testing.T) {
 	}
 
 	for _, testFile := range result {
+		if strings.HasPrefix(testFile.Path, ".") {
+			tu.Fail("Caught file beginning with '.':", testFile.Path)
+		}
 		tu.AssertExists(testFile.Path)
 		expect := testFiles[testFile.Path]
 		if testFile.Event != expect.Event || testFile.Ext != expect.Ext || len(testFile.Tags) != len(expect.Tags) {

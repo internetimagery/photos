@@ -4,7 +4,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/internetimagery/photos/context"
 	"github.com/internetimagery/photos/format"
@@ -71,70 +70,49 @@ func TestInitExisting(t *testing.T) {
 	}
 }
 
-// Test sort functionality
-func TestSort(t *testing.T) {
+func TestSortClean(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
-	defer tu.TempDir("TestSort")()
+	defer tu.LoadTestdata()()
 
-	// Create subfolder
-	subDir := filepath.Join(tu.Dir, "subDir")
-	tu.NewDir(subDir)
+	event := filepath.Join(tu.Dir, "event01")
+
+	// Run sort on project not set up
+	defer tu.UserInput("y\n")()
+	if err := run(event, []string{"exe", "sort"}); err == nil {
+		tu.Fail("Allowed usage on non-project folder.")
+	}
+}
+
+func TestSortRoot(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
 
 	// Run sort on project not set up
 	defer tu.UserInput("y\n")()
 	if err := run(tu.Dir, []string{"exe", "sort"}); err == nil {
-		tu.Fail("Allowed usage on non-project folder.")
+		tu.Fail("Allowed usage on root folder.")
 	}
+}
 
-	// Set up project
-	defer tu.UserInput("y\n")()
-	if err := run(tu.Dir, []string{"exe", "init", "projectname"}); err != nil {
-		tu.Fatal(err)
-	}
+func TestSort(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
 
-	// Set up test files
-	testFolder1 := filepath.Join(subDir, "18-10-16")
-	testFolder2 := filepath.Join(subDir, "18-10-17")
-	loc, err := time.LoadLocation("")
-	if err != nil {
-		tu.Fatal(err)
-	}
-	testDate1 := time.Date(2018, 10, 16, 0, 0, 0, 0, loc)
-	testDate2 := time.Date(2018, 10, 17, 0, 0, 0, 0, loc)
-	tu.NewDir(testFolder2)
-
-	type testCase struct {
-		Test, Expect string
-		Date         time.Time
-	}
-	testFiles := []testCase{
-		testCase{Test: filepath.Join(subDir, "file1.txt"), Expect: filepath.Join(testFolder1, "file1.txt"), Date: testDate1},      // Standard file
-		testCase{Test: filepath.Join(subDir, "file2.txt"), Expect: filepath.Join(testFolder2, "file2_1.txt"), Date: testDate2},    // Second file, moddate in testFolder
-		testCase{Test: filepath.Join(testFolder2, "file2.txt"), Expect: filepath.Join(testFolder2, "file2.txt"), Date: testDate2}, // File of same name
-	}
-	for _, testFile := range testFiles {
-		tu.NewFile(testFile.Test, "")
-		if err := os.Chtimes(testFile.Test, testFile.Date, testFile.Date); err != nil {
-			tu.Fatal(err)
-		}
-	}
-
-	// Run sort on root directory
-	defer tu.UserInput("y\n")()
-	if err := run(tu.Dir, []string{"exe", "sort"}); err == nil {
-		tu.Fail("Allowing running sort in root... don't do that!")
-	}
+	unsorted := filepath.Join(tu.Dir, "unsorted")
 
 	// Run sort on root subdirectory
 	defer tu.UserInput("y\n")()
-	if err := run(subDir, []string{"exe", "sort"}); err != nil {
+	if err := run(unsorted, []string{"exe", "sort"}); err != nil {
 		tu.Fail(err)
 	}
 
-	// Check our files match!
-	for _, testFile := range testFiles {
-		tu.AssertExists(testFile.Expect)
-	}
+	// Check files are where we expect them.
+	tu.AssertExists(
+		filepath.Join(unsorted, "18-10-23", "file1.txt"),
+		filepath.Join(unsorted, "18-10-23", "file2.txt"),
+		filepath.Join(unsorted, "18-10-23", "file2_1.txt"),
+	)
+
 }
 
 // Testing rename command

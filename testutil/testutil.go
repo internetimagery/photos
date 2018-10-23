@@ -68,7 +68,11 @@ func (util *TestUtil) NewDir(filePath string) {
 func (util *TestUtil) AssertExists(filePaths ...string) {
 	for _, filePath := range filePaths {
 		if _, err := os.Stat(filePath); err != nil {
-			util.Fail(err)
+			if os.IsNotExist(err) {
+				util.Fail("File does not exist:", filePath)
+			} else {
+				util.Fail(err)
+			}
 		}
 	}
 }
