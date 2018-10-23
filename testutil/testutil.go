@@ -36,7 +36,7 @@ func (util *TestUtil) LoadTestdata() func() {
 	if err != nil {
 		util.Fatal(err)
 	}
-	cmd := exec.Command("cp", "-avT", testdata, tmpDir)
+	cmd := exec.Command("cp", "-avT", "--no-preserve", "ownership", testdata, tmpDir)
 	if output, err := cmd.CombinedOutput(); err != nil {
 		util.Log(string(output))
 		util.Fatal(err)
