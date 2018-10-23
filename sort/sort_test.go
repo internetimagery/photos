@@ -1,6 +1,7 @@
 package sort
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -30,6 +31,16 @@ func TestGetMediaDate(t *testing.T) {
 
 	testFile1 := filepath.Join(tu.Dir, "testfile.txt")
 	testTime1 := "18-10-22"
+	loc, err := time.LoadLocation("")
+	if err != nil {
+		tu.Fatal(err)
+	}
+
+	// Set mod time of file manually
+	testDate1 := time.Date(2018, 10, 22, 0, 0, 0, 0, loc)
+	if err = os.Chtimes(testFile1, testDate1, testDate1); err != nil {
+		tu.Fatal(err)
+	}
 
 	compareTime, err := GetMediaDate(testFile1)
 	if err != nil {
@@ -79,16 +90,32 @@ func TestSortMedia(t *testing.T) {
 		tu.Fatal(err)
 	}
 
+	dateDir := filepath.Join(tu.Dir, "18-10-22")
+	loc, err := time.LoadLocation("")
+	if err != nil {
+		tu.Fatal(err)
+	}
+	testDate1 := time.Date(2018, 10, 22, 0, 0, 0, 0, loc)
+
+	// Set mod time of file manually
+	for _, filePath := range []string{
+		filepath.Join(tu.Dir, "file1.txt"),
+		filepath.Join(tu.Dir, "file2.txt"),
+	} {
+		if err = os.Chtimes(filePath, testDate1, testDate1); err != nil {
+			tu.Fatal(err)
+		}
+	}
+
 	// Run our sort
 	err = SortMedia(cxt)
 	if err != nil {
 		tu.Fail(err)
 	}
 
-	date := filepath.Join(tu.Dir, "18-10-22")
 	tu.AssertExists(
-		filepath.Join(date, "file1.txt"),
-		filepath.Join(date, "file2.txt"),
-		filepath.Join(date, "file2_1.txt"),
+		filepath.Join(dateDir, "file1.txt"),
+		filepath.Join(dateDir, "file2.txt"),
+		filepath.Join(dateDir, "file2_1.txt"),
 	)
 }
