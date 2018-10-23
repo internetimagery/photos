@@ -75,19 +75,6 @@ func TestModTime(t *testing.T) {
 	}
 }
 
-func TestTempDir(t *testing.T) {
-	tu := NewTestUtil(t)
-	close := tu.TempDir("TestTempDir")
-	if _, err := os.Stat(tu.Dir); err != nil {
-		tu.Fail(err)
-	}
-	close()
-	if _, err := os.Stat(tu.Dir); !os.IsNotExist(err) {
-		tu.Fail("Tempdir not removed.")
-	}
-
-}
-
 func TestUserInput(t *testing.T) {
 	tu := NewTestUtil(t)
 	testMessage := "Hello"

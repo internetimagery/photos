@@ -62,20 +62,6 @@ func (util *TestUtil) ModTime(year, month, day int, filePaths ...string) {
 	}
 }
 
-// NewFile : Create a new file
-func (util *TestUtil) NewFile(filePath, content string) {
-	if err := ioutil.WriteFile(filePath, []byte(content), 0644); err != nil {
-		util.Fatal(err)
-	}
-}
-
-// NewDir : Create a new directory
-func (util *TestUtil) NewDir(filePath string) {
-	if err := os.MkdirAll(filePath, 0755); err != nil {
-		util.Fatal(err)
-	}
-}
-
 // AssertExists : Check if file exists. Fail if not
 func (util *TestUtil) AssertExists(filePaths ...string) {
 	for _, filePath := range filePaths {
@@ -99,24 +85,6 @@ func (util *TestUtil) AssertNotExists(filePaths ...string) {
 				util.Fail(err)
 			}
 		}
-	}
-}
-
-// TempDir : Create a new temporary directory
-func (util *TestUtil) TempDir(name string) func() {
-	if util.Dir != "" {
-		util.Fatal("Tempfile already created", util.Dir)
-	}
-	tmpDir, err := ioutil.TempDir("", name)
-	if err != nil {
-		util.Fatal(err)
-	}
-	util.Dir = tmpDir
-	return func() {
-		if err := os.RemoveAll(tmpDir); err != nil {
-			util.Fatal(err)
-		}
-		util.Dir = ""
 	}
 }
 
