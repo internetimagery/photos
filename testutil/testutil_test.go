@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 // LoadTestdata : Load in testdata for testing
@@ -53,6 +54,25 @@ func TestNew(t *testing.T) {
 
 	tu.AssertExists(testFile)
 	tu.AssertExists(testDir)
+}
+
+func TestModTime(t *testing.T) {
+	tu := NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	testFile := filepath.Join(tu.Dir, "test.file")
+	tu.ModTime(2010, 10, 10, testFile)
+
+	info, err := os.Stat(testFile)
+	if err != nil {
+		tu.Fatal(err)
+	}
+	testDate := info.ModTime()
+
+	if testDate.Year() != 2010 || testDate.Month() != 10 || testDate.Day() != 10 {
+		expect := time.Date(2010, 10, 10, 0, 0, 0, 0, time.UTC)
+		tu.FailE(expect, testDate)
+	}
 }
 
 func TestTempDir(t *testing.T) {
