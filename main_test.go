@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/internetimagery/photos/context"
-	"github.com/internetimagery/photos/format"
 	"github.com/internetimagery/photos/rename"
 	"github.com/internetimagery/photos/testutil"
 )
@@ -112,89 +111,41 @@ func TestSort(t *testing.T) {
 		filepath.Join(unsorted, "18-10-23", "file2.txt"),
 		filepath.Join(unsorted, "18-10-23", "file2_1.txt"),
 	)
-
 }
 
-// Testing rename command
-func TestRename(t *testing.T) {
+func TestRenameClean(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
-	defer tu.TempDir("TestRename")()
+	defer tu.LoadTestdata()()
 
-	// Create an event
-	subDir := filepath.Join(tu.Dir, "event01")
-	tu.NewDir(subDir)
-
-	// Make some test files
-	testFiles := map[string]string{
-		filepath.Join(subDir, "event01_002.test"):          filepath.Join(subDir, "event01_002.test"),
-		filepath.Join(subDir, "event01_002[one two].test"): filepath.Join(subDir, "event01_002[one two].test"),
-		filepath.Join(subDir, "newfile.test"):              filepath.Join(subDir, "event01_003.test"),
-	}
-	sourceTestFiles := []string{
-		filepath.Join(subDir, rename.SOURCEDIR, "newfile.test"),
-	}
-	for testFile := range testFiles {
-		tu.NewFile(testFile, "")
-	}
+	event := filepath.Join(tu.Dir, "event01")
 
 	// Run without setting up project
 	defer tu.UserInput("y\n")()
-	if err := run(subDir, []string{"exe", "rename"}); err == nil {
+	if err := run(event, []string{"exe", "rename"}); err == nil {
 		tu.Fail("Allowed running without project setup")
 	}
+}
 
-	// Set up project
-	tu.NewFile(filepath.Join(tu.Dir, context.ROOTCONF), `{
-		"compress": [
-			["*.missing", "cp -v \"$SOURCEPATH\" \"$DESTPATH.here\""]
-		]}`)
+func TestRenameRoot(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
 
-	// Test rename in root folder
+	// Run without setting up project
 	defer tu.UserInput("y\n")()
 	if err := run(tu.Dir, []string{"exe", "rename"}); err == nil {
-		tu.Fail("Allowed running in root of project")
+		tu.Fail("Allowed running in root")
 	}
+}
 
-	// Test rename
+func TestRenameMissing(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	event := filepath.Join(tu.Dir, "event01")
+
+	// Test rename failing if compress command fails to produce output
 	defer tu.UserInput("y\n")()
-	if err := run(subDir, []string{"exe", "rename"}); err != nil {
-		tu.Fail(err)
-	}
-
-	// Check files are where they should be
-	for _, testFile := range sourceTestFiles {
-		tu.AssertExists(testFile)
-	}
-	for _, testFile := range testFiles {
-		tu.AssertExists(testFile)
-	}
-
-	sourceDir := filepath.Join(subDir, rename.SOURCEDIR)
-	testFiles = map[string]string{
-		filepath.Join(sourceDir, "anotherfile.test"): filepath.Join(sourceDir, "anotherfile.test"),
-		filepath.Join(subDir, "anotherfile.test"):    filepath.Join(sourceDir, "anotherfile_1.test"),
-	}
-	for testFile := range testFiles {
-		tu.NewFile(testFile, "")
-	}
-
-	// Test rename again
-	defer tu.UserInput("y\n")()
-	if err := run(subDir, []string{"exe", "rename"}); err != nil {
-		tu.Fail(err)
-	}
-
-	for _, testFile := range testFiles {
-		tu.AssertExists(testFile)
-	}
-
-	// Test compress command is run
-	tu.NewFile(filepath.Join(subDir, "testfile.missing"), "")
-	expectFile := filepath.Join(subDir, format.TEMPPREFIX+"testfile.missing")
-
-	// Expect rename to fail not finding compressed file
-	defer tu.UserInput("y\n")()
-	if err := run(subDir, []string{"exe", "rename"}); !os.IsNotExist(err) {
+	if err := run(event, []string{"exe", "rename"}); !os.IsNotExist(err) {
 		if err == nil {
 			tu.Fail("Did not alert failure to find compressed file.")
 		} else {
@@ -202,6 +153,48 @@ func TestRename(t *testing.T) {
 		}
 	}
 
-	// Check file was copied
-	tu.AssertExists(expectFile)
+	// Check command actually put our file there.
+	tu.AssertExists(
+		filepath.Join(event, "tmp-testfile.missing.here"),
+	)
+}
+
+func TestRenameExistingSource(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	event := filepath.Join(tu.Dir, "event01")
+
+	// Test rename with existing file in source dir
+	defer tu.UserInput("y\n")()
+	if err := run(event, []string{"exe", "rename"}); err != nil {
+		tu.Fail(err)
+	}
+
+	tu.AssertExists(
+		filepath.Join(event, rename.SOURCEDIR, "testfile1.txt"),
+		filepath.Join(event, rename.SOURCEDIR, "testfile2.txt"),
+		filepath.Join(event, rename.SOURCEDIR, "testfile2_1.txt"),
+	)
+}
+
+// Testing rename command
+func TestRename(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	event := filepath.Join(tu.Dir, "event01")
+
+	// Test rename
+	defer tu.UserInput("y\n")()
+	if err := run(event, []string{"exe", "rename"}); err != nil {
+		tu.Fail(err)
+	}
+
+	tu.AssertExists(
+		filepath.Join(event, "event01_002.test"),
+		filepath.Join(event, "event01_002[one two].test"),
+		filepath.Join(event, "event01_003.test"),
+		filepath.Join(event, rename.SOURCEDIR, "newfile.test"),
+	)
 }
