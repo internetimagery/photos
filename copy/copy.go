@@ -64,13 +64,22 @@ func copyfile(source, destination string, done chan error) {
 	}
 
 	// Set permissions and modification time
-	if err = os.Chmod(destinationHandle.Name(), sourceInfo.Mode().Perm()); err != nil {
+	if err = os.Chtimes(destinationHandle.Name(), sourceInfo.ModTime(), sourceInfo.ModTime()); err != nil {
 		return
 	}
-	if err = os.Chtimes(destinationHandle.Name(), sourceInfo.ModTime(), sourceInfo.ModTime()); err != nil {
+	perm := sourceInfo.Mode().Perm()
+	if err = os.Chmod(destinationHandle.Name(), perm); err != nil {
 		return
 	}
 
 	// Finally, set destination to its final resting place!
 	err = os.Rename(destinationHandle.Name(), destination)
+	if err != nil {
+		return
+	}
+
+	// // Last minute permissions change if on windows
+	// if runtime.GOOS == "windows" {
+	// 	err = acl.Chmod(destinationHandle.Name(), perm)
+	// }
 }

@@ -42,20 +42,6 @@ func TestExists(t *testing.T) {
 	tu.AssertNotExists(testFile2)
 }
 
-func TestNew(t *testing.T) {
-	tu := NewTestUtil(t)
-	defer tu.LoadTestdata()()
-
-	testFile := filepath.Join(tu.Dir, "test.file")
-	testDir := filepath.Join(tu.Dir, "test-dir")
-
-	tu.NewFile(testFile, "testing")
-	tu.NewDir(testDir)
-
-	tu.AssertExists(testFile)
-	tu.AssertExists(testDir)
-}
-
 func TestModTime(t *testing.T) {
 	tu := NewTestUtil(t)
 	defer tu.LoadTestdata()()

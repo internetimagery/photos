@@ -63,16 +63,20 @@ func (util *TestUtil) ModTime(year, month, day int, filePaths ...string) {
 }
 
 // AssertExists : Check if file exists. Fail if not
-func (util *TestUtil) AssertExists(filePaths ...string) {
+func (util *TestUtil) AssertExists(filePaths ...string) []os.FileInfo {
+	result := []os.FileInfo{}
 	for _, filePath := range filePaths {
-		if _, err := os.Stat(filePath); err != nil {
+		info, err := os.Stat(filePath)
+		if err != nil {
 			if os.IsNotExist(err) {
 				util.Fail("File does not exist:", filePath)
 			} else {
 				util.Fail(err)
 			}
 		}
+		result = append(result, info)
 	}
+	return result
 }
 
 // AssertNotExists : Check if file is missing. Fail if it exists.
