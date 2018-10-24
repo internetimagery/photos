@@ -26,9 +26,7 @@ func TestCopyFile(t *testing.T) {
 	}
 
 	// Test simple file copy works
-	done := make(chan error, 1)
-	File(sourceFile, destFile, done)
-	if err := <-done; err != nil {
+	if err := <-File(sourceFile, destFile); err != nil {
 		tu.Fail(err)
 	}
 

@@ -8,8 +8,15 @@ import (
 	"path/filepath"
 )
 
-// File : Copy a file from one place to another. Retain permissions (though not owner)
-func File(source, destination string, done chan error) {
+// File : Convenience wrapper for copyfile. Sets up connection channel between the two. Can be used in serial too
+func File(source, destination string) chan error {
+	done := make(chan error)
+	go copyfile(source, destination, done)
+	return done
+}
+
+// copyfile : Copy a file from one place to another. Retain permissions (though not owner)
+func copyfile(source, destination string, done chan error) {
 	var err error // Reuse error variable everywhere for return var
 	defer func() {
 		done <- err
