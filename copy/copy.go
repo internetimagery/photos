@@ -23,7 +23,11 @@ func copyfile(source, destination string, done chan error) {
 	}()
 
 	// Check our source exists, and our destination doesnt
-	if _, err = os.Stat(source); err != nil {
+	sourceInfo, err := os.Stat(source)
+	if err != nil {
+		return
+	} else if !sourceInfo.Mode().IsRegular() {
+		err = fmt.Errorf("Source not a regular file '%s'", source)
 		return
 	}
 	if _, err = os.Stat(destination); !os.IsNotExist(err) {
@@ -60,23 +64,13 @@ func copyfile(source, destination string, done chan error) {
 	}
 
 	// Set permissions and modification time
-	const perm = 0644 // // TODO: query permissions to get this value
-	if err = os.Chmod(destinationHandle.Name(), perm); err != nil {
+	if err = os.Chmod(destinationHandle.Name(), sourceInfo.Mode().Perm()); err != nil {
+		return
+	}
+	if err = os.Chtimes(destinationHandle.Name(), sourceInfo.ModTime(), sourceInfo.ModTime()); err != nil {
 		return
 	}
 
 	// Finally, set destination to its final resting place!
 	err = os.Rename(destinationHandle.Name(), destination)
 }
-
-// 	const perm = 0644
-// 	if err := os.Chmod(tmp.Name(), perm); err != nil {
-// 		os.Remove(tmp.Name())
-// 		return err
-// 	}
-// 	if err := os.Rename(tmp.Name(), dst); err != nil {
-// 		os.Remove(tmp.Name())
-// 		return err
-// 	}
-// 	return nil
-// }
