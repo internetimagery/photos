@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -78,6 +79,7 @@ func GetMediaFromDirectory(dirPath string) ([]*Media, error) {
 	if err != nil {
 		return mediaList, err
 	}
+	sort.Slice(files, func(i, j int) bool { return files[i].Name() < files[j].Name() })
 	for _, file := range files {
 		if !file.IsDir() && !strings.HasPrefix(file.Name(), TEMPPREFIX) {
 			fullPath := filepath.Join(dirPath, file.Name())
