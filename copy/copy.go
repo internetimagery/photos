@@ -74,7 +74,6 @@ func File(source, destination string) error {
 
 // Tree : Copy files and directories recursively
 func Tree(sourceDir, destinationDir string) error {
-	errorList := []string{}
 
 	// Validate our input
 	info, err := os.Stat(sourceDir)
@@ -96,9 +95,13 @@ func Tree(sourceDir, destinationDir string) error {
 
 	jobs := make(chan [2]string, 100)
 	errors := make(chan string, 100)
+	doneList := []chan error{}
+	errorList := []string{}
 
 	for i := 0; i < poolSize; i++ {
-		go treeworker(jobs, errors)
+		done := make(chan error)
+		go treeworker(jobs, done)
+		doneList = append(doneList, done)
 	}
 
 	// Run through all files and kick off copies
@@ -125,6 +128,12 @@ func Tree(sourceDir, destinationDir string) error {
 	})
 
 	// Collect our errors (hopefully none!)
+	for _, done := range doneList {
+		err = <-done
+		if err != nil {
+			errorList = append(errorList, err.Error())
+		}
+	}
 	for i := len(errors); i > 0; i = len(errors) {
 		errorList = append(errorList, <-errors)
 	}
@@ -137,11 +146,17 @@ func Tree(sourceDir, destinationDir string) error {
 }
 
 // treeworker : Run jobs on behalf of the Tree caller
-func treeworker(jobs chan [2]string, errors chan string) {
+func treeworker(jobs chan [2]string, done chan error) {
+	errList := []string{}
 	for job, ok := <-jobs; ok; job, ok = <-jobs {
 		log.Printf("Copying '%s' --> '%s'", job[0], job[1])
 		if err := File(job[0], job[1]); err != nil {
-			errors <- err.Error() // Send back our error
+			errList = append(errList, err.Error())
 		}
+	}
+	if len(errList) != 0 {
+		done <- fmt.Errorf(strings.Join(errList, "\n"))
+	} else {
+		done <- nil
 	}
 }
