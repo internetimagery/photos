@@ -150,6 +150,8 @@ func TestCopyFileNotFile(t *testing.T) {
 
 	sourceFile := filepath.Join(tmpDir, "testfile1.txt")
 	destFile := filepath.Join(tmpDir, "testfile2.txt")
+	sourceData := []byte("thing")
+	destData := []byte("thing")
 	if err = ioutil.WriteFile(sourceFile, sourceData, 0644); err != nil {
 		t.Fatal(err)
 	}
