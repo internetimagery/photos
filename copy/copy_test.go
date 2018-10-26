@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"testing"
 	"time"
 )
@@ -169,57 +168,88 @@ func TestCopyFileNotFile(t *testing.T) {
 
 func TestTree(t *testing.T) {
 
-	// Set up test environment (cannot use testutil.LoadTestdata() here)
-	tmpDir, err := ioutil.TempDir("", "TestCopyFile")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(tmpDir)
+	tu := NewTestEnv(t)
+	defer tu.Close()
 
-	testData := []byte(strings.Repeat("TESTING AGAIN", 100))
-	testDataSize := int64(len(testData))
-	root1 := filepath.Join(tmpDir, "root1")
-	root2 := filepath.Join(tmpDir, "root2")
+	sourceDir := tu.Join("root1")
+	destDir := tu.Join("root2")
 
-	// Setting up test env
-	subDir := filepath.Join(root1, "subdir")
-	testFiles := []string{
-		filepath.Join(root1, "testfile1.txt"),
-		filepath.Join(root1, "testfile2.txt"),
-		filepath.Join(subDir, "testfile3.txt"),
-		filepath.Join(subDir, "testfile4.txt"),
-	}
-	if err = os.MkdirAll(subDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-	for _, testFile := range testFiles {
-		if err = ioutil.WriteFile(testFile, testData, 0644); err != nil {
-			t.Fatal(err)
-		}
-	}
+	tu.MkFile(tu.Join("root1", "test1.txt"), "", 0644, nil)
+	tu.MkFile(tu.Join("root1", "subdir", "test2.txt"), "", 0644, nil)
 
 	// Do the thing
-	if err = Tree(root1, root2); err != nil {
+	if err := Tree(sourceDir, destDir); err != nil {
 		t.Log(err)
 		t.Fail()
 	}
 
-	// Check things exist!
-	subDir = filepath.Join(root2, "subdir")
-	resultFiles := []string{
-		filepath.Join(root2, "testfile1.txt"),
-		filepath.Join(root2, "testfile2.txt"),
-		filepath.Join(subDir, "testfile3.txt"),
-		filepath.Join(subDir, "testfile4.txt"),
+	// Check files made it!
+	if _, err := os.Stat(tu.Join("root2", "test1.txt")); err != nil {
+		t.Log(err)
+		t.Fail()
 	}
-	for _, resultFile := range resultFiles {
-		info, err := os.Stat(resultFile)
-		if err != nil {
+	if _, err := os.Stat(tu.Join("root2", "subdir", "test2.txt")); err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+}
+
+func TestTreeExistingDir(t *testing.T) {
+
+	tu := NewTestEnv(t)
+	defer tu.Close()
+
+	sourceDir := tu.Join("root1")
+	destDir := tu.Join("root2")
+
+	tu.MkFile(tu.Join("root1", "test1.txt"), "", 0644, nil)
+	tu.MkDir(destDir)
+
+	// Do the thing
+	if err := Tree(sourceDir, destDir); err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+
+	// Check file made it!
+	if _, err := os.Stat(tu.Join("root2", "test1.txt")); err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+}
+
+func TestTreeExistingFile(t *testing.T) {
+
+	tu := NewTestEnv(t)
+	defer tu.Close()
+
+	sourceDir := tu.Join("root1")
+	destDir := tu.Join("root2")
+
+	tu.MkFile(tu.Join("root1", "test1.txt"), "", 0644, nil)
+	_, testInfo := tu.MkFile(tu.Join("root2", "test1.txt"), "Different", 0644, nil)
+
+	testSize, testMod := testInfo.Size(), testInfo.ModTime()
+
+	// Do the thing
+	if err := Tree(sourceDir, destDir); !os.IsExist(err) {
+		if err == nil {
+			t.Log("File already exists and no error thrown")
+			t.Fail()
+		} else {
 			t.Log(err)
 			t.Fail()
-		} else if info.Size() != testDataSize {
-			t.Log("File sizes differ", resultFile)
-			t.Fail()
 		}
+	}
+
+	// Check file unchanged
+	info, err := os.Stat(tu.Join("root2", "test1.txt"))
+	if err != nil {
+		t.Log(err)
+		t.FailNow()
+	}
+	if info.Size() != testSize || info.ModTime() != testMod {
+		t.Log("File was changed!")
+		t.Fail()
 	}
 }
