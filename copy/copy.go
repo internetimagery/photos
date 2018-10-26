@@ -47,7 +47,6 @@ func File(source, destination string) chan error {
 			if err = os.Remove(name); os.IsNotExist(err) {
 				err = nil
 			}
-
 		}(destinationHandle.Name())
 
 		// Copy data across

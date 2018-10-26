@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -24,7 +25,9 @@ func TestCopyFile(t *testing.T) {
 	destFile := filepath.Join(tmpDir, "testfile2.txt")
 	perms := os.FileMode(0640)
 	modtime := time.Date(2018, 10, 10, 0, 0, 0, 0, time.Local)
-	if err = ioutil.WriteFile(sourceFile, []byte("Testing 123"), perms); err != nil {
+	data := []byte(strings.Repeat("TESTING AND", 100))
+	fileSize := int64(len(data))
+	if err = ioutil.WriteFile(sourceFile, data, perms); err != nil {
 		tu.Fatal(err)
 	}
 	if err = os.Chtimes(sourceFile, modtime, modtime); err != nil {
@@ -33,7 +36,6 @@ func TestCopyFile(t *testing.T) {
 
 	// Test simple file copy works
 	if err := <-File(sourceFile, destFile); err != nil {
-		tu.Log("HERE")
 		tu.Fail(err)
 	}
 
@@ -41,6 +43,9 @@ func TestCopyFile(t *testing.T) {
 	info := tu.AssertExists(destFile)
 	if info[0].ModTime() != modtime {
 		tu.FailE(modtime, info[0].ModTime())
+	}
+	if info[0].Size() != fileSize {
+		tu.Fail("File sizes vary")
 	}
 	// if runtime.GOOS != "windows" {
 	// 	if info[0].Mode().Perm() != perms {
