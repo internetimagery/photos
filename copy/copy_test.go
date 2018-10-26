@@ -64,6 +64,8 @@ func TestTree(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
+	testData := []byte(strings.Repeat("TESTING AGAIN", 100))
+	testDataSize := int64(len(testData))
 	root1 := filepath.Join(tmpDir, "root1")
 	root2 := filepath.Join(tmpDir, "root2")
 
@@ -79,7 +81,7 @@ func TestTree(t *testing.T) {
 		tu.Fatal(err)
 	}
 	for _, testFile := range testFiles {
-		if err = ioutil.WriteFile(testFile, []byte("info"), 0644); err != nil {
+		if err = ioutil.WriteFile(testFile, testData, 0644); err != nil {
 			tu.Fatal(err)
 		}
 	}
@@ -91,10 +93,18 @@ func TestTree(t *testing.T) {
 
 	// Check things exist!
 	subDir = filepath.Join(root2, "subdir")
-	tu.AssertExists(
+	resultFiles := []string{
 		filepath.Join(root2, "testfile1.txt"),
 		filepath.Join(root2, "testfile2.txt"),
 		filepath.Join(subDir, "testfile3.txt"),
 		filepath.Join(subDir, "testfile4.txt"),
-	)
+	}
+	for _, resultFile := range resultFiles {
+		info, err := os.Stat(resultFile)
+		if err != nil {
+			tu.Fail(err)
+		} else if info.Size() != testDataSize {
+			tu.Fail("File sizes differ", resultFile)
+		}
+	}
 }
