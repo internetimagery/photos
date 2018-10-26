@@ -1,10 +1,8 @@
 package copy
 
 import (
-	"bytes"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -22,11 +20,6 @@ func NewTestEnv(t *testing.T) *TestEnv {
 	if err != nil {
 		t.Fatal(err)
 	}
-	cmd := exec.Command("cp", "avT", filepath.Join("testdata", t.Name()), tmpDir)
-	if output, err := cmd.CombinedOutput(); err != nil {
-		t.Log(string(output))
-		t.Fatal(err)
-	}
 	return &TestEnv{Dir: tmpDir, t: t}
 }
 
@@ -36,28 +29,47 @@ func (env *TestEnv) Close() {
 	}
 }
 
+func (env *TestEnv) MkDir(path string) string {
+	if err := os.MkdirAll(path, 0755); err != nil {
+		env.t.Fatal(err)
+	}
+	return path
+}
+
+func (env *TestEnv) MkFile(path string, data string, perm os.FileMode, modtime *time.Time) (string, os.FileInfo) {
+	env.MkDir(filepath.Dir(path))
+	if err := ioutil.WriteFile(path, []byte(data), perm); err != nil {
+		env.t.Fatal(err)
+	}
+	if modtime != nil {
+		if err := os.Chtimes(path, *modtime, *modtime); err != nil {
+			env.t.Fatal(err)
+		}
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		env.t.Fatal(err)
+	}
+	return path, info
+}
+
+func (env *TestEnv) Join(parts ...string) string {
+	return filepath.Join(append([]string{env.Dir}, parts...)...)
+}
+
 func TestCopyFile(t *testing.T) {
 
 	// Set up test environment (cannot use testutil.LoadTestdata() here)
 	tu := NewTestEnv(t)
 	defer tu.Close()
 
-	sourceFile := filepath.Join(tu.Dir, "testfile1.txt")
-	destFile := filepath.Join(tu.Dir, "testfile2.txt")
 	perms := os.FileMode(0640)
 	modtime := time.Date(2018, 10, 10, 0, 0, 0, 0, time.Local)
-	if err := os.Chtimes(sourceFile, modtime, modtime); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.Chmod(sourceFile, perms); err != nil {
-		t.Fatal(err)
-	}
+	sourceFile, sourceInfo := tu.MkFile(tu.Join("testfile1.txt"), "Hello", perms, &modtime)
+	destFile := filepath.Join(tu.Dir, "testfile2.txt")
 
-	// Grab info about file
-	sourceInfo, err := os.Stat(sourceFile)
-	if err != nil {
-		t.Fatal(err)
-	}
+	// Record initial info
+	initSize := sourceInfo.Size()
 
 	// Test simple file copy works
 	if err := <-File(sourceFile, destFile); err != nil {
@@ -71,7 +83,7 @@ func TestCopyFile(t *testing.T) {
 		t.Log(err)
 		t.FailNow()
 	}
-	if sourceInfoCompare.Size() != sourceInfo.Size() || sourceInfoCompare.ModTime() != modtime {
+	if sourceInfoCompare.Size() != initSize || sourceInfoCompare.ModTime() != modtime {
 		t.Log("Source file was modified!")
 		t.Fail()
 	}
@@ -82,7 +94,7 @@ func TestCopyFile(t *testing.T) {
 		t.Log(err)
 		t.FailNow()
 	}
-	if destInfo.ModTime() != modtime || destInfo.Size() != sourceInfo.Size() {
+	if destInfo.ModTime() != modtime || destInfo.Size() != initSize {
 		t.Log("Expected", sourceInfo)
 		t.Log("Got", destInfo)
 		t.Fail()
@@ -99,27 +111,19 @@ func TestCopyFile(t *testing.T) {
 func TestCopyFileExisting(t *testing.T) {
 
 	// Set up test environment (cannot use testutil.LoadTestdata() here)
-	tmpDir, err := ioutil.TempDir("", "TestCopyFileExisting")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(tmpDir)
+	tu := NewTestEnv(t)
+	defer tu.Close()
 
-	sourceFile := filepath.Join(tmpDir, "testfile1.txt")
-	destFile := filepath.Join(tmpDir, "testfile2.txt")
-	sourceData := []byte(strings.Repeat("TESTING AND", 100))
-	destData := []byte(strings.Repeat("RESULT AND", 100))
-	if err = ioutil.WriteFile(sourceFile, sourceData, 0644); err != nil {
-		t.Fatal(err)
-	}
-	if err = ioutil.WriteFile(destFile, destData, 0644); err != nil {
-		t.Fatal(err)
-	}
+	sourceFile, sourceInfo := tu.MkFile(tu.Join("testfile1.txt"), "Hi", 0644, nil)
+	destFile, destInfo := tu.MkFile(tu.Join("testfile2.txt"), "Hello", 0644, nil)
+
+	sourceSize, sourceMod := sourceInfo.Size(), sourceInfo.ModTime()
+	destSize, destMod := destInfo.Size(), destInfo.ModTime()
 
 	// Test simple file copy works
 	if err := <-File(sourceFile, destFile); !os.IsExist(err) {
 		if err == nil {
-			t.Log("No error with exsting file")
+			t.Log("No error with exsting file in place")
 			t.Fail()
 		} else {
 			t.Log(err)
@@ -128,56 +132,37 @@ func TestCopyFileExisting(t *testing.T) {
 	}
 
 	// Check nothing changed
-	data, err := ioutil.ReadFile(destFile)
+	sourceInfoCheck, err := os.Stat(sourceFile)
 	if err != nil {
 		t.Log(err)
 		t.Fail()
 	}
-	if !bytes.Equal(data, destData) {
-		t.Log("Data was changed!")
+	if sourceInfoCheck.Size() != sourceSize || sourceInfoCheck.ModTime() != sourceMod {
+		t.Log("Source file has changed!")
+		t.Fail()
+	}
+	destInfoCheck, err := os.Stat(destFile)
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	if destInfoCheck.Size() != destSize || destInfoCheck.ModTime() != destMod {
+		t.Log("Destination file has changed!")
 		t.Fail()
 	}
 }
 
 func TestCopyFileNotFile(t *testing.T) {
 
-	// Set up test environment (cannot use testutil.LoadTestdata() here)
-	tmpDir, err := ioutil.TempDir("", "TestCopyFileNotFile")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(tmpDir)
+	tu := NewTestEnv(t)
+	defer tu.Close()
 
-	sourceFile := filepath.Join(tmpDir, "testfile1.txt")
-	destFile := filepath.Join(tmpDir, "testfile2.txt")
-	sourceData := []byte("thing")
-	destData := []byte("thing")
-	if err = ioutil.WriteFile(sourceFile, sourceData, 0644); err != nil {
-		t.Fatal(err)
-	}
-	if err = ioutil.WriteFile(destFile, destData, 0644); err != nil {
-		t.Fatal(err)
-	}
+	sourceDir := tu.MkDir(tu.Join("testdir"))
+	destDir := tu.Join("test2dir")
 
-	// Test simple file copy works
-	if err := <-File(sourceFile, destFile); !os.IsExist(err) {
-		if err == nil {
-			t.Log("No error with exsting file")
-			t.Fail()
-		} else {
-			t.Log(err)
-			t.Fail()
-		}
-	}
-
-	// Check nothing changed
-	data, err := ioutil.ReadFile(destFile)
-	if err != nil {
-		t.Log(err)
-		t.Fail()
-	}
-	if !bytes.Equal(data, destData) {
-		t.Log("Data was changed!")
+	// Test copy fails on non-files
+	if err := <-File(sourceDir, destDir); err == nil {
+		t.Log("No error with source directory")
 		t.Fail()
 	}
 }
