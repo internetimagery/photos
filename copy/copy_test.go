@@ -7,17 +7,14 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/internetimagery/photos/testutil"
 )
 
 func TestCopyFile(t *testing.T) {
-	tu := testutil.NewTestUtil(t)
 
 	// Set up test environment (cannot use testutil.LoadTestdata() here)
 	tmpDir, err := ioutil.TempDir("", "TestCopyFile")
 	if err != nil {
-		tu.Fatal(err)
+		t.Fatal(err)
 	}
 	defer os.RemoveAll(tmpDir)
 
@@ -28,24 +25,32 @@ func TestCopyFile(t *testing.T) {
 	data := []byte(strings.Repeat("TESTING AND", 100))
 	fileSize := int64(len(data))
 	if err = ioutil.WriteFile(sourceFile, data, perms); err != nil {
-		tu.Fatal(err)
+		t.Fatal(err)
 	}
 	if err = os.Chtimes(sourceFile, modtime, modtime); err != nil {
-		tu.Fatal(err)
+		t.Fatal(err)
 	}
 
 	// Test simple file copy works
 	if err := <-File(sourceFile, destFile); err != nil {
-		tu.Fail(err)
+		t.Log(err)
+		t.Fail()
 	}
 
 	// Check everything matches
-	info := tu.AssertExists(destFile)
-	if info[0].ModTime() != modtime {
-		tu.FailE(modtime, info[0].ModTime())
+	info, err := os.Stat(destFile)
+	if err != nil {
+		t.Log(err)
+		t.FailNow()
 	}
-	if info[0].Size() != fileSize {
-		tu.Fail("File sizes vary")
+	if info.ModTime() != modtime {
+		t.Log("Expected", modtime)
+		t.Log("Got", info.ModTime())
+		t.Fail()
+	}
+	if info.Size() != fileSize {
+		t.Log("File sizes vary")
+		t.Fail()
 	}
 	// if runtime.GOOS != "windows" {
 	// 	if info[0].Mode().Perm() != perms {
@@ -55,12 +60,11 @@ func TestCopyFile(t *testing.T) {
 }
 
 func TestTree(t *testing.T) {
-	tu := testutil.NewTestUtil(t)
 
 	// Set up test environment (cannot use testutil.LoadTestdata() here)
 	tmpDir, err := ioutil.TempDir("", "TestCopyFile")
 	if err != nil {
-		tu.Fatal(err)
+		t.Fatal(err)
 	}
 	defer os.RemoveAll(tmpDir)
 
@@ -78,17 +82,18 @@ func TestTree(t *testing.T) {
 		filepath.Join(subDir, "testfile4.txt"),
 	}
 	if err = os.MkdirAll(subDir, 0755); err != nil {
-		tu.Fatal(err)
+		t.Fatal(err)
 	}
 	for _, testFile := range testFiles {
 		if err = ioutil.WriteFile(testFile, testData, 0644); err != nil {
-			tu.Fatal(err)
+			t.Fatal(err)
 		}
 	}
 
 	// Do the thing
 	if err = Tree(root1, root2); err != nil {
-		tu.Fail(err)
+		t.Log(err)
+		t.Fail()
 	}
 
 	// Check things exist!
@@ -102,9 +107,11 @@ func TestTree(t *testing.T) {
 	for _, resultFile := range resultFiles {
 		info, err := os.Stat(resultFile)
 		if err != nil {
-			tu.Fail(err)
+			t.Log(err)
+			t.Fail()
 		} else if info.Size() != testDataSize {
-			tu.Fail("File sizes differ", resultFile)
+			t.Log("File sizes differ", resultFile)
+			t.Fail()
 		}
 	}
 }

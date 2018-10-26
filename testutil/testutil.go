@@ -3,10 +3,11 @@ package testutil
 import (
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/internetimagery/photos/copy"
 )
 
 // TestUtil : Wrapper for helper functions
@@ -37,9 +38,7 @@ func (util *TestUtil) LoadTestdata() func() {
 	if err != nil {
 		util.Fatal(err)
 	}
-	cmd := exec.Command("cp", "-avT", "--no-preserve", "ownership", testdata, tmpDir)
-	if output, err := cmd.CombinedOutput(); err != nil {
-		util.Log(string(output))
+	if err = copy.Tree(testdata, tmpDir); err != nil {
 		util.Fatal(err)
 	}
 	util.Dir = tmpDir

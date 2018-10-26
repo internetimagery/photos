@@ -92,7 +92,7 @@ func Tree(sourceDir, destinationDir string) error {
 	destInfo, err := os.Stat(destinationDir) // Destination will be created if doesn't exist. But cannot be a file
 	if err == nil && !destInfo.IsDir() {
 		return fmt.Errorf("destination is not a directory")
-	} else if !os.IsNotExist(err) {
+	} else if err != nil && !os.IsNotExist(err) {
 		return err
 	}
 	var tempRoot string
@@ -110,7 +110,7 @@ func Tree(sourceDir, destinationDir string) error {
 	defer os.RemoveAll(tmpDir)
 
 	// Run through all files and kick off copies
-	done := []chan error{}
+	jobs := []chan error{}
 	if err = filepath.Walk(sourceDir, func(sourcePath string, info os.FileInfo, err error) error {
 		if sourcePath == sourceDir {
 			return nil // Ignore root. We know it exists already!
@@ -130,7 +130,7 @@ func Tree(sourceDir, destinationDir string) error {
 			}
 		} else {
 			// TODO: Consider putting in another channel that stops execution on error
-			done = append(done, File(sourcePath, destPath))
+			jobs = append(jobs, File(sourcePath, destPath))
 		}
 		return nil
 	}); err != nil {
@@ -138,8 +138,8 @@ func Tree(sourceDir, destinationDir string) error {
 	}
 
 	// Ensure all copies have finished.
-	for _, d := range done {
-		if err = <-d; err != nil {
+	for _, done := range jobs {
+		if err = <-done; err != nil {
 			return err
 		}
 	}
@@ -155,7 +155,6 @@ func Tree(sourceDir, destinationDir string) error {
 	for _, file := range files {
 		sourcePath := filepath.Join(tmpDir, file.Name())
 		destPath := filepath.Join(destinationDir, file.Name())
-		fmt.Println(sourcePath, destPath)
 		if err := os.Rename(sourcePath, destPath); err != nil {
 			return err
 		}
