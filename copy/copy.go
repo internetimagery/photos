@@ -110,6 +110,7 @@ func Tree(sourceDir, destinationDir string) error {
 	defer os.RemoveAll(tmpDir)
 
 	// Run through all files and kick off copies
+	done := []chan error{}
 	if err = filepath.Walk(sourceDir, func(sourcePath string, info os.FileInfo, err error) error {
 		if sourcePath == sourceDir {
 			return nil // Ignore root. We know it exists already!
@@ -128,15 +129,19 @@ func Tree(sourceDir, destinationDir string) error {
 				return err
 			}
 		} else {
-			// TODO: Store these done channels. Check for them to finish later on
 			// TODO: Consider putting in another channel that stops execution on error
-			if err = <-File(sourcePath, destPath); err != nil {
-				return err
-			}
+			done = append(done, File(sourcePath, destPath))
 		}
 		return nil
 	}); err != nil {
 		return err
+	}
+
+	// Ensure all copies have finished.
+	for _, d := range done {
+		if err = <-d; err != nil {
+			return err
+		}
 	}
 
 	// Put everything into its right place!
@@ -147,7 +152,6 @@ func Tree(sourceDir, destinationDir string) error {
 	if err = os.MkdirAll(destinationDir, sourceInfo.Mode().Perm()); err != nil {
 		return err
 	}
-	fmt.Println("FILES", files)
 	for _, file := range files {
 		sourcePath := filepath.Join(tmpDir, file.Name())
 		destPath := filepath.Join(destinationDir, file.Name())
