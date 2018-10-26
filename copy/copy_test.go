@@ -1,6 +1,7 @@
 package copy
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -57,6 +58,49 @@ func TestCopyFile(t *testing.T) {
 	// 		tu.FailE(perms, info[0].Mode().Perm())
 	// 	}
 	// }
+}
+
+func TestCopyFileExisting(t *testing.T) {
+
+	// Set up test environment (cannot use testutil.LoadTestdata() here)
+	tmpDir, err := ioutil.TempDir("", "TestCopyFileExisting")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	sourceFile := filepath.Join(tmpDir, "testfile1.txt")
+	destFile := filepath.Join(tmpDir, "testfile2.txt")
+	sourceData := []byte(strings.Repeat("TESTING AND", 100))
+	destData := []byte(strings.Repeat("RESULT AND", 100))
+	if err = ioutil.WriteFile(sourceFile, sourceData, 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err = ioutil.WriteFile(destFile, destData, 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Test simple file copy works
+	if err := <-File(sourceFile, destFile); !os.IsExist(err) {
+		if err == nil {
+			t.Log("No error with exsting file")
+			t.Fail()
+		} else {
+			t.Log(err)
+			t.Fail()
+		}
+	}
+
+	// Check nothing changed
+	data, err := ioutil.ReadFile(destFile)
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	if !bytes.Equal(data, destData) {
+		t.Log("Data was changed!")
+		t.Fail()
+	}
 }
 
 func TestTree(t *testing.T) {

@@ -27,7 +27,7 @@ func File(source, destination string) chan error {
 		}
 		if _, err = os.Stat(destination); !os.IsNotExist(err) {
 			if err == nil {
-				err = fmt.Errorf("Destination file exists '%s'", destination)
+				err = os.ErrExist
 			}
 			return
 		}
