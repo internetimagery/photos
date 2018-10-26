@@ -81,7 +81,7 @@ func GetMediaFromDirectory(dirPath string) ([]*Media, error) {
 	}
 	sort.Slice(files, func(i, j int) bool { return files[i].Name() < files[j].Name() })
 	for _, file := range files {
-		if !file.IsDir() && !strings.HasPrefix(file.Name(), TEMPPREFIX) && file.Name()[0] != "." {
+		if !file.IsDir() && !strings.HasPrefix(file.Name(), TEMPPREFIX) && file.Name()[0] != '.' {
 			fullPath := filepath.Join(dirPath, file.Name())
 			media := NewMedia(fullPath)
 			if media.Event != event {
