@@ -49,7 +49,12 @@ func isDummy(path string) bool {
 
 // cleanDummy : Remove all dummy files in directory
 func cleanDummy(path string) error {
-	return nil
+	return filepath.Walk(path, func(fileName string, info os.FileInfo, err error) error {
+		if isDummy(fileName) {
+			return os.Remove(fileName)
+		}
+		return nil
+	})
 }
 
 // File : Convenience wrapper for copyfile. Sets up connection channel between the two. Can be used in serial too

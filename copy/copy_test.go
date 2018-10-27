@@ -128,6 +128,65 @@ func TestCreateDummy(t *testing.T) {
 	}
 }
 
+func TestCleanDummy(t *testing.T) {
+	tu := NewTestEnv(t)
+	defer tu.Close()
+
+	// Should remain
+	tu.MkFile(tu.Join("realfile", "test1.txt"), "", 0644, nil) // Real file, real folder
+	tu.MkDir(tu.Join("realDir"))                               // Real directory
+	if err := createDummyDir(tu.Join("fulldummy")); err != nil {
+		t.Fatal(err)
+	}
+	tu.MkFile(tu.Join("fulldummy", "test2.txt"), "", 0644, nil) // Real file inside dummy dir
+
+	// Should be gone
+	if err := createDummyFile(tu.Join("test3.txt")); err != nil {
+		t.Fatal(err)
+	}
+	if err := createDummyFile(tu.Join("realfile", "test4.txt")); err != nil {
+		t.Fatal(err)
+	}
+	if err := createDummyDir(tu.Join("realDir", "dummyDir")); err != nil {
+		t.Fatal(err)
+	}
+
+	// Clean directory!
+	if err := cleanDummy(tu.Dir); err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+
+	// Check files exist
+	for _, fileName := range []string{
+		tu.Join("realfile", "test1.txt"),
+		tu.Join("realDir"),
+		tu.Join("fulldummy", "test2.txt"),
+	} {
+		if _, err := os.Stat(fileName); err != nil {
+			t.Log(err)
+			t.Fail()
+		}
+	}
+
+	// Check files are gone
+	for _, fileName := range []string{
+		tu.Join("test3.txt"),
+		tu.Join("realfile", "test4.txt"),
+		tu.Join("realDir", "dummyDir"),
+	} {
+		if _, err := os.Stat(fileName); !os.IsNotExist(err) {
+			if err == nil {
+				t.Log("Dummy file not removed!")
+			} else {
+				t.Log(err)
+			}
+			t.Fail()
+		}
+	}
+
+}
+
 func TestCopyFile(t *testing.T) {
 
 	// Set up test environment (cannot use testutil.LoadTestdata() here)
