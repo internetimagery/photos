@@ -202,13 +202,20 @@ func Tree(sourceDir, destinationDir string) error {
 			return err
 		}
 		destPath := filepath.Join(tmpDir, relPath)
+		dummyPath := filepath.Join(destinationDir, relPath)
 
 		// Don't worry about parralellizing directory creation. Get that over with quickly in serial
 		if info.IsDir() {
+			if err = createDummyDir(dummyPath); err != nil {
+				return err
+			}
 			if err = os.Mkdir(destPath, info.Mode().Perm()); err != nil {
 				return err
 			}
 		} else {
+			if err = createDummyFile(dummyPath); err != nil {
+				return err
+			}
 			// TODO: Consider putting in another channel that stops execution on error
 			copies = append(copies, File(sourcePath, destPath))
 		}
