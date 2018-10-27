@@ -56,6 +56,43 @@ func (env *TestEnv) Join(parts ...string) string {
 	return filepath.Join(append([]string{env.Dir}, parts...)...)
 }
 
+////////////////////////////// TESTS /////////////////////////////
+
+func TestCreateDummy(t *testing.T) {
+	tu := NewTestEnv(t)
+	defer tu.Close()
+
+	// Basic creation and detection round trip
+	test1 := tu.Join("test1.txt")
+	if err := createDummy(test1); err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	if !isDummy(test1) {
+		t.Log("Could not detect dummy")
+		t.Fail()
+	}
+
+	// Dummy creation when file already exists
+	test2, _ := tu.MkFile(tu.Join("test2.txt"), "", 0644, nil)
+	if err := createDummy(test2); !os.IsExist(err) {
+		if err == nil {
+			t.Log("File existed and no error thrown")
+		} else {
+			t.Log(err)
+		}
+		t.Fail()
+	}
+
+	// False positive detection on basic file
+	test3, _ := tu.MkFile(tu.Join("test3.txt"), "", 0644, nil)
+	if isDummy(test3) {
+		t.Log("Failed to detect dummy. False positive.")
+		t.Fail()
+	}
+
+}
+
 func TestCopyFile(t *testing.T) {
 
 	// Set up test environment (cannot use testutil.LoadTestdata() here)

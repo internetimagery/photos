@@ -6,7 +6,31 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 )
+
+// createDummy : Create a dummy file as a placeholder for a future copy
+func createDummy(path string) error {
+	modTime := time.Now().Add(time.Hour * 24 * 365) // Dummy file flagged by having been modified in the future
+	handle, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+	if err != nil {
+		return err
+	}
+	handle.Close()
+	return os.Chtimes(path, modTime, modTime)
+}
+
+// isDummy : The counterpart to createDummy. Checks if a given file is considered a dummy
+func isDummy(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	if info.Mode().IsRegular() && info.Size() == 0 && time.Now().Add(time.Hour*24*7).Before(info.ModTime()) {
+		return true
+	}
+	return false
+}
 
 // File : Convenience wrapper for copyfile. Sets up connection channel between the two. Can be used in serial too
 func File(source, destination string) chan error {
