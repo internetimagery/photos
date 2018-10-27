@@ -80,7 +80,7 @@ func File(source, destination string) chan error {
 			return
 		}
 		defer func(name string) {
-			if err != nil {
+			if isDummy(name) {
 				os.Remove(name)
 			}
 		}(destination)
@@ -139,39 +139,61 @@ func Tree(sourceDir, destinationDir string) error {
 	// TODO: mock out directories with dummy files
 	// TODO: don't just rename root level files. What happens if a folder already contains a file. It'll be squashed.
 
-	// Validate our input
-	sourceInfo, err := os.Stat(sourceDir) // Source must exist and be a directory
+	// TODO: strategy:
+	// TODO: validate source
+	// TODO: validate dest
+	// TODO: make dest if needed (then remove dest if return with error)
+	// TODO: walk source
+	// TODO: make dummy files in dest. Run cleanup after to remove stray dummies
+	// TODO: initiate file copying
+
+	// wait for copies to finish
+	// check errors
+	// walk tempfile, replace dummies with real deal
+
+	// Validate our input exists and is a directory
+	sourceInfo, err := os.Stat(sourceDir)
 	if err != nil {
 		return err
 	}
 	if !sourceInfo.IsDir() {
 		return fmt.Errorf("Source is not a directory '%s'", sourceDir)
 	}
-	destInfo, err := os.Stat(destinationDir) // Destination will be created if doesn't exist. But cannot be a file
+
+	// Validate destination either exists, and is a directory
+	// or does not exist, needs to be created and parent dir exists
+	destInfo, err := os.Stat(destinationDir)
 	if err == nil && !destInfo.IsDir() {
 		return fmt.Errorf("destination is not a directory")
 	} else if err != nil && !os.IsNotExist(err) {
 		return err
 	}
-	var tempRoot string
-	if err == nil { // Destination already exists, make tempfile there
-		tempRoot = filepath.Dir(destinationDir)
-	} else { // Fall back to using source location
-		tempRoot = filepath.Dir(sourceDir)
+	err = os.Mkdir(destinationDir, 0700)
+	if err == nil { // We created this directory, cleanup after
+		defer func() {
+			if err == nil { // No error? Set permissions of file to match source.
+				err = os.Chmod(destinationDir, sourceInfo.Mode().Perm())
+			} else { // Was an error. We created this directory. Clean it up.
+				os.RemoveAll(destinationDir)
+			}
+		}()
+	} else if !os.IsExist(err) { // Some other error
+		return err
 	}
 
 	// Create temporary working folder to copy into initially
-	tmpDir, err := ioutil.TempDir(filepath.Dir(tempRoot), "tempcopytree")
+	tmpDir, err := ioutil.TempDir(destinationDir, "tempcopytree")
 	if err != nil {
 		return err
 	}
 	defer os.RemoveAll(tmpDir)
 
-	// Run through all files and kick off copies
-	jobs := []chan error{}
+	// Run through all files. Prep dummy files, and kick off copies.
+	copies := []chan error{}
+	defer cleanDummy(sourceDir) // Ensure all dummyfiles are cleaned
 	if err = filepath.Walk(sourceDir, func(sourcePath string, info os.FileInfo, err error) error {
 		if sourcePath == sourceDir {
-			return nil // Ignore root. We know it exists already!
+			return nil // Ignore root. We know it exists already, thanks!
 		}
 
 		// Gather our source and destination file paths
@@ -188,7 +210,7 @@ func Tree(sourceDir, destinationDir string) error {
 			}
 		} else {
 			// TODO: Consider putting in another channel that stops execution on error
-			jobs = append(jobs, File(sourcePath, destPath))
+			copies = append(copies, File(sourcePath, destPath))
 		}
 		return nil
 	}); err != nil {
@@ -196,7 +218,7 @@ func Tree(sourceDir, destinationDir string) error {
 	}
 
 	// Ensure all copies have finished.
-	for _, done := range jobs {
+	for _, done := range copies {
 		if err = <-done; err != nil {
 			return err
 		}

@@ -150,6 +150,9 @@ func TestCleanDummy(t *testing.T) {
 	if err := createDummyDir(tu.Join("realDir", "dummyDir")); err != nil {
 		t.Fatal(err)
 	}
+	if err := createDummyFile(tu.Join("realDir", "dummyDir", "test5.txt")); err != nil {
+		t.Fatal(err)
+	}
 
 	// Clean directory!
 	if err := cleanDummy(tu.Dir); err != nil {
@@ -174,10 +177,11 @@ func TestCleanDummy(t *testing.T) {
 		tu.Join("test3.txt"),
 		tu.Join("realfile", "test4.txt"),
 		tu.Join("realDir", "dummyDir"),
+		tu.Join("realDir", "dummyDir", "test5.txt"),
 	} {
 		if _, err := os.Stat(fileName); !os.IsNotExist(err) {
 			if err == nil {
-				t.Log("Dummy file not removed!")
+				t.Log("Dummy file not removed!", fileName)
 			} else {
 				t.Log(err)
 			}
