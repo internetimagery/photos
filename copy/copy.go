@@ -41,7 +41,7 @@ func File(source, destination string) chan error {
 			done <- err
 		}()
 
-		// Check our source exists, and our destination doesnt
+		// Check our source exists
 		sourceInfo, err := os.Stat(source)
 		if err != nil {
 			return
@@ -49,12 +49,16 @@ func File(source, destination string) chan error {
 			err = fmt.Errorf("Source not a regular file '%s'", source)
 			return
 		}
-		if _, err = os.Stat(destination); !os.IsNotExist(err) {
-			if err == nil {
-				err = os.ErrExist
-			}
+
+		// Lock our destination with a dummy file
+		if err = createDummy(destination); err != nil {
 			return
 		}
+		defer func() {
+			if err != nil {
+				os.Remove(destination)
+			}
+		}()
 
 		// Open our sourcefile, and a temporary file in destination location
 		sourceHandle, err := os.Open(source)
