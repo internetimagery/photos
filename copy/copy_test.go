@@ -64,7 +64,7 @@ func TestCreateDummy(t *testing.T) {
 
 	// Basic creation and detection round trip
 	test1 := tu.Join("test1.txt")
-	if err := createDummy(test1); err != nil {
+	if err := createDummyFile(test1); err != nil {
 		t.Log(err)
 		t.Fail()
 	}
@@ -75,7 +75,7 @@ func TestCreateDummy(t *testing.T) {
 
 	// Dummy creation when file already exists
 	test2, _ := tu.MkFile(tu.Join("test2.txt"), "", 0644, nil)
-	if err := createDummy(test2); !os.IsExist(err) {
+	if err := createDummyFile(test2); !os.IsExist(err) {
 		if err == nil {
 			t.Log("File existed and no error thrown")
 		} else {
@@ -98,6 +98,34 @@ func TestCreateDummy(t *testing.T) {
 		t.Fail()
 	}
 
+	// Checking dummy dir
+	test5 := tu.Join("test5.txt")
+	if err := createDummyDir(test5); err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	if !isDummy(test5) {
+		t.Log("Failed to detect dummy dir")
+		t.Fail()
+	}
+
+	// Checking dummy dir existing
+	test6 := tu.MkDir(tu.Join("test6.txt"))
+	if err := createDummyDir(test6); !os.IsExist(err) {
+		if err == nil {
+			t.Log("Failed to error on existing dir")
+		} else {
+			t.Log(err)
+		}
+		t.Fail()
+	}
+
+	// Checking full directory
+	tu.MkFile(tu.Join("subdir", "test7.txt"), "", 0644, nil)
+	if isDummy(tu.Join("subdir")) {
+		t.Log("False positive on full directory")
+		t.Fail()
+	}
 }
 
 func TestCopyFile(t *testing.T) {

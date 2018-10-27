@@ -10,7 +10,7 @@ import (
 )
 
 // createDummy : Create a dummy file as a placeholder for a future copy
-func createDummy(path string) error {
+func createDummyFile(path string) error {
 	modTime := time.Now().Add(time.Hour * 24 * 365) // Dummy file flagged by having been modified in the future
 	handle, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
 	if err != nil {
@@ -20,16 +20,36 @@ func createDummy(path string) error {
 	return os.Chtimes(path, modTime, modTime)
 }
 
+// createDummyDir : Create a dummy directory
+func createDummyDir(path string) error {
+	modTime := time.Now().Add(time.Hour * 24 * 365) // Dummy file flagged by having been modified in the future
+	if err := os.Mkdir(path, 0700); err != nil {
+		return err
+	}
+	return os.Chtimes(path, modTime, modTime)
+}
+
 // isDummy : The counterpart to createDummy. Checks if a given file is considered a dummy
 func isDummy(path string) bool {
 	info, err := os.Stat(path)
 	if err != nil {
 		return false
 	}
-	if info.Mode().IsRegular() && info.Size() == 0 && time.Now().Add(time.Hour*24*7).Before(info.ModTime()) {
+	// check dir
+	if info.IsDir() && time.Now().Add(time.Hour*24*7).Before(info.ModTime()) {
+		if files, err := ioutil.ReadDir(path); err == nil && len(files) == 0 {
+			return true
+		}
+	} else if info.Mode().IsRegular() && info.Size() == 0 && time.Now().Add(time.Hour*24*7).Before(info.ModTime()) {
+		// check file
 		return true
 	}
 	return false
+}
+
+// cleanDummy : Remove all dummy files in directory
+func cleanDummy(path string) error {
+	return nil
 }
 
 // File : Convenience wrapper for copyfile. Sets up connection channel between the two. Can be used in serial too
@@ -51,7 +71,7 @@ func File(source, destination string) chan error {
 		}
 
 		// Lock our destination with a dummy file
-		if err = createDummy(destination); err != nil {
+		if err = createDummyFile(destination); err != nil {
 			return
 		}
 		defer func(name string) {
