@@ -191,7 +191,7 @@ func Tree(sourceDir, destinationDir string) error {
 	// Run through all files. Prep dummy files, and kick off copies.
 	copies := []chan error{}
 	defer cleanDummy(sourceDir) // Ensure all dummyfiles are cleaned
-	if err = filepath.Walk(sourceDir, func(sourcePath string, info os.FileInfo, err error) error {
+	err = filepath.Walk(sourceDir, func(sourcePath string, info os.FileInfo, err error) error {
 		if sourcePath == sourceDir {
 			return nil // Ignore root. We know it exists already, thanks!
 		}
@@ -204,7 +204,10 @@ func Tree(sourceDir, destinationDir string) error {
 		destPath := filepath.Join(tmpDir, relPath)
 		dummyPath := filepath.Join(destinationDir, relPath)
 
+		// Create dummy files and directories
 		// Don't worry about parralellizing directory creation. Get that over with quickly in serial
+		// TODO: Should permissions be applied in another step? Top down?
+		// TODO: In a situation that a directory is read only, and we try to modify its contents...
 		if info.IsDir() {
 			if err = createDummyDir(dummyPath); err != nil {
 				return err
@@ -216,22 +219,23 @@ func Tree(sourceDir, destinationDir string) error {
 			if err = createDummyFile(dummyPath); err != nil {
 				return err
 			}
-			// TODO: Consider putting in another channel that stops execution on error
 			copies = append(copies, File(sourcePath, destPath))
 		}
 		return nil
-	}); err != nil {
+	})
+
+	// Ensure all copies have finished. Save first error.
+	for _, done := range copies {
+		if jobErr := <-done; err == nil && jobErr != nil {
+			err = jobErr
+		}
+	}
+	if err != nil {
 		return err
 	}
 
-	// Ensure all copies have finished.
-	for _, done := range copies {
-		if err = <-done; err != nil {
-			return err
-		}
-	}
-
 	// Put everything into its right place!
+	// TODO: do this top down
 	files, err := ioutil.ReadDir(tmpDir)
 	if err != nil {
 		return err
