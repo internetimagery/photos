@@ -54,11 +54,11 @@ func File(source, destination string) chan error {
 		if err = createDummy(destination); err != nil {
 			return
 		}
-		defer func() {
+		defer func(name string) {
 			if err != nil {
-				os.Remove(destination)
+				os.Remove(name)
 			}
-		}()
+		}(destination)
 
 		// Open our sourcefile, and a temporary file in destination location
 		sourceHandle, err := os.Open(source)
@@ -95,7 +95,7 @@ func File(source, destination string) chan error {
 			return
 		}
 
-		// Finally, set destination to its final resting place!
+		// Finally, set destination to its final resting place, replacing the dummy file!
 		err = os.Rename(destinationHandle.Name(), destination)
 
 		// // Last minute permissions change if on windows
@@ -108,6 +108,11 @@ func File(source, destination string) chan error {
 
 // Tree : Copy files and directories recursively
 func Tree(sourceDir, destinationDir string) error {
+
+	// TODO: create walk function to determine which folder exists for cleanup
+	// TODO: make destination up front
+	// TODO: mock out directories with dummy files
+	// TODO: don't just rename root level files. What happens if a folder already contains a file. It'll be squashed.
 
 	// Validate our input
 	sourceInfo, err := os.Stat(sourceDir) // Source must exist and be a directory
