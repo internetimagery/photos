@@ -91,6 +91,13 @@ func TestCreateDummy(t *testing.T) {
 		t.Fail()
 	}
 
+	// False positive detection on basic dir
+	test4 := tu.MkDir(tu.Join("test4.txt"))
+	if isDummy(test4) {
+		t.Log("Failed to detect dummy. False positive dir.")
+		t.Fail()
+	}
+
 }
 
 func TestCopyFile(t *testing.T) {
