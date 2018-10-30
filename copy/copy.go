@@ -9,39 +9,78 @@ import (
 	"time"
 )
 
+// DUMMYDATE : Imaginary date, used to track files that are intended to be dummy files. Alterations to the files or directories will change this date, marking the files as now legit files...
+var DUMMYDATE = time.Date(1800, 1, 1, 0, 0, 0, 0, time.Local)
+
 // createDummy : Create a dummy file as a placeholder for a future copy
 func createDummyFile(path string) error {
-	modTime := time.Now().Add(time.Hour * 24 * 365) // Dummy file flagged by having been modified in the future
+	// Collect information on parent directory
+	dirPath := filepath.Dir(path)
+	dirInfo, err := os.Stat(dirPath)
+	if err != nil {
+		return err
+	}
+
+	// Create dummy file
 	handle, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
 	if err != nil {
 		return err
 	}
 	handle.Close()
-	return os.Chtimes(path, modTime, modTime)
+	if err = os.Chtimes(path, DUMMYDATE, DUMMYDATE); err != nil {
+		os.Remove(path)
+		return err
+	}
+	if dirInfo.ModTime().Equal(DUMMYDATE) {
+		if err = os.Chtimes(dirPath, DUMMYDATE, DUMMYDATE); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // createDummyDir : Create a dummy directory
 func createDummyDir(path string) error {
-	modTime := time.Now().Add(time.Hour * 24 * 365) // Dummy file flagged by having been modified in the future
-	if err := os.Mkdir(path, 0700); err != nil {
+	dirPath := filepath.Dir(path)
+	dirInfo, err := os.Stat(dirPath)
+	if err != nil {
 		return err
 	}
-	return os.Chtimes(path, modTime, modTime)
+	if err = os.Mkdir(path, 0700); err != nil {
+		return err
+	}
+	if err = os.Chtimes(path, DUMMYDATE, DUMMYDATE); err != nil {
+		os.Remove(path)
+		return err
+	}
+	if dirInfo.ModTime().Equal(DUMMYDATE) {
+		if err = os.Chtimes(dirPath, DUMMYDATE, DUMMYDATE); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-// isDummy : The counterpart to createDummy. Checks if a given file is considered a dummy
+// isDummy : The counterpart to createDummy. Checks if a given file/dir is considered a dummy
 func isDummy(path string) bool {
 	info, err := os.Stat(path)
 	if err != nil {
 		return false
 	}
-	// check dir
-	if info.IsDir() && time.Now().Add(time.Hour*24*7).Before(info.ModTime()) {
+	// Directory is considered a dummy if its mod date is DUMMYDATE
+	if info.IsDir() && info.ModTime().Equal(DUMMYDATE) {
+		// TODO: Is this check needed? Adding a legit file to the folder
+		// will automatically alter the modtime. Thus flagging this as no longer a dummy
+		// however if there are dummy files nested, and a nested one gets altered, this one
+		// could still be flagged a dummy, and any deletion could ripple down destroying actual data
+		// down the tree
 		if files, err := ioutil.ReadDir(path); err == nil && len(files) == 0 {
 			return true
 		}
-	} else if info.Mode().IsRegular() && info.Size() == 0 && time.Now().Add(time.Hour*24*7).Before(info.ModTime()) {
-		// check file
+	} else if info.Mode().IsRegular() && info.Size() == 0 && info.ModTime().Equal(DUMMYDATE) {
+		// Files are considered dummys if their modtime is DUMMYDATE and they are empty.
+		// Any modification to their content should update their mtime, marking them no longer a dummy
+		// but I feel it's still a good check to have.
 		return true
 	}
 	return false
@@ -49,12 +88,35 @@ func isDummy(path string) bool {
 
 // cleanDummy : Remove all dummy files in directory
 func cleanDummy(path string) error {
-	return filepath.Walk(path, func(fileName string, info os.FileInfo, err error) error {
-		if isDummy(fileName) {
-			return os.Remove(fileName)
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		return err
+	}
+	for _, info := range files {
+		file := filepath.Join(path, info.Name())
+		if info.IsDir() {
+			if err = cleanDummy(file); err != nil {
+				return err
+			}
 		}
-		return nil
-	})
+		if isDummy(file) {
+			parentDir := filepath.Dir(file)
+			parentInfo, err := os.Stat(parentDir)
+			if err != nil {
+				return err
+			}
+			if err = os.Remove(file); err != nil {
+				return err
+			}
+			// Modifications to the directory (ie the removal just above) will void our dummy flag
+			if parentInfo.ModTime().Equal(DUMMYDATE) {
+				if err = os.Chtimes(parentDir, DUMMYDATE, DUMMYDATE); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
 }
 
 // File : Convenience wrapper for copyfile. Sets up connection channel between the two. Can be used in serial too
@@ -235,6 +297,24 @@ func Tree(sourceDir, destinationDir string) error {
 	}
 
 	// Put everything into its right place!
+	walk := func(currpath string) error {
+		info, err := os.Stat(currpath)
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			files, err := ioutil.ReadDir(currpath)
+			if err != nil {
+				return err
+			}
+			for _, file := range files {
+				if err = walk(filepath.Join(currpath, file.Name())); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	}
 	// TODO: do this top down
 	files, err := ioutil.ReadDir(tmpDir)
 	if err != nil {
