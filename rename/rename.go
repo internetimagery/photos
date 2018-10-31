@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/internetimagery/photos/context"
+	"github.com/internetimagery/photos/copy"
 	"github.com/internetimagery/photos/sort"
 
 	"github.com/internetimagery/photos/format"
@@ -77,10 +78,23 @@ func Rename(cxt *context.Context, compress bool) error {
 	}
 
 	// Run through files!
+	// TODO: Make this happen in parallel
 	for src, dest := range renameMap {
-		tempDest := filepath.Join(filepath.Dir(src), format.TEMPPREFIX+filepath.Base(src)) // Temporary file to create before calling it complete.
+		tempDest := format.MakeTempPath(src) // Temporary file to create before calling it complete.
 
 		log.Println("Renaming:", src)
+
+		// Create a placeholder file to lock in the spot
+		handle, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+		if err != nil {
+			return err
+		}
+		handle.Close()
+		defer func() { // Cleanup
+			if err != nil {
+				os.Remove(dest)
+			}
+		}()
 
 		// Create environment for command
 		setEnvironment(src, tempDest, cxt)
@@ -91,9 +105,8 @@ func Rename(cxt *context.Context, compress bool) error {
 			command := cxt.Config.Compress.GetCommand(src)
 			if command == "" {
 				// We have no command. Just copy the file across directly
-				log.Println("Moving:", src)
-				err = os.Link(src, tempDest)
-				if err != nil {
+				log.Println("Copying:", src)
+				if err = <-copy.File(src, tempDest); err != nil {
 					return err
 				}
 			} else {
@@ -109,7 +122,9 @@ func Rename(cxt *context.Context, compress bool) error {
 				}
 			}
 		} else {
-			if err = os.Link(src, tempDest); err != nil {
+			// We asked not to compress the file. Just copy it instead
+			log.Println("Copying:", src)
+			if err = <-copy.File(src, tempDest); err != nil {
 				return err
 			}
 		}

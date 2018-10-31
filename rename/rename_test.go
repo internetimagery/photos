@@ -1,6 +1,7 @@
 package rename
 
 import (
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -40,6 +41,7 @@ func TestRenameNoNew(t *testing.T) {
 	event := filepath.Join(tu.Dir, "event01")
 	cxt, err := context.NewContext(event)
 	if err != nil {
+		fmt.Println("HERE")
 		tu.Fatal(err)
 	}
 
