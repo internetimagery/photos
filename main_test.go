@@ -99,8 +99,8 @@ func TestSort(t *testing.T) {
 
 	unsorted := filepath.Join(tu.Dir, "unsorted")
 
-	tu.ModTime(2018, 10, 10, filepath.Join(tu.Dir, "file1.txt"))
-	tu.ModTime(2018, 10, 23, filepath.Join(tu.Dir, "file2.txt"))
+	tu.ModTime(2018, 10, 10, filepath.Join(unsorted, "file1.txt"))
+	tu.ModTime(2018, 10, 23, filepath.Join(unsorted, "file2.txt"))
 
 	// Run sort on root subdirectory
 	defer tu.UserInput("y\n")()
