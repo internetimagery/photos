@@ -1,5 +1,5 @@
 {
   "compress": [
-    ["*", "cp -v \"$SOURCEPATH\" \"$DESTPATH\""]
+    ["*", "cp \"$SOURCEPATH\" \"$DESTPATH\""]
   ]
 }

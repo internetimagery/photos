@@ -3,6 +3,7 @@ package rename
 import (
 	"fmt"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/internetimagery/photos/context"
@@ -18,6 +19,11 @@ func TestRename(t *testing.T) {
 	cxt, err := context.NewContext(event)
 	if err != nil {
 		tu.Fatal(err)
+	}
+
+	// Add copy command to windows
+	if runtime.GOOS == "windows" {
+		cxt.Env["PATH"] = tu.Dir + ";" + cxt.Env["PATH"]
 	}
 
 	// Perform rename with compression

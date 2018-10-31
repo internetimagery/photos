@@ -52,8 +52,10 @@ func NewContext(workingDir string) (*Context, error) {
 	// Build out our environment vars
 	env := make(map[string]string)
 	for _, entry := range os.Environ() {
-		parts := strings.Split(entry, "=")
-		env[parts[0]] = parts[1]
+		parts := strings.SplitN(entry, "=", 2)
+		if parts[0] != "" {
+			env[parts[0]] = parts[1]
+		}
 	}
 
 	return &Context{Root: currentRoot, WorkingDir: workingDir, Config: conf, Env: env}, nil
