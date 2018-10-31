@@ -229,7 +229,8 @@ func TestTreeExistingFile(t *testing.T) {
 	destDir := tu.Join("root2")
 
 	tu.MkFile(tu.Join("root1", "test1.txt"), "", 0644, nil)
-	_, testInfo := tu.MkFile(tu.Join("root2", "test1.txt"), "Different", 0644, nil)
+	tu.MkFile(tu.Join("root1", "test2.txt"), "", 0644, nil)
+	_, testInfo := tu.MkFile(tu.Join("root2", "test2.txt"), "Different", 0644, nil)
 
 	testSize, testMod := testInfo.Size(), testInfo.ModTime()
 
@@ -245,7 +246,15 @@ func TestTreeExistingFile(t *testing.T) {
 	}
 
 	// Check file unchanged
-	info, err := os.Stat(tu.Join("root2", "test1.txt"))
+	if _, err := os.Stat(tu.Join("root2", "test1.txt")); !os.IsNotExist(err) {
+		if err != nil {
+			t.Log("File copied across and not cleaned up", "root2/test1.txt")
+		} else {
+			t.Log(err)
+		}
+		t.Fail()
+	}
+	info, err := os.Stat(tu.Join("root2", "test2.txt"))
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
