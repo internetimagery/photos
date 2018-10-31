@@ -3,123 +3,11 @@ package copy
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
-	"time"
 )
 
-// DUMMYDATE : Imaginary date, used to track files that are intended to be dummy files. Alterations to the files or directories will change this date, marking the files as now legit files...
-var DUMMYDATE = time.Date(1800, 1, 1, 0, 0, 0, 0, time.Local)
-
-// createDummy : Create a dummy file as a placeholder for a future copy
-func createDummyFile(path string) error {
-	// Collect information on parent directory
-	dirPath := filepath.Dir(path)
-	dirInfo, err := os.Stat(dirPath)
-	if err != nil {
-		return err
-	}
-
-	// Create dummy file
-	handle, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
-	if err != nil {
-		return err
-	}
-	handle.Close()
-	if err = os.Chtimes(path, DUMMYDATE, DUMMYDATE); err != nil {
-		os.Remove(path)
-		return err
-	}
-	if dirInfo.ModTime().Equal(DUMMYDATE) {
-		if err = os.Chtimes(dirPath, DUMMYDATE, DUMMYDATE); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// createDummyDir : Create a dummy directory
-func createDummyDir(path string) error {
-	dirPath := filepath.Dir(path)
-	dirInfo, err := os.Stat(dirPath)
-	if err != nil {
-		return err
-	}
-	if err = os.Mkdir(path, 0700); err != nil {
-		return err
-	}
-	if err = os.Chtimes(path, DUMMYDATE, DUMMYDATE); err != nil {
-		os.Remove(path)
-		return err
-	}
-	if dirInfo.ModTime().Equal(DUMMYDATE) {
-		if err = os.Chtimes(dirPath, DUMMYDATE, DUMMYDATE); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// isDummy : The counterpart to createDummy. Checks if a given file/dir is considered a dummy
-func isDummy(path string) bool {
-	info, err := os.Stat(path)
-	if err != nil {
-		return false
-	}
-	// Directory is considered a dummy if its mod date is DUMMYDATE
-	if info.IsDir() && info.ModTime().Equal(DUMMYDATE) {
-		// TODO: Is this check needed? Adding a legit file to the folder
-		// will automatically alter the modtime. Thus flagging this as no longer a dummy
-		// however if there are dummy files nested, and a nested one gets altered, this one
-		// could still be flagged a dummy, and any deletion could ripple down destroying actual data
-		// down the tree
-		if files, err := ioutil.ReadDir(path); err == nil && len(files) == 0 {
-			return true
-		}
-	} else if info.Mode().IsRegular() && info.Size() == 0 && info.ModTime().Equal(DUMMYDATE) {
-		// Files are considered dummys if their modtime is DUMMYDATE and they are empty.
-		// Any modification to their content should update their mtime, marking them no longer a dummy
-		// but I feel it's still a good check to have.
-		return true
-	}
-	return false
-}
-
-// cleanDummy : Remove all dummy files in directory
-func cleanDummy(path string) error {
-	files, err := ioutil.ReadDir(path)
-	if err != nil {
-		return err
-	}
-	for _, info := range files {
-		file := filepath.Join(path, info.Name())
-		if info.IsDir() {
-			if err = cleanDummy(file); err != nil {
-				return err
-			}
-		}
-		if isDummy(file) {
-			parentDir := filepath.Dir(file)
-			parentInfo, err := os.Stat(parentDir)
-			if err != nil {
-				return err
-			}
-			if err = os.Remove(file); err != nil {
-				return err
-			}
-			// Modifications to the directory (ie the removal just above) will void our dummy flag
-			if parentInfo.ModTime().Equal(DUMMYDATE) {
-				if err = os.Chtimes(parentDir, DUMMYDATE, DUMMYDATE); err != nil {
-					return err
-				}
-			}
-		}
-	}
-	return nil
-}
-
-// File : Convenience wrapper for copyfile. Sets up connection channel between the two. Can be used in serial too
+// File : Copy a file. Can be used in serial or goroutine
 func File(source, destination string) chan error {
 	done := make(chan error)
 	go func() {
@@ -128,62 +16,41 @@ func File(source, destination string) chan error {
 			done <- err
 		}()
 
-		// Check our source exists
-		sourceInfo, err := os.Stat(source)
-		if err != nil {
-			return
-		} else if !sourceInfo.Mode().IsRegular() {
-			err = fmt.Errorf("Source not a regular file '%s'", source)
-			return
-		}
-
-		// Lock our destination with a dummy file
-		if err = createDummyFile(destination); err != nil {
-			return
-		}
-		defer func(name string) {
-			if isDummy(name) {
-				os.Remove(name)
-			}
-		}(destination)
-
-		// Open our sourcefile, and a temporary file in destination location
+		// Open our sourcefile
 		sourceHandle, err := os.Open(source)
 		if err != nil {
 			return
 		}
 		defer sourceHandle.Close()
-
-		destinationHandle, err := ioutil.TempFile(filepath.Dir(destination), "tempcopy")
+		sourceInfo, err := sourceHandle.Stat()
 		if err != nil {
 			return
 		}
-		defer func(name string) { // Cleanup!
-			if err = os.Remove(name); os.IsNotExist(err) {
-				err = nil
+
+		// Create our desination
+		destinationHandle, err := os.OpenFile(destination, os.O_WRONLY|os.O_EXCL|os.O_CREATE, sourceInfo.Mode().Perm())
+		if err != nil {
+			return
+		}
+		defer func() { // Remove file if error
+			if err != nil {
+				os.Remove(destination) // Error handled? Nope...
 			}
-		}(destinationHandle.Name())
+		}()
 
 		// Copy data across
 		if _, err = io.Copy(destinationHandle, sourceHandle); err != nil {
-			destinationHandle.Close()
+			destinationHandle.Close() // Error not handled, argh
 			return
 		}
 		if err = destinationHandle.Close(); err != nil {
 			return
 		}
 
-		// Set permissions and modification time
+		// Set modification time
 		if err = os.Chtimes(destinationHandle.Name(), sourceInfo.ModTime(), sourceInfo.ModTime()); err != nil {
 			return
 		}
-		perm := sourceInfo.Mode().Perm()
-		if err = os.Chmod(destinationHandle.Name(), perm); err != nil {
-			return
-		}
-
-		// Finally, set destination to its final resting place, replacing the dummy file!
-		err = os.Rename(destinationHandle.Name(), destination)
 
 		// // Last minute permissions change if on windows
 		// if runtime.GOOS == "windows" {
@@ -243,16 +110,17 @@ func Tree(sourceDir, destinationDir string) error {
 		return err
 	}
 
-	// Create temporary working folder to copy into initially
-	tmpDir, err := ioutil.TempDir(destinationDir, "tempcopytree")
-	if err != nil {
-		return err
+	// Map files to their channels
+	type Media struct {
+		Job        chan error
+		SourcePath string
+		SourceInfo os.FileInfo
+		DestPath   string
+		Err        error
 	}
-	defer os.RemoveAll(tmpDir)
+	jobs := []*Media{}
 
-	// Run through all files. Prep dummy files, and kick off copies.
-	copies := []chan error{}
-	defer cleanDummy(sourceDir) // Ensure all dummyfiles are cleaned
+	// Run through all files and kick off copies.
 	err = filepath.Walk(sourceDir, func(sourcePath string, info os.FileInfo, err error) error {
 		if sourcePath == sourceDir {
 			return nil // Ignore root. We know it exists already, thanks!
@@ -263,72 +131,57 @@ func Tree(sourceDir, destinationDir string) error {
 		if err != nil {
 			return err
 		}
-		destPath := filepath.Join(tmpDir, relPath)
-		dummyPath := filepath.Join(destinationDir, relPath)
+		destPath := filepath.Join(destinationDir, relPath)
 
-		// Create dummy files and directories
-		// Don't worry about parralellizing directory creation. Get that over with quickly in serial
-		// TODO: Should permissions be applied in another step? Top down?
-		// TODO: In a situation that a directory is read only, and we try to modify its contents...
+		// If we have a directory. Just make the damn thing! :P
+		job := make(chan error, 1)
 		if info.IsDir() {
-			if err = createDummyDir(dummyPath); err != nil {
+			if err = os.Mkdir(destPath, 0755); err != nil {
 				return err
 			}
-			if err = os.Mkdir(destPath, info.Mode().Perm()); err != nil {
-				return err
-			}
+			job <- nil
 		} else {
-			if err = createDummyFile(dummyPath); err != nil {
-				return err
-			}
-			copies = append(copies, File(sourcePath, destPath))
+			job = File(sourcePath, destPath)
 		}
+		jobs = append(jobs, &Media{
+			Job:        job,
+			SourceInfo: info,
+			SourcePath: sourcePath,
+			DestPath:   destPath})
 		return nil
 	})
-
-	// Ensure all copies have finished. Save first error.
-	for _, done := range copies {
-		if jobErr := <-done; err == nil && jobErr != nil {
-			err = jobErr
-		}
-	}
-	if err != nil {
-		return err
-	}
-
-	// Put everything into its right place!
-	walk := func(currpath string) error {
-		info, err := os.Stat(currpath)
+	defer func() { // If we had an error, clean up in reverse order
 		if err != nil {
-			return err
-		}
-		if info.IsDir() {
-			files, err := ioutil.ReadDir(currpath)
-			if err != nil {
-				return err
-			}
-			for _, file := range files {
-				if err = walk(filepath.Join(currpath, file.Name())); err != nil {
-					return err
+			for i := len(jobs) - 1; i >= 0; i-- {
+				if jobs[i].Err == nil { // Don't clean up existing items. Only successful copies are required
+					os.Remove(jobs[i].DestPath) // Cleaning up
 				}
 			}
 		}
-		return nil
+	}()
+
+	// Ensure all in-progress copies have finished. Retain first error we come across.
+	for _, media := range jobs {
+		media.Err = <-media.Job // Set error from job
+		if media.Err != nil && err == nil {
+			err = media.Err
+		}
 	}
-	// TODO: do this top down
-	files, err := ioutil.ReadDir(tmpDir)
 	if err != nil {
 		return err
 	}
-	if err = os.MkdirAll(destinationDir, sourceInfo.Mode().Perm()); err != nil {
-		return err
-	}
-	for _, file := range files {
-		sourcePath := filepath.Join(tmpDir, file.Name())
-		destPath := filepath.Join(destinationDir, file.Name())
-		if err := os.Rename(sourcePath, destPath); err != nil {
+
+	// Finally set permissions and modification times to match the source
+	for i := len(jobs) - 1; i >= 0; i-- { // We can assume all copies have nil error at this point...
+		job := jobs[i]
+		if err = os.Chtimes(job.DestPath, job.SourceInfo.ModTime(), job.SourceInfo.ModTime()); err != nil {
+			return err
+		}
+		if err = os.Chmod(job.DestPath, job.SourceInfo.Mode().Perm()); err != nil {
 			return err
 		}
 	}
+
+	// Done!
 	return nil
 }
