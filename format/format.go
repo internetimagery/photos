@@ -18,6 +18,19 @@ var tagReg = `[\w\-_ ]+`   // Valid Tags
 var extReg = `\w+`
 var formatReg = regexp.MustCompile(fmt.Sprintf(`(%s)_(%s)(?:\[(%s)\])?\.(%s)$`, eventReg, indexReg, tagReg, extReg))
 
+// MakeTempPath : Apply temporary prefix to filepath
+func MakeTempPath(path string) string {
+	dirname := filepath.Dir(path)
+	basename := filepath.Base(path)
+	return filepath.Join(dirname, TEMPPREFIX+basename)
+}
+
+// IsTempPath : The counterpart to MakeTempPath. Detect if given path is indeed a temp path
+func IsTempPath(path string) bool {
+	basename := filepath.Base(path)
+	return strings.HasPrefix(basename, TEMPPREFIX)
+}
+
 // Media : Container for information about media item
 type Media struct {
 	Path  string   // File name

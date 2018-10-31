@@ -8,6 +8,19 @@ import (
 	"github.com/internetimagery/photos/testutil"
 )
 
+func TestTempPath(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+
+	testpath := "/one/two/three/four.five"
+	temppath := MakeTempPath(testpath)
+	if !IsTempPath(temppath) {
+		tu.Fail("Failed to match temp path", temppath)
+	}
+	if IsTempPath(testpath) {
+		tu.Fail("False positive on temp path", testpath)
+	}
+}
+
 func TestNewMedia(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 	event := "18-12-08 event"
