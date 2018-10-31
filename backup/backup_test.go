@@ -2,6 +2,7 @@ package backup
 
 import (
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/internetimagery/photos/context"
@@ -16,6 +17,11 @@ func TestRunBackup(t *testing.T) {
 	cxt, err := context.NewContext(event)
 	if err != nil {
 		tu.Fatal(err)
+	}
+
+	// Add touch command to windows
+	if runtime.GOOS == "windows" {
+		cxt.Env["PATH"] = tu.Dir + ";" + cxt.Env["PATH"]
 	}
 
 	// Set environment
@@ -39,7 +45,7 @@ func TestRunBackup(t *testing.T) {
 	}
 
 	// File should now exist
-	tu.AssertExists(cxt.Env["TESTFILE1"])
+	tu.AssertExists(cxt.Env["TESTPATH1"])
 
 	// Test command star
 	if err = RunBackup(cxt, "othe*"); err != nil {
@@ -47,8 +53,8 @@ func TestRunBackup(t *testing.T) {
 	}
 
 	// Files should now exist
-	tu.AssertExists(cxt.Env["TESTFILE2"])
-	tu.AssertExists(cxt.Env["TESTFILE3"])
+	tu.AssertExists(cxt.Env["TESTPATH2"])
+	tu.AssertExists(cxt.Env["TESTPATH3"])
 
 }
 
