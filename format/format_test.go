@@ -48,13 +48,27 @@ func TestNewMedia(t *testing.T) {
 
 }
 
-type testCase struct {
-	Value string
-	Media Media
+func TestAddTags(t *testing.T) {
+	// TODO: Add tags to file without existing tags
+	// TODO: add tags with duplicte tags in function call
+	// TODO: add tags with duplicte tags in file already
+}
+
+func TestRemoveTags(t *testing.T) {
+	// TODO: remove tags from file
+	// TODO: remove tags with duplicte tags in function call
+	// TODO: add tags with duplicte tags in file already
+	// TODO: add tags with no matching tags present
+	// TODO: add tags from empty file
 }
 
 func TestFormatName(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
+
+	type testCase struct {
+		Value string
+		Media Media
+	}
 
 	tests := []testCase{
 		testCase{"event01_020.png", Media{Event: "event01", Index: 20, Ext: "png"}},

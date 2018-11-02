@@ -57,6 +57,16 @@ func NewMedia(filename string) *Media {
 	return media
 }
 
+// AddTag : Add tags to the media item
+func AddTag(names ...string) error {
+	return nil
+}
+
+// RemoveTag : Remove tags from the media item
+func RemoveTag(names ...string) error {
+	return nil
+}
+
 // FormatName : Given the current settings (which may have been modified), validate and format a corresponding name.
 func (media *Media) FormatName() (string, error) {
 	// Validate our inputs
