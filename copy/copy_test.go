@@ -281,3 +281,29 @@ func TestTreeNoSourcePath(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestTreeSourceNotDir(t *testing.T) {
+	tu := NewTestEnv(t)
+	defer tu.Close()
+
+	sourcePath, _ := tu.MkFile(tu.Join("one"), "here I am", 0644, nil)
+	destPath := tu.Join("four")
+
+	if err := Tree(sourcePath, destPath); err == nil {
+		t.Log("Failed to error source file")
+		t.Fail()
+	}
+}
+
+func TestTreeDestNotDir(t *testing.T) {
+	tu := NewTestEnv(t)
+	defer tu.Close()
+
+	sourcePath := tu.Join("one")
+	destPath, _ := tu.MkFile(tu.Join("two"), "here I am", 0644, nil)
+
+	if err := Tree(sourcePath, destPath); err == nil {
+		t.Log("Failed to error dest file")
+		t.Fail()
+	}
+}
