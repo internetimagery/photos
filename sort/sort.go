@@ -30,6 +30,7 @@ func GetMediaDate(filePath string) (time.Time, error) {
 		}
 		return time.Time{}, err
 	}
+	// We failed to decode it? Ah well... fall back to using modtime
 	info, err := handle.Stat()
 	if err == nil {
 		return info.ModTime(), nil
