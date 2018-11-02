@@ -1,11 +1,13 @@
 package tags
 
+import "github.com/internetimagery/photos/format"
+
 // AddTag : Apply tagnames to a file
-func AddTag(filename string, tagnames ...string) error {
-	return nil
+func AddTag(file *format.Media, tagnames ...string) (*format.Media, error) {
+	return file, nil
 }
 
 // RemoveTag : Remove tagnames from a file
-func RemoveTag(filename string, tagnames ...string) error {
-	return nil
+func RemoveTag(file *format.Media, tagnames ...string) (*format.Media, error) {
+	return file, nil
 }
