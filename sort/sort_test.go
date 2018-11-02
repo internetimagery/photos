@@ -1,6 +1,7 @@
 package sort
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -42,6 +43,30 @@ func TestGetMediaDate(t *testing.T) {
 	if testTime1 != compareTime.Format(layout) {
 		tu.FailE(testTime1, compareTime)
 	}
+}
+
+func TestGetMediaDateEXIF(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	testFile := filepath.Join(tu.Dir, "img01.JPG")
+	modtime := time.Date(2000, 10, 10, 10, 10, 10, 10, time.Local)
+	if err := os.Chtimes(testFile, modtime, modtime); err != nil { // Make sure modtime differs from exif
+		tu.Fatal(err)
+	}
+
+	compareTime, err := GetMediaDate(testFile)
+	if err != nil {
+		tu.Fail(err)
+	}
+
+	layout := "06-01-02"
+	testTime := "18-03-17"
+
+	if testTime != compareTime.Format(layout) {
+		tu.FailE(testTime, compareTime)
+	}
+
 }
 
 func TestUniqueName(t *testing.T) {
