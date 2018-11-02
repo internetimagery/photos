@@ -9,15 +9,33 @@ import (
 	"time"
 
 	"github.com/internetimagery/photos/context"
+	"github.com/rwcarlsen/goexif/exif"
 )
 
 // GetMediaDate : Get modification date, or date taken (EXIF data) from file
 func GetMediaDate(filePath string) (time.Time, error) {
-	info, err := os.Stat(filePath)
+
+	// Get a handle on things... get it!
+	handle, err := os.Open(filePath)
 	if err != nil {
 		return time.Time{}, err
 	}
-	return info.ModTime(), nil
+	defer handle.Close()
+
+	// Try processing exif data
+	if exifData, err := exif.Decode(handle); err == nil {
+		if taken, err := exifData.DateTime(); err == nil {
+			return taken, nil
+		} else {
+			return time.Time{}, err
+		}
+	} else {
+		if info, err := handle.Stat(); err == nil {
+			return info.ModTime(), nil
+		} else {
+			return time.Time{}, err
+		}
+	}
 }
 
 // FormatDate : Format date into simple YY-MM-DD style
