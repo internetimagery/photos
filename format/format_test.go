@@ -8,6 +8,41 @@ import (
 	"github.com/internetimagery/photos/testutil"
 )
 
+func TestSetAdd(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+
+	set := Set{}
+	set.Add("one", "two")
+	if _, ok := set["one"]; !ok {
+		tu.Fail("Key 'one' was not added")
+	}
+	if _, ok := set["two"]; !ok {
+		tu.Fail("Key 'two' was not added")
+	}
+
+	set.Add("one")
+	if len(set) != 2 {
+		tu.Fail("Duplicate was added")
+	}
+}
+
+func TestSetRemove(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+
+	set := Set{}
+	set.Add("one", "two")
+
+	set.Remove("three")
+	if len(set) != 2 {
+		tu.Fail("Removed wrong key")
+	}
+
+	set.Remove("two")
+	if len(set) != 1 {
+		tu.Fail("Key not removed")
+	}
+}
+
 func TestTempPath(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 
@@ -48,20 +83,6 @@ func TestNewMedia(t *testing.T) {
 
 }
 
-func TestAddTags(t *testing.T) {
-	// TODO: Add tags to file without existing tags
-	// TODO: add tags with duplicte tags in function call
-	// TODO: add tags with duplicte tags in file already
-}
-
-func TestRemoveTags(t *testing.T) {
-	// TODO: remove tags from file
-	// TODO: remove tags with duplicte tags in function call
-	// TODO: add tags with duplicte tags in file already
-	// TODO: add tags with no matching tags present
-	// TODO: add tags from empty file
-}
-
 func TestFormatName(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 
@@ -72,7 +93,7 @@ func TestFormatName(t *testing.T) {
 
 	tests := []testCase{
 		testCase{"event01_020.png", Media{Event: "event01", Index: 20, Ext: "png"}},
-		testCase{"18-12-07 event_1234[one two].jpeg", Media{Event: "18-12-07 event", Index: 1234, Tags: []string{"one", "two"}, Ext: "jpeg"}},
+		testCase{"18-12-07 event_1234[one two].jpeg", Media{Event: "18-12-07 event", Index: 1234, Tags: Set{"one": true, "two": true}, Ext: "jpeg"}},
 		testCase{"", Media{Event: "some event/event", Index: 2, Ext: "jpg"}},
 		testCase{"", Media{Event: "evento", Index: -1, Ext: "png"}},
 		testCase{"", Media{Event: "eventing", Index: 23, Ext: "$$$"}},
@@ -106,7 +127,7 @@ func TestGetMediaFromDirectory(t *testing.T) {
 
 	testFiles := map[string]Media{
 		filepath.Join(event, "18-05-12 event_034.img"):                Media{Event: "18-05-12 event", Index: 34, Ext: "img"},
-		filepath.Join(event, "18-05-12 event_034[one two-three].img"): Media{Event: "18-05-12 event", Index: 34, Tags: []string{"one", "two-three"}, Ext: "img"},
+		filepath.Join(event, "18-05-12 event_034[one two-three].img"): Media{Event: "18-05-12 event", Index: 34, Tags: Set{"one": true, "two-three": true}, Ext: "img"},
 		filepath.Join(event, "12-10-12 event_034.png"):                Media{Event: "18-05-12 event", Ext: "png"},
 		filepath.Join(event, "document_scanned.jpg"):                  Media{Event: "18-05-12 event", Ext: "jpg"},
 	}

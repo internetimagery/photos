@@ -31,13 +31,30 @@ func IsTempPath(path string) bool {
 	return strings.HasPrefix(basename, TEMPPREFIX)
 }
 
+// Set : Set-like functionality
+type Set map[string]bool
+
+// Add : Add entries to Set
+func (set *Set) Add(names ...string) {
+	for _, name := range names {
+		(*set)[name] = true
+	}
+}
+
+// Remove : Remove entries from Set
+func (set *Set) Remove(names ...string) {
+	for _, name := range names {
+		delete((*set), name)
+	}
+}
+
 // Media : Container for information about media item
 type Media struct {
-	Path  string   // File name
-	Event string   // Event name (parent folder)
-	Index int      // ID of media
-	Tags  []string // Any Tags
-	Ext   string   // Extension / file type
+	Path  string // File name
+	Event string // Event name (parent folder)
+	Index int    // ID of media
+	Tags  Set    // Any Tags
+	Ext   string // Extension / file type
 }
 
 // NewMedia : Create new media representation
@@ -51,20 +68,11 @@ func NewMedia(filename string) *Media {
 		index, _ := strconv.Atoi(parts[2])
 		media.Index = index
 		if len(parts[3]) > 0 {
-			media.Tags = strings.Split(parts[3], " ")
+			media.Tags = Set{}
+			media.Tags.Add(strings.Split(parts[3], " ")...)
 		}
 	}
 	return media
-}
-
-// AddTag : Add tags to the media item
-func AddTag(names ...string) error {
-	return nil
-}
-
-// RemoveTag : Remove tags from the media item
-func RemoveTag(names ...string) error {
-	return nil
 }
 
 // FormatName : Given the current settings (which may have been modified), validate and format a corresponding name.
@@ -80,7 +88,7 @@ func (media *Media) FormatName() (string, error) {
 		return "", fmt.Errorf("Bad extension: '%s'", media.Ext)
 	}
 	tagTest := regexp.MustCompile("^" + tagReg + "$")
-	for _, tag := range media.Tags {
+	for tag := range media.Tags {
 		if !tagTest.MatchString(tag) || strings.TrimSpace(tag) == "" {
 			return "", fmt.Errorf("Bad tag: '%s'", tag)
 		}
@@ -88,7 +96,12 @@ func (media *Media) FormatName() (string, error) {
 
 	tags := ""
 	if len(media.Tags) > 0 {
-		tags = fmt.Sprintf("[%s]", strings.Join(media.Tags, " "))
+		tagnames := []string{}
+		for tagname := range media.Tags {
+			tagnames = append(tagnames, tagname)
+		}
+		sort.Strings(tagnames)
+		tags = fmt.Sprintf("[%s]", strings.Join(tagnames, " "))
 	}
 	ext := strings.ToLower(media.Ext)
 	return fmt.Sprintf("%s_%03d%s.%s", media.Event, media.Index, tags, ext), nil
