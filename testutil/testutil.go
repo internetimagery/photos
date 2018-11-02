@@ -4,21 +4,28 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"testing"
 	"time"
 
 	"github.com/internetimagery/photos/copy"
 )
 
+type Tester interface {
+	Name() string
+	Fatal(...interface{})
+	Fail()
+	FailNow()
+	Log(...interface{})
+}
+
 // TestUtil : Wrapper for helper functions
 type TestUtil struct {
 	Dir string
-	*testing.T
+	Tester
 }
 
 // NewTestUtil : Create new testutil
-func NewTestUtil(t *testing.T) *TestUtil {
-	return &TestUtil{T: t}
+func NewTestUtil(t Tester) *TestUtil {
+	return &TestUtil{Tester: t}
 }
 
 // LoadTestdata : Copy across testdata into temporary directory
@@ -93,21 +100,21 @@ func (util *TestUtil) AssertNotExists(filePaths ...string) {
 
 // Fail : Override fail to require message
 func (util *TestUtil) Fail(err ...interface{}) {
-	util.T.Log(err...)
-	util.T.Fail()
+	util.Tester.Log(err...)
+	util.Tester.Fail()
 }
 
 // FailE : Override fail to require messages "expected" and "got"
 func (util *TestUtil) FailE(expected, got interface{}) {
-	util.T.Log("Expected:", expected)
-	util.T.Log("Got:", got)
-	util.T.Fail()
+	util.Tester.Log("Expected:", expected)
+	util.Tester.Log("Got:", got)
+	util.Tester.Fail()
 }
 
 // FailNow : Override fail now to require message
 func (util *TestUtil) FailNow(err ...interface{}) {
-	util.T.Log(err...)
-	util.T.FailNow()
+	util.Tester.Log(err...)
+	util.Tester.FailNow()
 }
 
 // UserInput : Apply user input to stdin
