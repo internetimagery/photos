@@ -32,12 +32,12 @@ func IsTempPath(path string) bool {
 }
 
 // Set : Set-like functionality
-type Set map[string]bool
+type Set map[string]struct{}
 
 // Add : Add entries to Set
 func (set *Set) Add(names ...string) {
 	for _, name := range names {
-		(*set)[name] = true
+		(*set)[name] = struct{}{}
 	}
 }
 
