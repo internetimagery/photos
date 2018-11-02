@@ -153,7 +153,7 @@ func TestCopyFileExisting(t *testing.T) {
 	}
 }
 
-func TestCopyFileNotFile(t *testing.T) {
+func TestCopyFileMissing(t *testing.T) {
 
 	tu := NewTestEnv(t)
 	defer tu.Close()
@@ -261,6 +261,23 @@ func TestTreeExistingFile(t *testing.T) {
 	}
 	if info.Size() != testSize || info.ModTime() != testMod {
 		t.Log("File was changed!")
+		t.Fail()
+	}
+}
+
+func TestTreeNoSourcePath(t *testing.T) {
+	tu := NewTestEnv(t)
+	defer tu.Close()
+
+	sourcePath := tu.Join("one", "two", "three")
+	destPath := tu.Join("four")
+
+	if err := Tree(sourcePath, destPath); !os.IsNotExist(err) {
+		if err == nil {
+			t.Log("Failed to error on missing path")
+		} else {
+			t.Log(err)
+		}
 		t.Fail()
 	}
 }
