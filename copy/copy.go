@@ -60,27 +60,17 @@ func File(source, destination string) chan error {
 	return done
 }
 
+// TODO: If I need a link, use this.
+// Link : Attempt a hard link between files. If it fails, fall back to a copy gracefully
+// func Link(sourceDir, destinationDir string) error {
+// 	if err := os.Link(sourceDir, destinationDir); err == nil {
+// 		return nil
+// 	}
+// 	return <-File(sourceDir, destinationDir)
+// }
+
 // Tree : Copy files and directories recursively
 func Tree(sourceDir, destinationDir string) error {
-
-	// TODO: create walk function to determine which folder exists for cleanup
-	// TODO: make destination up front
-	// TODO: mock out directories with dummy files
-	// TODO: don't just rename root level files. What happens if a folder already contains a file. It'll be squashed.
-
-	// TODO: strategy:
-	// TODO: validate source
-	// TODO: validate dest
-	// TODO: make dest if needed (then remove dest if return with error)
-	// TODO: walk source
-	// TODO: make dummy files in dest. Run cleanup after to remove stray dummies
-	// TODO: initiate file copying
-
-	// wait for copies to finish
-	// check errors
-	// walk tempfile, replace dummies with real deal
-
-	// Validate our input exists and is a directory
 	sourceInfo, err := os.Stat(sourceDir)
 	if err != nil {
 		return err
