@@ -58,6 +58,21 @@ func TestRunBackup(t *testing.T) {
 
 }
 
+func TestBackupBadCommand(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	event := filepath.Join(tu.Dir, "event01")
+	cxt, err := context.NewContext(event)
+	if err != nil {
+		tu.Fatal(err)
+	}
+
+	if err = RunBackup(cxt, "test"); err == nil {
+		tu.Fail("Passed on bad command!")
+	}
+}
+
 func TestSetEnviron(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 
