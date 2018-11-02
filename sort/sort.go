@@ -24,18 +24,17 @@ func GetMediaDate(filePath string) (time.Time, error) {
 
 	// Try processing exif data
 	if exifData, err := exif.Decode(handle); err == nil {
-		if taken, err := exifData.DateTime(); err == nil {
+		taken, err := exifData.DateTime()
+		if err == nil {
 			return taken, nil
-		} else {
-			return time.Time{}, err
 		}
-	} else {
-		if info, err := handle.Stat(); err == nil {
-			return info.ModTime(), nil
-		} else {
-			return time.Time{}, err
-		}
+		return time.Time{}, err
 	}
+	info, err := handle.Stat()
+	if err == nil {
+		return info.ModTime(), nil
+	}
+	return time.Time{}, err
 }
 
 // FormatDate : Format date into simple YY-MM-DD style
