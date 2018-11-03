@@ -31,30 +31,13 @@ func IsTempPath(path string) bool {
 	return strings.HasPrefix(basename, TEMPPREFIX)
 }
 
-// Set : Set-like functionality
-type Set map[string]struct{}
-
-// Add : Add entries to Set
-func (set *Set) Add(names ...string) {
-	for _, name := range names {
-		(*set)[name] = struct{}{}
-	}
-}
-
-// Remove : Remove entries from Set
-func (set *Set) Remove(names ...string) {
-	for _, name := range names {
-		delete((*set), name)
-	}
-}
-
 // Media : Container for information about media item
 type Media struct {
-	Path  string // File name
-	Event string // Event name (parent folder)
-	Index int    // ID of media
-	Tags  Set    // Any Tags
-	Ext   string // Extension / file type
+	Path  string              // File name
+	Event string              // Event name (parent folder)
+	Index int                 // ID of media
+	Tags  map[string]struct{} // Any Tags
+	Ext   string              // Extension / file type
 }
 
 // NewMedia : Create new media representation
@@ -68,8 +51,10 @@ func NewMedia(filename string) *Media {
 		index, _ := strconv.Atoi(parts[2])
 		media.Index = index
 		if len(parts[3]) > 0 {
-			media.Tags = Set{}
-			media.Tags.Add(strings.Split(parts[3], " ")...)
+			media.Tags = make(map[string]struct{})
+			for _, tagname := range strings.Split(parts[3], " ") {
+				media.Tags[tagname] = struct{}{}
+			}
 		}
 	}
 	return media
@@ -110,8 +95,8 @@ func (media *Media) FormatName() (string, error) {
 // GetMediaFromDirectory : Walk through directory, and return a list of media items represented there
 func GetMediaFromDirectory(dirPath string) ([]*Media, error) {
 	mediaList := []*Media{}
-	event := filepath.Base(dirPath)
 	files, err := ioutil.ReadDir(dirPath)
+	event := filepath.Base(dirPath)
 	if err != nil {
 		return mediaList, err
 	}
