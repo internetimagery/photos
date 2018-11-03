@@ -55,13 +55,6 @@ func TestAddTagExisting(t *testing.T) {
 	tu.AssertExists(filepath.Join(tu.Dir, "event01", "event01_001[one two].txt"))
 }
 
-// TODO: Remove tag from tagged file
-// TODO: Remove tag from file with multiple of the same tag
-// TODO: Remove tag from file with multiple duplicates in the function call
-// TODO: Remove tag from file that contains tags, but not the one in question
-// TODO: Remove tag from file that contains no tags
-// TODO: Remove tag from file that is not currently formatted
-
 func TestRemoveTag(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 	defer tu.LoadTestdata()()
@@ -85,5 +78,22 @@ func TestRemoveTag(t *testing.T) {
 	// Test removing nothing does nothing
 	testfile = filepath.Join(tu.Dir, "event01", "event01_004[one two].txt")
 	tu.Must(AddTag(testfile, ""))
+	tu.AssertExists(testfile)
+}
+
+func TestRemoveTagExisting(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	// Test removing tag from file with no tags does nothing
+	testfile := filepath.Join(tu.Dir, "event01", "event01_001[one two].txt")
+	if err := AddTag(testfile, "one"); !os.IsExist(err) {
+		if err == nil {
+			tu.Fail("Allowed overwriting existing file!")
+		} else {
+			tu.Fail(err)
+		}
+	}
+	tu.AssertExists(filepath.Join(tu.Dir, "event01", "event01_001[two].txt"))
 	tu.AssertExists(testfile)
 }
