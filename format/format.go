@@ -45,13 +45,13 @@ func NewMedia(filename string) *Media {
 	media := new(Media)
 	media.Path = filename
 	media.Ext = filepath.Ext(filename)[1:]
+	media.Tags = make(map[string]struct{})
 	parts := formatReg.FindStringSubmatch(filename)
 	if len(parts) > 0 {
 		media.Event = parts[1]
 		index, _ := strconv.Atoi(parts[2])
 		media.Index = index
 		if len(parts[3]) > 0 {
-			media.Tags = make(map[string]struct{})
 			for _, tagname := range strings.Split(parts[3], " ") {
 				media.Tags[tagname] = struct{}{}
 			}

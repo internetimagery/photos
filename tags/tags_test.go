@@ -15,19 +15,24 @@ func TestAddTag(t *testing.T) {
 	// Test adding a tag adjusts file
 	testfile := filepath.Join(tu.Dir, "event01", "event01_001.txt")
 	tu.Must(AddTag(testfile, "one"))
-	tu.AssertExists(filepath.Join(tu.Dir, "event01", "event01_001[one].txt"))
+	testfile = filepath.Join(tu.Dir, "event01", "event01_001[one].txt")
+	tu.AssertExists(testfile)
 	// Test adding tag again
 	tu.Must(AddTag(testfile, "two"))
-	tu.AssertExists(filepath.Join(tu.Dir, "event01", "event01_001[one two].txt"))
+	testfile = filepath.Join(tu.Dir, "event01", "event01_001[one two].txt")
+	tu.AssertExists(testfile)
 	// Test adding duplicate tag doesn't add it
 	tu.Must(AddTag(testfile, "two"))
-	tu.AssertExists(filepath.Join(tu.Dir, "event01", "event01_001[one two].txt"))
+	testfile = filepath.Join(tu.Dir, "event01", "event01_001[one two].txt")
+	tu.AssertExists(testfile)
 	// Test adding duplicate tags and real tags still ignores duplicates
 	tu.Must(AddTag(testfile, "one", "two", "three"))
-	tu.AssertExists(filepath.Join(tu.Dir, "event01", "event01_001[one two three].txt"))
+	testfile = filepath.Join(tu.Dir, "event01", "event01_001[one three two].txt")
+	tu.AssertExists(testfile)
 	// Test adding no tags does nothing
 	tu.Must(AddTag(testfile, ""))
-	tu.AssertExists(filepath.Join(tu.Dir, "event01", "event01_001[one two three].txt"))
+	testfile = filepath.Join(tu.Dir, "event01", "event01_001[one three two].txt")
+	tu.AssertExists(testfile)
 	// Test adding no tags
 	testfile = filepath.Join(tu.Dir, "event01", "event01_002.txt")
 	tu.Must(AddTag(testfile, ""))
@@ -61,23 +66,23 @@ func TestRemoveTag(t *testing.T) {
 
 	// Test removing tag from file with no tags does nothing
 	testfile := filepath.Join(tu.Dir, "event01", "event01_001.txt")
-	tu.Must(AddTag(testfile, "one"))
-	tu.AssertExists(filepath.Join(tu.Dir, "event01", "event01_001.txt"))
+	tu.Must(RemoveTag(testfile, "one"))
+	tu.AssertExists(testfile)
 	// Test removing tag from file removes tag... from file (and braces)
 	testfile = filepath.Join(tu.Dir, "event01", "event01_002[one].txt")
-	tu.Must(AddTag(testfile, "one"))
+	tu.Must(RemoveTag(testfile, "one"))
 	tu.AssertExists(filepath.Join(tu.Dir, "event01", "event01_002.txt"))
 	// Test removing tag from file removes tag...
 	testfile = filepath.Join(tu.Dir, "event01", "event01_003[one two].txt")
-	tu.Must(AddTag(testfile, "one"))
+	tu.Must(RemoveTag(testfile, "one"))
 	tu.AssertExists(filepath.Join(tu.Dir, "event01", "event01_003[two].txt"))
 	// Test removing tags that don't exist, does nothing
 	testfile = filepath.Join(tu.Dir, "event01", "event01_004[one two].txt")
-	tu.Must(AddTag(testfile, "three"))
+	tu.Must(RemoveTag(testfile, "three"))
 	tu.AssertExists(testfile)
 	// Test removing nothing does nothing
 	testfile = filepath.Join(tu.Dir, "event01", "event01_004[one two].txt")
-	tu.Must(AddTag(testfile, ""))
+	tu.Must(RemoveTag(testfile, ""))
 	tu.AssertExists(testfile)
 }
 
@@ -87,7 +92,7 @@ func TestRemoveTagExisting(t *testing.T) {
 
 	// Test removing tag from file with no tags does nothing
 	testfile := filepath.Join(tu.Dir, "event01", "event01_001[one two].txt")
-	if err := AddTag(testfile, "one"); !os.IsExist(err) {
+	if err := RemoveTag(testfile, "one"); !os.IsExist(err) {
 		if err == nil {
 			tu.Fail("Allowed overwriting existing file!")
 		} else {
