@@ -201,3 +201,12 @@ func TestRename(t *testing.T) {
 		filepath.Join(event, rename.SOURCEDIR, "newfile.test"),
 	)
 }
+
+func TestAddTag(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	event := filepath.Join(tu.Dir, "event01")
+	tu.Must(run(event, []string{"exe", "tag", filepath.Join(event, "event01_010[one].txt"), "two", "three"}))
+	tu.AssertExists(filepath.Join(event, "event01_010[one three two].txt"))
+}

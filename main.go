@@ -14,6 +14,7 @@ import (
 	"github.com/internetimagery/photos/context"
 	"github.com/internetimagery/photos/rename"
 	"github.com/internetimagery/photos/sort"
+	"github.com/internetimagery/photos/tags"
 )
 
 // VERSION : Version information
@@ -24,10 +25,11 @@ func sendHelp() {
 	fmt.Println("Command to manage photos naming, compression, backup.")
 	fmt.Println("Usage:")
 	root := filepath.Base(os.Args[0])
-	fmt.Println("    ", root, "init <name>  ", "// Set up a new project. Creates a config file also serving as the root of the project.")
-	fmt.Println("    ", root, "sort         ", "// Sort files in the current directory, into folders named after their dates.")
-	fmt.Println("    ", root, "rename       ", "// Rename (and compress) files in current directory to their parent directory's namespace (event).")
-	fmt.Println("    ", root, "backup <name>", "// Execute specified procedure in config to backup files from the current directory.")
+	fmt.Println("  ", root, "init <name>                               ", "// Set up a new project. Creates a config file also serving as the root of the project.")
+	fmt.Println("  ", root, "sort                                      ", "// Sort files in the current directory, into folders named after their dates.")
+	fmt.Println("  ", root, "rename                                    ", "// Rename (and compress) files in current directory to their parent directory's namespace (event).")
+	fmt.Println("  ", root, "tag <filename> [--remove] <tag> <tag> ... ", "// Add and optionally remove tags from renamed files.")
+	fmt.Println("  ", root, "backup <name>                             ", "// Execute specified procedure in config to backup files from the current directory.")
 }
 
 // question : Ask yes or no
@@ -133,6 +135,40 @@ func run(cwd string, args []string) error {
 				if err = rename.Rename(cxt, true); err != nil {
 					return err
 				}
+			}
+		}
+
+	case "tag": // Tag files. Assist searching etc.
+		if len(args) < 4 {
+			return fmt.Errorf("Please provide a filename, and some tags")
+		} else {
+			// Validate and collect options
+			remove := false
+			filename := args[2]
+			if !filepath.IsAbs(filename) { // Could use filepath.Abs, but want to be able to test
+				filename = filepath.Join(cxt.WorkingDir, filename)
+				if !filepath.HasPrefix(filename, cxt.Root) {
+					return fmt.Errorf("Path is outside project '%s'", filename)
+				}
+			}
+
+			tagNames := []string{}
+			for _, arg := range args[3:] {
+				if strings.HasPrefix(arg, "-") {
+					if arg == "--remove" {
+						remove = true
+					} else {
+						return fmt.Errorf("Unrecognised option '%s'. Did you mean --rename?", arg)
+					}
+				} else {
+					tagNames = append(tagNames, arg)
+				}
+			}
+
+			if remove {
+				tags.RemoveTag(filename, tagNames...)
+			} else {
+				tags.AddTag(filename, tagNames...)
 			}
 		}
 
