@@ -68,6 +68,13 @@ func (util *TestUtil) ModTime(year, month, day int, filePaths ...string) {
 	}
 }
 
+// Must : Wrapper for functions that give out a single error.
+func (util *TestUtil) Must(err error) {
+	if err != nil {
+		util.Fail(err)
+	}
+}
+
 // AssertExists : Check if file exists. Fail if not
 func (util *TestUtil) AssertExists(filePaths ...string) []os.FileInfo {
 	result := []os.FileInfo{}

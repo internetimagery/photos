@@ -42,6 +42,26 @@ func TestFail(t *testing.T) {
 	}
 }
 
+func TestMust(t *testing.T) {
+	mock := &TestMock{}
+	tu := NewTestUtil(mock)
+	tu.Must(nil)
+	if mock.Failed {
+		t.Log("Unexpected fail!")
+		t.Fail()
+	}
+	mock.Failed = false
+	tu.Must(fmt.Errorf("Fail"))
+	if !mock.Failed {
+		t.Log("Did not fail when supposed to")
+		t.Fail()
+	}
+	if mock.LogStr != "Fail" {
+		t.Log("Did not output message")
+		t.Fail()
+	}
+}
+
 // LoadTestdata : Load in testdata for testing
 func TestLoadTestdata(t *testing.T) {
 	tu := NewTestUtil(t)
