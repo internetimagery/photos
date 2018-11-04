@@ -10,7 +10,7 @@ jobs:
     - stage: test
       script: "$GOPATH/bin/goveralls -service=travis-ci"
     - stage: GitHub Release
-      script: echo "Deploying to GitHub releases ..."
+      script: ./deploy.sh"
       deploy:
         provider: releases
         api_key:
@@ -22,11 +22,7 @@ jobs:
         branches:
           only:
           - master
-        matrix:
-          include:
-          - env: GOOS=linux
-            script: go build -o ./deploy/photos-linux
-            file: ./deploy/photos-linux
-          - env: GOOS=windows
-            script: go build -o ./deploy/photos-windows.exe
-            file: ./deploy/photos-windows.exe
+        file:
+        - ./publish/photos-linux
+        - ./publish/photos-windows.exe
+        - ./publish/photos-osx
