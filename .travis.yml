@@ -7,10 +7,10 @@ before_install:
 
 jobs:
   include:
-    - stage: test
-      script: "$GOPATH/bin/goveralls -service=travis-ci"
+    # - stage: test
+    #   script: "$GOPATH/bin/goveralls -service=travis-ci"
     - stage: GitHub Release
-      script: ./deploy.sh"
+      script: echo `pwd`; ./deploy.sh"
       deploy:
         provider: releases
         api_key:
