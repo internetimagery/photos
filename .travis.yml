@@ -7,20 +7,20 @@ before_install:
 
 jobs:
   include:
-    # - stage: test
-    #   script: "$GOPATH/bin/goveralls -service=travis-ci"
-    - stage: GitHub Release
-      script: go build -v
-      deploy:
-        provider: releases
-        api_key:
-          secure: kjLZoFy4KY69nHwqUMRNk9osGUW5U6MRiOO9h5DpYdF3KFhETUMMGBFKKt6fkf+bMH7JUVCMfH7qOPl0RB9NFz4wQc/CbyVjx+NKeEGIMAYty+MADicDoGUbDkCak7TKXpNypLfqF3bVRUqCW79XKrhizKiLx6Hb+MPpJeRBGmT5OLm331Q7Z4OUaRfEQUJu6r3DzUNFbnNa8T9ztk24TqKYA7zxDIrYuy6r8s8jUUSOtIqsPINxt2D7i8pdRXRanqVAk3JLz5sgaJNlU3cZZUWa7MszwcORzPJteigvmhJbtPfQGoPDN7EY2wYRGYLc1wVUPQhhyejZXM8JB1180Gj1ZNS+HWheX3lWkrSBVezTrln9AtQtql2ongT2oHDgdVzw6Flp9kFUVxEZ5JdltMa+QOM/9d7WBPWqeA0NxaGplOV1pHHX6xOhJL7UgsYRK621BkN+jiR7xqjZKrqfteOyOlXiB5fuWBLKnlh18cReSrJTJs3QTEskKtPLK4ZIq5E9cv0nOxCEE6MyvWNXspAGykIGhVQ2XVRhHCAgm+fGK/VrZ03gRWcXxcSTuRsE7EbkXHpcq3IuA+Yq8rEZap+omPmm9O2UN0Al064FQZipsnqKYjcy0k+vHwjJgn5vr9XwAyjsQssmSPnof3VTECaT11eWL8n//RW4ThyFCYI=
-        skip_cleanup: true
-        on:
-          repo: internetimagery/photos
-          # tags: true
-        branches:
-          only:
-          - master
-        file:
-        - photos
+    - stage: test
+      script: "$GOPATH/bin/goveralls -service=travis-ci"
+    # - stage: GitHub Release
+    #   script: go build -v
+    #   deploy:
+    #     provider: releases
+    #     api_key:
+    #       secure: kjLZoFy4KY69nHwqUMRNk9osGUW5U6MRiOO9h5DpYdF3KFhETUMMGBFKKt6fkf+bMH7JUVCMfH7qOPl0RB9NFz4wQc/CbyVjx+NKeEGIMAYty+MADicDoGUbDkCak7TKXpNypLfqF3bVRUqCW79XKrhizKiLx6Hb+MPpJeRBGmT5OLm331Q7Z4OUaRfEQUJu6r3DzUNFbnNa8T9ztk24TqKYA7zxDIrYuy6r8s8jUUSOtIqsPINxt2D7i8pdRXRanqVAk3JLz5sgaJNlU3cZZUWa7MszwcORzPJteigvmhJbtPfQGoPDN7EY2wYRGYLc1wVUPQhhyejZXM8JB1180Gj1ZNS+HWheX3lWkrSBVezTrln9AtQtql2ongT2oHDgdVzw6Flp9kFUVxEZ5JdltMa+QOM/9d7WBPWqeA0NxaGplOV1pHHX6xOhJL7UgsYRK621BkN+jiR7xqjZKrqfteOyOlXiB5fuWBLKnlh18cReSrJTJs3QTEskKtPLK4ZIq5E9cv0nOxCEE6MyvWNXspAGykIGhVQ2XVRhHCAgm+fGK/VrZ03gRWcXxcSTuRsE7EbkXHpcq3IuA+Yq8rEZap+omPmm9O2UN0Al064FQZipsnqKYjcy0k+vHwjJgn5vr9XwAyjsQssmSPnof3VTECaT11eWL8n//RW4ThyFCYI=
+    #     skip_cleanup: true
+    #     on:
+    #       repo: internetimagery/photos
+    #       # tags: true
+    #     branches:
+    #       only:
+    #       - master
+    #     file:
+    #     - photos
