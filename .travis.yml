@@ -19,6 +19,9 @@ jobs:
         on:
           repo: internetimagery/photos
           # tags: true
+        branches:
+          only:
+          - master
         matrix:
           include:
           - env: GOOS=linux
