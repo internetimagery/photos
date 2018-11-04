@@ -43,6 +43,21 @@ func TestGetMediaDate(t *testing.T) {
 	if testTime1 != compareTime.Format(layout) {
 		tu.FailE(testTime1, compareTime)
 	}
+
+	testfile2 := filepath.Join(tu.Dir, "testdir")
+	if _, err = GetMediaDate(testfile2); err == nil {
+		tu.Fail("Failed to exclude folders.")
+	}
+
+	testfile3 := filepath.Join(tu.Dir, "testfilemissing.txt")
+	if _, err = GetMediaDate(testfile3); !os.IsNotExist(err) {
+		if err == nil {
+			tu.Fail("Failed to error on missing file.")
+		} else {
+			tu.Fail(err)
+		}
+	}
+
 }
 
 func TestGetMediaDateEXIF(t *testing.T) {

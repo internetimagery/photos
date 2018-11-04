@@ -21,6 +21,15 @@ func GetMediaDate(filePath string) (time.Time, error) {
 		return time.Time{}, err
 	}
 	defer handle.Close()
+	info, err := handle.Stat()
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	// Only process regular files
+	if !info.Mode().IsRegular() {
+		return time.Time{}, fmt.Errorf("can only get media date from files")
+	}
 
 	// Try processing exif data
 	if exifData, err := exif.Decode(handle); err == nil {
@@ -31,11 +40,7 @@ func GetMediaDate(filePath string) (time.Time, error) {
 		return time.Time{}, err
 	}
 	// We failed to decode it? Ah well... fall back to using modtime
-	info, err := handle.Stat()
-	if err == nil {
-		return info.ModTime(), nil
-	}
-	return time.Time{}, err
+	return info.ModTime(), nil
 }
 
 // FormatDate : Format date into simple YY-MM-DD style
@@ -70,7 +75,7 @@ func SortMedia(cxt *context.Context) error {
 
 	// Move files into their folders
 	for _, info := range infos {
-		if !info.IsDir() {
+		if info.Mode().IsRegular() {
 			sourcePath := filepath.Join(cxt.WorkingDir, info.Name())
 			date, err := GetMediaDate(sourcePath)
 			if err != nil {
