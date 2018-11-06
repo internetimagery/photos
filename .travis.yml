@@ -10,8 +10,7 @@ jobs:
     - stage: test
       script: "$GOPATH/bin/goveralls -service=travis-ci"
     - stage: GitHub Release
-      script:
-      - go build -v
+      script: ./build.sh
       deploy:
         provider: releases
         api_key:

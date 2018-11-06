@@ -5,12 +5,12 @@ mkdir -p publish
 
 echo "::Building Linux"
 export GOOS=linux
-go build -v -o publish/photos-linux
+go build -o publish/photos-linux -i . && echo Done!
 
 echo "::Building Windows"
 export GOOS=windows
-go build -v -o publish/photos-windows.exe
+go build -o publish/photos-windows.exe -i . && echo Done!
 
 echo "::Building OSX"
 export GOOS=darwin
-go build -v -o publish/photos-osx
+go build -o publish/photos-osx -i . && echo Done!
