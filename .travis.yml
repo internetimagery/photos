@@ -18,7 +18,7 @@ jobs:
         skip_cleanup: true
         on:
           repo: internetimagery/photos
-          # tags: true
+          tags: true
         file:
         - publish/photos-linux
         - publish/photos-windows.exe
