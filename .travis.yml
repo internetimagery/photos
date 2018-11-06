@@ -15,7 +15,7 @@ deploy:
   on:
     branch: master
     repo: internetimagery/photos
-    # tags: true
+    tags: true
   file:
     - build/photos-linux.tar.gz
     - build/photos-windows.zip
