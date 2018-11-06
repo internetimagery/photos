@@ -18,7 +18,7 @@ import (
 )
 
 // VERSION : Version information
-const VERSION = "0.1"
+const VERSION = "0.2"
 
 // sendHelp : Print out helpful message.
 func sendHelp() {
