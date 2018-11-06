@@ -18,13 +18,14 @@ import (
 )
 
 // VERSION : Version information
-const VERSION = "0.0.1"
+const VERSION = "0.1"
 
 // sendHelp : Print out helpful message.
 func sendHelp() {
 	fmt.Println("Command to manage photos naming, compression, backup.")
 	fmt.Println("Usage:")
 	root := filepath.Base(os.Args[0])
+	fmt.Println("  ", root, "version                                   ", "// Print out current version of the tool.")
 	fmt.Println("  ", root, "init <name>                               ", "// Set up a new project. Creates a config file also serving as the root of the project.")
 	fmt.Println("  ", root, "sort                                      ", "// Sort files in the current directory, into folders named after their dates.")
 	fmt.Println("  ", root, "rename                                    ", "// Rename (and compress) files in current directory to their parent directory's namespace (event).")
