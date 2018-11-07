@@ -4,6 +4,18 @@
 
 [![Coverage Status](https://coveralls.io/repos/github/internetimagery/photos/badge.svg?branch=master)](https://coveralls.io/github/internetimagery/photos?branch=master)
 
+# TODO:
+
+- Use yaml instead of json in config file
+- fix up tagging, bugs etc and add proper tests in main_test
+- make tagging use a web serice, with a basic website for interractive tagging
+- add image duplication checker like phash
+- add video phash check, if possible
+
+#### Nice to have
+- manage all actions with an interface (ie file movements, renames etc)
+- track those actions and allow an undo system to exist
+
 ### Intended use:
 
 ```
