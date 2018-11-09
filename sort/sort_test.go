@@ -125,9 +125,10 @@ func TestSortMedia(t *testing.T) {
 	tu.ModTime(2018, 10, 22,
 		filepath.Join(tu.Dir, "file1.txt"), // Keeping media outside project
 		filepath.Join(tu.Dir, "file2.txt"),
+		filepath.Join(tu.Dir, "outside", "file3.txt"),
 	)
 
-	// Run our sort
+	// Run our sort on directory
 	err = SortMedia(cxt, tu.Dir)
 	if err != nil {
 		tu.Fail(err)
@@ -138,6 +139,13 @@ func TestSortMedia(t *testing.T) {
 		filepath.Join(dateDir, "file2.txt"),
 		filepath.Join(dateDir, "file2_1.txt"),
 	)
+
+	// Run our sort on individual file
+	err = SortMedia(cxt, filepath.Join(tu.Dir, "outside", "file3.txt"))
+	if err != nil {
+		tu.Fail(err)
+	}
+	tu.AssertExists(filepath.Join(dateDir, "file3.txt"))
 }
 
 func TestSortMediaInsideProject(t *testing.T) {
