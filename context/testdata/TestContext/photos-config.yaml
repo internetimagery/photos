@@ -1,5 +1,4 @@
 location: test
-unsorted: Unsorted
 compress:
   -
     command: "some command"

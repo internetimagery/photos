@@ -12,6 +12,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// UNSORTED : Default path to file where media is initially added.
+const UNSORTED = "Unsorted"
+
+// SORTED : Default path to file where sorted media goes (before being assigned an event or being renamed/compressed)
+const SORTED = "Sorted"
+
 // Command : Structure for a command
 type Command struct {
 	Name    string `yaml:"name"`
@@ -28,7 +34,8 @@ type BackupCategory []Command
 type Config struct {
 	ID       string           `yaml:"id"`       // Unique ID
 	Location string           `yaml:"location"` // Location name that refers to project
-	Unsorted string           `yaml:"unsorted`  // Location of folder that contains unsorted media (initial place to put media)
+	Unsorted string           `yaml:"unsorted"` // Location of folder that contains unsorted media (initial place to put media)
+	Sorted   string           `yaml:"sorted"`   // Location of folder that contains sorted media (before being assigned an event/compressed)
 	Compress CompressCategory `yaml:"compress"` // Compression commands
 	Backup   BackupCategory   `yaml:"backup"`   // Backup commands
 }
@@ -38,7 +45,8 @@ func NewConfig(location string) *Config {
 	newConfig := new(Config)               // Create empty config, and add some default info to assist in fleshing out properly
 	newConfig.ID = xid.New().String()      // Generate random ID
 	newConfig.Location = location          // Nice name for location
-	newConfig.Unsorted = "Unsorted"        // Default location for new media
+	newConfig.Unsorted = UNSORTED          // Default location for new media
+	newConfig.Sorted = SORTED              // Default location for sorted media
 	newConfig.Compress = CompressCategory{ // Useful default entry to demo structure
 		Command{Name: "*.jpg *.jpeg *.png", Command: `echo "command to run on image!"`}}
 	newConfig.Backup = BackupCategory{ // Another useful demo
@@ -46,20 +54,35 @@ func NewConfig(location string) *Config {
 	return newConfig
 }
 
+// validatePath : Helper to validate a path exists, is relative, and does not descend backwards
+func validatePath(filename string) error {
+	trimname := strings.TrimSpace(filename)
+	if trimname == "" {
+		return fmt.Errorf("path is empty")
+	}
+	cleanname := path.Clean(trimname)
+	if path.IsAbs(cleanname) {
+		return fmt.Errorf("path is absolute, must be relative '%s'", cleanname)
+	}
+	if cleanname == "." {
+		return fmt.Errorf("path cannot be root directory")
+	}
+	if strings.HasPrefix(cleanname, "..") {
+		return fmt.Errorf("path must be within project '%s'", cleanname)
+	}
+	return nil
+}
+
 // ValidateConfig : Run some basic validations on the data
 func (conf *Config) ValidateConfig() error {
 	if strings.TrimSpace(conf.Location) == "" {
 		return fmt.Errorf("empty project Location Name")
 	}
-	trimUnsorted := path.Clean(strings.TrimSpace(conf.Unsorted))
-	if trimUnsorted == "" {
-		return fmt.Errorf("unsorted path is empty")
+	if err := validatePath(conf.Unsorted); err != nil {
+		return err
 	}
-	if path.IsAbs(trimUnsorted) {
-		return fmt.Errorf("unsorted path is absolute, must be relative")
-	}
-	if trimUnsorted == "." || strings.HasPrefix(trimUnsorted, "..") {
-		return fmt.Errorf("unsorted path must be within project")
+	if err := validatePath(conf.Sorted); err != nil {
+		return err
 	}
 	return nil
 }
@@ -74,6 +97,12 @@ func LoadConfig(reader io.Reader) (*Config, error) {
 	err = yaml.Unmarshal(loadedData, loadedConfig)
 	if err != nil {
 		return nil, err
+	}
+	if loadedConfig.Unsorted == "" { // Set default
+		loadedConfig.Unsorted = UNSORTED
+	}
+	if loadedConfig.Sorted == "" { // Set default
+		loadedConfig.Sorted = SORTED
 	}
 	return loadedConfig, loadedConfig.ValidateConfig()
 }

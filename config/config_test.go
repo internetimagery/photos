@@ -10,6 +10,23 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+func TestValidatePath(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+
+	if err := validatePath("one/two"); err != nil {
+		tu.Fail(err)
+	}
+	if err := validatePath("/one/two"); err == nil {
+		tu.Fail("Allowed absolute path")
+	}
+	if err := validatePath("one/two/../../three/../../four"); err == nil {
+		tu.Fail("Allowed path to move equal to root")
+	}
+	if err := validatePath("one/../../../two/../../three/../../four"); err == nil {
+		tu.Fail("Allowed path to move below root")
+	}
+}
+
 func TestNewConfig(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 
@@ -55,14 +72,16 @@ func TestNewConfigBad(t *testing.T) {
 		tu.Fail("Allowed invalid config")
 	}
 
-	conf = NewConfig("test")     // Create new config data
-	conf.Unsorted = "/somewhere" // Path absolute project
+	conf = NewConfig("test")       // Create new config data
+	conf.Unsorted = "/somewhere"   // Path absolute project
+	conf.Sorted = "/somewhereElse" // Path absolute project
 	err = conf.Save(handle)
 	if err == nil {
 		tu.Fail("Allowed absolute path")
 	}
-	conf = NewConfig("test")          // Create new config data
-	conf.Unsorted = "../../somewhere" // Path absolute project
+	conf = NewConfig("test")            // Create new config data
+	conf.Unsorted = "../../somewhere"   // Path absolute project
+	conf.Sorted = "../../somewhereElse" // Path absolute project
 	err = conf.Save(handle)
 	if err == nil {
 		tu.Fail("Allowed relative path outside project")
@@ -74,7 +93,6 @@ func TestCompressCommand(t *testing.T) {
 
 	testData := `---
 location: test
-unsorted: Unsorted
 compress:
 -
     name: "*.jpg *.png"
