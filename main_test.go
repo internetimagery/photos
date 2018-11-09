@@ -42,9 +42,7 @@ func TestInitClean(t *testing.T) {
 
 	// Run init on empty directory
 	defer tu.UserInput("y\n")()
-	if err := run(tu.Dir, []string{"exe", "init", "projectname"}); err != nil {
-		tu.Fail(err)
-	}
+	tu.Must(run(tu.Dir, []string{"exe", "init", "projectname"}))
 
 	// Ensure config file is created
 	tu.AssertExists(filepath.Join(tu.Dir, context.ROOTCONF))
@@ -111,9 +109,7 @@ func TestSort(t *testing.T) {
 
 	// Run sort on files
 	defer tu.UserInput("y\n")()
-	if err := run(project, []string{"exe", "sort", "../"}); err != nil {
-		tu.Fail(err)
-	}
+	tu.Must(run(project, []string{"exe", "sort", "../"}))
 
 	// Check files are where we expect them.
 	tu.AssertExists(
@@ -177,9 +173,7 @@ func TestRenameExistingSource(t *testing.T) {
 
 	// Test rename with existing file in source dir
 	defer tu.UserInput("y\n")()
-	if err := run(event, []string{"exe", "rename"}); err != nil {
-		tu.Fail(err)
-	}
+	tu.Must(run(event, []string{"exe", "rename"}))
 
 	tu.AssertExists(
 		filepath.Join(event, rename.SOURCEDIR, "testfile1.txt"),
@@ -197,9 +191,7 @@ func TestRename(t *testing.T) {
 
 	// Test rename
 	defer tu.UserInput("y\n")()
-	if err := run(event, []string{"exe", "rename"}); err != nil {
-		tu.Fail(err)
-	}
+	tu.Must(run(event, []string{"exe", "rename"}))
 
 	tu.AssertExists(
 		filepath.Join(event, "event01_002.test"),

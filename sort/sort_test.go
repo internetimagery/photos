@@ -129,10 +129,7 @@ func TestSortMedia(t *testing.T) {
 	)
 
 	// Run our sort on directory
-	err = SortMedia(cxt, tu.Dir)
-	if err != nil {
-		tu.Fail(err)
-	}
+	tu.Must(SortMedia(cxt, tu.Dir))
 
 	tu.AssertExists(
 		filepath.Join(dateDir, "file1.txt"),
@@ -141,10 +138,7 @@ func TestSortMedia(t *testing.T) {
 	)
 
 	// Run our sort on individual file
-	err = SortMedia(cxt, filepath.Join(tu.Dir, "outside", "file3.txt"))
-	if err != nil {
-		tu.Fail(err)
-	}
+	tu.Must(SortMedia(cxt, filepath.Join(tu.Dir, "outside", "file3.txt")))
 	tu.AssertExists(filepath.Join(dateDir, "file3.txt"))
 }
 
@@ -160,8 +154,7 @@ func TestSortMediaInsideProject(t *testing.T) {
 	}
 
 	// Run our sort
-	err = SortMedia(cxt, filepath.Join(project, "event01"))
-	if err == nil {
+	if err = SortMedia(cxt, filepath.Join(project, "event01")); err == nil {
 		tu.Fail("Allowed sorting media inside project")
 	}
 }
@@ -178,8 +171,7 @@ func TestSortMediaMissing(t *testing.T) {
 	}
 
 	// Run our sort
-	err = SortMedia(cxt, filepath.Join(tu.Dir, "somewhere"))
-	if err == nil {
+	if err = SortMedia(cxt, filepath.Join(tu.Dir, "somewhere")); err == nil {
 		tu.Fail("Allowed missing source")
 	}
 }

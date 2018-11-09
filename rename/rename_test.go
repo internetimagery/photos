@@ -27,9 +27,7 @@ func TestRename(t *testing.T) {
 	}
 
 	// Perform rename with compression
-	if err := Rename(cxt, true); err != nil {
-		tu.FailNow(err)
-	}
+	tu.Must(Rename(cxt, true))
 
 	// expecting these files
 	tu.AssertExists(
@@ -52,9 +50,7 @@ func TestRenameNoNew(t *testing.T) {
 	}
 
 	// Perform rename with compression
-	if err := Rename(cxt, true); err != nil {
-		tu.FailNow(err)
-	}
+	tu.Must(Rename(cxt, true))
 
 	// expecting these files
 	tu.AssertExists(
