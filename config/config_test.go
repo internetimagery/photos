@@ -40,6 +40,35 @@ func TestNewConfig(t *testing.T) {
 	}
 }
 
+func TestNewConfigBad(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+
+	handle := new(bytes.Buffer)
+	conf := NewConfig("test") // Create new config data
+
+    // Make config invalid
+    conf.Location = "" // No project name
+    conf.Unsorted = "" // No unsorted folder
+
+	err := conf.Save(handle)
+	if err == nil {
+		tu.Fail("Allowed invalid config")
+	}
+
+	conf = NewConfig("test") // Create new config data
+    conf.Unsorted = "/somewhere" // Path absolute project
+	err = conf.Save(handle)
+	if err == nil {
+		tu.Fail("Allowed absolute path")
+	}
+	conf = NewConfig("test") // Create new config data
+    conf.Unsorted = "../../somewhere" // Path absolute project
+	err = conf.Save(handle)
+	if err == nil {
+		tu.Fail("Allowed relative path outside project")
+	}
+}
+
 func TestCompressCommand(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 

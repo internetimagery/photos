@@ -6,6 +6,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+    "fmt"
 
 	"github.com/rs/xid"
 	"gopkg.in/yaml.v2"
@@ -56,8 +57,30 @@ func LoadConfig(reader io.Reader) (*Config, error) {
 	return loadedConfig, err
 }
 
+// ValidateConfig : Run some basic validations on the data
+func (conf *Config) ValidateConfig() error {
+    if strings.TrimSpace(conf.Location) == "" {
+        return fmt.Errorf("empty project Location Name")
+    }
+    trimUnsorted := path.Clean(strings.TrimSpace(conf.Unsorted))
+    if trimUnsorted == "" {
+        return fmt.Errorf("unsorted path is empty")
+    }
+    if path.IsAbs(trimUnsorted) {
+        return fmt.Errorf("unsorted path is absolute, must be relative")
+    }
+    if trimUnsorted == "." || strings.HasPrefix(trimUnsorted, "..")  {
+        return fmt.Errorf("unsorted path must be within project")
+    }
+    return nil
+}
+
 // Save : Save config data out for writing
 func (conf *Config) Save(writer io.Writer) error {
+    err := conf.ValidateConfig()
+    if err != nil {
+        return err
+    }
 	data, err := yaml.Marshal(conf)
 	if err != nil {
 		return err
