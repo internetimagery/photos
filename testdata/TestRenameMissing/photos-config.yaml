@@ -1,0 +1,3 @@
+compress:
+  - name: "*.missing"
+    command: "cp -v \"$SOURCEPATH\" \"$DESTPATH.here\""

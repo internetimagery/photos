@@ -1,5 +1,0 @@
-{
-  "compress": [
-    ["*.missing", "cp -v \"$SOURCEPATH\" \"$DESTPATH.here\""]
-  ]
-}

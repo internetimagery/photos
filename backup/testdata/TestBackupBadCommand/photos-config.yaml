@@ -1,0 +1,4 @@
+backup:
+  -
+    name: test
+    command: "touch \"$TESTPATH1"

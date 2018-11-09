@@ -3,10 +3,10 @@ package config
 
 import (
 	"bytes"
-	"encoding/json"
 	"path/filepath"
 	"testing"
 
+	"gopkg.in/yaml.v2"
 	"github.com/internetimagery/photos/testutil"
 )
 
@@ -21,7 +21,7 @@ func TestNewConfig(t *testing.T) {
 	}
 	testData := handle.Bytes()
 	verifyStruct := make(map[string]interface{}) // Load config for basic test
-	err = json.Unmarshal(testData, &verifyStruct)
+	err = yaml.Unmarshal(testData, &verifyStruct)
 	if err != nil {
 		tu.Fail(err)
 	}
@@ -43,15 +43,21 @@ func TestNewConfig(t *testing.T) {
 func TestCompressCommand(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 
-	testData := `
-	{
-	 "compress":[
-	    ["*.jpg *.png", "image"],
-			["*.mp4 video/*", "video"],
-			["path/to/*/*", "path"],
-	    ["*", "all"]
-	 ]
- }`
+	testData := `---
+compress:
+-
+    name: "*.jpg *.png"
+    command: image
+-
+    name: "*.mp4 video/*"
+    command: video
+-
+    name: path/to/*/*
+    command: path
+-
+    name: "*"
+    command: all
+`
 	handle := bytes.NewReader([]byte(testData))
 	conf, err := LoadConfig(handle)
 	if err != nil {
@@ -76,14 +82,18 @@ func TestCompressCommand(t *testing.T) {
 func TestBackupCommand(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 
-	testData := `
-	{
-	 "backup":[
-	    ["remote-dropbox", "dropbox"],
-			["remote-amazon", "amazon"],
-	    ["local", "local"]
-	 ]
- }`
+	testData := `---
+backup:
+-
+    name: remote-dropbox
+    command: dropbox
+-
+    name: remote-amazon
+    command: amazon
+-
+    name: local
+    command: local
+`
 	handle := bytes.NewReader([]byte(testData))
 	conf, err := LoadConfig(handle)
 	if err != nil {

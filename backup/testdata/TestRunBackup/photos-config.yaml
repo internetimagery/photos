@@ -1,0 +1,10 @@
+backup:
+  -
+    name: test
+    command: "touch \"$TESTPATH1\""
+  -
+    name: other1
+    command: "touch \"$TESTPATH2\""
+  -
+    name: other2
+    command: "touch \"$TESTPATH3\""

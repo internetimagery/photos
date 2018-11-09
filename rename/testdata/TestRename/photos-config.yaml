@@ -1,0 +1,3 @@
+compress:
+  - name: "*"
+    command: "cp \"$SOURCEPATH\" \"$DESTPATH\""

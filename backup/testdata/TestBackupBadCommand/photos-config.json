@@ -1,5 +1,0 @@
-{
-  "backup" : [
-    ["test", "touch \"$TESTPATH1"]
-  ]
-}
