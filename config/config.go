@@ -46,17 +46,6 @@ func NewConfig(location string) *Config {
 	return newConfig
 }
 
-// LoadConfig : Load and populate a new Config from existing config data
-func LoadConfig(reader io.Reader) (*Config, error) {
-	loadedData, err := ioutil.ReadAll(reader) // Load the data to process
-	if err != nil {
-		return nil, err
-	}
-	loadedConfig := new(Config)
-	err = yaml.Unmarshal(loadedData, loadedConfig)
-	return loadedConfig, err
-}
-
 // ValidateConfig : Run some basic validations on the data
 func (conf *Config) ValidateConfig() error {
     if strings.TrimSpace(conf.Location) == "" {
@@ -73,6 +62,20 @@ func (conf *Config) ValidateConfig() error {
         return fmt.Errorf("unsorted path must be within project")
     }
     return nil
+}
+
+// LoadConfig : Load and populate a new Config from existing config data
+func LoadConfig(reader io.Reader) (*Config, error) {
+	loadedData, err := ioutil.ReadAll(reader) // Load the data to process
+	if err != nil {
+		return nil, err
+	}
+	loadedConfig := new(Config)
+	err = yaml.Unmarshal(loadedData, loadedConfig)
+    if err != nil {
+        return nil, err
+    }
+    return loadedConfig, loadedConfig.ValidateConfig()
 }
 
 // Save : Save config data out for writing

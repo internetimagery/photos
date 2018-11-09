@@ -73,6 +73,8 @@ func TestCompressCommand(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 
 	testData := `---
+location: test
+unsorted: Unsorted
 compress:
 -
     name: "*.jpg *.png"
@@ -112,6 +114,8 @@ func TestBackupCommand(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 
 	testData := `---
+location: test
+unsorted: Unsorted
 backup:
 -
     name: remote-dropbox

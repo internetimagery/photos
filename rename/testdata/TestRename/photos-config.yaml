@@ -1,3 +1,5 @@
+location: test
+unsorted: Unsorted
 compress:
   - name: "*"
     command: "cp \"$SOURCEPATH\" \"$DESTPATH\""
