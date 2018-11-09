@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/internetimagery/photos/context"
@@ -70,33 +71,47 @@ func UniqueName(filename string) string {
 func SortMedia(cxt *context.Context, source ...string) error {
 
 	// Validate our inputs
-	cleanSource := []string{}
-	for _, src := range source { // Make paths absolute, relative to
-
+	cleanSource := map[string][]os.FileInfo{}
+	for _, src := range source { // Make paths absolute
+		cleansrc := cxt.AbsPath(src)
+		if strings.HasPrefix(cleansrc, cxt.Root) {
+			return fmt.Errorf("sorting source directory cannot be from within project")
+		}
+		if infos, err := ioutil.ReadDir(cleansrc); err == nil { // Ensure we can gather information
+			cleanSource[cleansrc] = infos
+		} else {
+			return err
+		}
 	}
 
-	infos, err := ioutil.ReadDir(cxt.WorkingDir)
-	if err != nil {
+	if len(cleanSource) == 0 {
+		return nil // Nothing to do...
+	}
+
+	// Ensure sorted dir exists
+	sortedDir := filepath.Join(cxt.Root, filepath.FromSlash(cxt.Config.Sorted))
+	if err := os.Mkdir(sortedDir, 0755); err != nil && !os.IsExist(err) {
 		return err
 	}
 
 	// Move files into their folders
-	for _, info := range infos {
-		if info.Mode().IsRegular() {
-			sourcePath := filepath.Join(cxt.WorkingDir, info.Name())
-			date, err := GetMediaDate(sourcePath)
-			if err != nil {
-				return err
-			}
-			folderPath := filepath.Join(cxt.WorkingDir, FormatDate(date))
-			if err = os.Mkdir(folderPath, 0755); err != nil && !os.IsExist(err) {
-				return err
-			}
-			fmt.Println("destPath", folderPath, info.Name())
-			destPath := UniqueName(filepath.Join(folderPath, info.Name()))
-			log.Println("Moving:", sourcePath, "--->", destPath)
-			if err = os.Rename(sourcePath, destPath); err != nil {
-				return err
+	for filedir, infos := range cleanSource {
+		for _, info := range infos {
+			if info.Mode().IsRegular() {
+				sourcePath := filepath.Join(filedir, info.Name())
+				date, err := GetMediaDate(sourcePath)
+				if err != nil {
+					return err
+				}
+				folderPath := filepath.Join(sortedDir, FormatDate(date))
+				if err = os.Mkdir(folderPath, 0755); err != nil && !os.IsExist(err) {
+					return err
+				}
+				destPath := UniqueName(filepath.Join(folderPath, info.Name()))
+				log.Println("Moving:", sourcePath, "--->", destPath)
+				if err = os.Rename(sourcePath, destPath); err != nil {
+					return err
+				}
 			}
 		}
 	}

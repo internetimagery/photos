@@ -92,8 +92,7 @@ func (cxt *Context) PrepCommand(commandRaw string) (*exec.Cmd, error) {
 // AbsPath : Take user provided path, and make it absolute, relative to context working dir (same as filepath.Abs)
 func (cxt *Context) AbsPath(filename string) string {
 	filename = filepath.FromSlash(strings.TrimSpace(filename)) // First ensure input is relevant to os
-	fmt.Println(filename, filepath.IsAbs(filename), filename[0] == os.PathSeparator)
-	if filepath.IsAbs(filename) { // Already absolute!
+	if filepath.IsAbs(filename) {                              // Already absolute!
 		return filename
 	} else if filename[0] == os.PathSeparator { // Still absolute, but missing drive (ie C:\)
 		return filepath.Join(filepath.VolumeName(cxt.WorkingDir), filename)
