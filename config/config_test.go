@@ -32,16 +32,11 @@ func TestNewConfig(t *testing.T) {
 
 	handle := new(bytes.Buffer)
 	conf := NewConfig("test") // Create new config data
-	err := conf.Save(handle)
-	if err != nil {
-		tu.Fail(err)
-	}
+	tu.Must(conf.Save(handle))
+
 	testData := handle.Bytes()
 	verifyStruct := make(map[string]interface{}) // Load config for basic test
-	err = yaml.Unmarshal(testData, &verifyStruct)
-	if err != nil {
-		tu.Fail(err)
-	}
+	tu.Must(yaml.Unmarshal(testData, &verifyStruct))
 
 	// Verify basic groups are present
 	if _, ok := verifyStruct["compress"]; !ok {

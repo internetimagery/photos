@@ -30,27 +30,19 @@ func TestRunBackup(t *testing.T) {
 	cxt.Env["TESTPATH3"] = filepath.Join(event, "event01_003.txt")
 
 	// Test missing command
-	if err = RunBackup(cxt, "nocommand"); err != nil {
-		tu.Fail(err)
-	}
+	tu.Must(RunBackup(cxt, "nocommand"))
 
 	// Test no command
-	if err = RunBackup(cxt, ""); err != nil {
-		tu.Fail(err)
-	}
+	tu.Must(RunBackup(cxt, ""))
 
 	// Test command
-	if err = RunBackup(cxt, "test"); err != nil {
-		tu.Fail(err)
-	}
+	tu.Must(RunBackup(cxt, "test"))
 
 	// File should now exist
 	tu.AssertExists(cxt.Env["TESTPATH1"])
 
 	// Test command star
-	if err = RunBackup(cxt, "othe*"); err != nil {
-		tu.Fail(err)
-	}
+	tu.Must(RunBackup(cxt, "othe*"))
 
 	// Files should now exist
 	tu.AssertExists(cxt.Env["TESTPATH2"])
