@@ -27,7 +27,7 @@ func sendHelp() {
 	root := filepath.Base(os.Args[0])
 	fmt.Println("  ", root, "version                                   ", "// Print out current version of the tool.")
 	fmt.Println("  ", root, "init <name>                               ", "// Set up a new project. Creates a config file also serving as the root of the project.")
-	fmt.Println("  ", root, "sort                                      ", "// Sort files in the current directory, into folders named after their dates.")
+	fmt.Println("  ", root, "sort <filename> <filename> ...            ", "// Bring in external files, and sort them by date.")
 	fmt.Println("  ", root, "rename                                    ", "// Rename (and compress) files in current directory to their parent directory's namespace (event).")
 	fmt.Println("  ", root, "tag <filename> [--remove] <tag> <tag> ... ", "// Add and optionally remove tags from renamed files.")
 	fmt.Println("  ", root, "backup <name>                             ", "// Execute specified procedure in config to backup files from the current directory.")
@@ -113,76 +113,72 @@ func run(cwd string, args []string) error {
 	switch args[1] {
 
 	case "sort": // Sort files in the working directory into folders of their date
-		if cxt.WorkingDir == cxt.Root {
-			return fmt.Errorf("Cannot run Sort in the root directory (same place as config file.)")
-		} else {
-			fmt.Printf("About to sort media in '%s'\n", cxt.WorkingDir)
-			if question() {
-				fmt.Println("Sorting...")
-				if err = sort.SortMedia(cxt); err != nil {
-					return err
-				}
+		if len(args) < 3 {
+			return fmt.Errorf("Please provide a source directory to sort")
+		}
+		fmt.Printf("About to sort media in '%s'\n", cxt.WorkingDir)
+		if question() {
+			fmt.Println("Sorting...")
+			if err = sort.SortMedia(cxt, args[2:]...); err != nil {
+				return err
 			}
 		}
 
 	case "rename": // Rename files (and optionally compress them) within working directory
 		if cxt.WorkingDir == cxt.Root {
 			return fmt.Errorf("Cannot rename media in the root directory (same place as config file.)")
-		} else {
-			fmt.Printf("About to rename media in '%s'\n", cxt.WorkingDir)
-			if question() {
-				fmt.Printf("Renaming media in '%s'\n", cxt.WorkingDir)
-				// TODO: Add --no-compress option
-				if err = rename.Rename(cxt, true); err != nil {
-					return err
-				}
+		}
+		fmt.Printf("About to rename media in '%s'\n", cxt.WorkingDir)
+		if question() {
+			fmt.Printf("Renaming media in '%s'\n", cxt.WorkingDir)
+			// TODO: Add --no-compress option
+			if err = rename.Rename(cxt, true); err != nil {
+				return err
 			}
 		}
 
 	case "tag": // Tag files. Assist searching etc.
 		if len(args) < 4 {
 			return fmt.Errorf("Please provide a filename, and some tags")
-		} else {
-			// Validate and collect options
-			remove := false
-			filename := args[2]
-			if !filepath.IsAbs(filename) { // Could use filepath.Abs, but want to be able to test
-				filename = filepath.Join(cxt.WorkingDir, filename)
-				if !filepath.HasPrefix(filename, cxt.Root) {
-					return fmt.Errorf("Path is outside project '%s'", filename)
-				}
+		}
+		// Validate and collect options
+		remove := false
+		filename := args[2]
+		if !filepath.IsAbs(filename) { // Could use filepath.Abs, but want to be able to test
+			filename = filepath.Join(cxt.WorkingDir, filename)
+			if !filepath.HasPrefix(filename, cxt.Root) {
+				return fmt.Errorf("Path is outside project '%s'", filename)
 			}
+		}
 
-			tagNames := []string{}
-			for _, arg := range args[3:] {
-				if strings.HasPrefix(arg, "-") {
-					if arg == "--remove" {
-						remove = true
-					} else {
-						return fmt.Errorf("Unrecognised option '%s'. Did you mean --rename?", arg)
-					}
+		tagNames := []string{}
+		for _, arg := range args[3:] {
+			if strings.HasPrefix(arg, "-") {
+				if arg == "--remove" {
+					remove = true
 				} else {
-					tagNames = append(tagNames, arg)
+					return fmt.Errorf("Unrecognised option '%s'. Did you mean --rename?", arg)
 				}
-			}
-
-			if remove {
-				tags.RemoveTag(filename, tagNames...)
 			} else {
-				tags.AddTag(filename, tagNames...)
+				tagNames = append(tagNames, arg)
 			}
+		}
+
+		if remove {
+			tags.RemoveTag(filename, tagNames...)
+		} else {
+			tags.AddTag(filename, tagNames...)
 		}
 
 	case "backup": // Backup files within working directory to specified destination
 		if len(args) < 3 {
-			return fmt.Errorf("Please provide a name for the backup script you wish to run.")
-		} else {
-			fmt.Printf("About to run backup scripts that match the name '%s'.\nTo backup the media in '%s'\n", args[2], cxt.WorkingDir)
-			if question() {
-				fmt.Printf("Backing up media in '%s'\n", cxt.WorkingDir)
-				if err = backup.RunBackup(cxt, args[2]); err != nil {
-					return err
-				}
+			return fmt.Errorf("please provide a name for the backup script you wish to run")
+		}
+		fmt.Printf("About to run backup scripts that match the name '%s'.\nTo backup the media in '%s'\n", args[2], cxt.WorkingDir)
+		if question() {
+			fmt.Printf("Backing up media in '%s'\n", cxt.WorkingDir)
+			if err = backup.RunBackup(cxt, args[2]); err != nil {
+				return err
 			}
 		}
 

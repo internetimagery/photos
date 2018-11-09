@@ -97,21 +97,21 @@ func TestSort(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 	defer tu.LoadTestdata()()
 
-	unsorted := filepath.Join(tu.Dir, "unsorted")
-	sorted := filepath.Join(tu.Dir, "Sorted")
+	project := filepath.Join(tu.Dir, "project")
+	sorted := filepath.Join(project, "Sorted")
 
-	tu.ModTime(2018, 10, 10, filepath.Join(unsorted, "file1.txt"))
-	tu.ModTime(2018, 10, 23, filepath.Join(unsorted, "file2.txt"))
+	tu.ModTime(2018, 10, 10, filepath.Join(tu.Dir, "file1.txt"))
+	tu.ModTime(2018, 10, 23, filepath.Join(tu.Dir, "file2.txt"))
 
 	// Run sort without any input
 	defer tu.UserInput("y\n")()
-	if err := run(unsorted, []string{"exe", "sort"}); err == nil {
+	if err := run(project, []string{"exe", "sort"}); err == nil {
 		tu.Fail("Allowed no source input")
 	}
 
-	// Run sort on root subdirectory
+	// Run sort on files
 	defer tu.UserInput("y\n")()
-	if err := run(tu.Dir, []string{"exe", "sort", "unsorted"}); err != nil {
+	if err := run(project, []string{"exe", "sort", "../"}); err != nil {
 		tu.Fail(err)
 	}
 
