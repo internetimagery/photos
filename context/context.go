@@ -88,5 +88,3 @@ func (cxt *Context) PrepCommand(commandRaw string) (*exec.Cmd, error) {
 	command.Env = cxt.contractEnv()
 	return command, nil
 }
-
-// Done

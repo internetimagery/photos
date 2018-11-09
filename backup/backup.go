@@ -1,10 +1,15 @@
 package backup
 
 import (
+	"fmt"
 	"log"
+	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/internetimagery/photos/context"
+	"github.com/internetimagery/photos/format"
+	"github.com/internetimagery/photos/rename"
 )
 
 // setEnvironment : Set up environment variables for the command context
@@ -18,6 +23,26 @@ func setEnvironment(cxt *context.Context) {
 
 // RunBackup : Run backup commands given a name. Can accept wildcards to run more than one.
 func RunBackup(cxt *context.Context, name string) error {
+
+	// Validate our project
+	if err := filepath.Walk(cxt.WorkingDir, func(filename string, info os.FileInfo, err error) error {
+		if info.IsDir() { // Only looking for files
+			return nil
+		}
+		if info.Name()[0] == '.' { // Ignore .dot files. They can be backed up
+			return nil
+		}
+		if strings.Contains(filename, rename.SOURCEDIR) {
+			return fmt.Errorf("refusing to backup with source files still inside '%s'", filepath.Join(filename))
+		}
+		event := filepath.Base(filepath.Dir(filename))
+		if media := format.NewMedia(info.Name()); media.Index == 0 || media.Event != event {
+			return fmt.Errorf("refusing to backup with unformatted files still inside '%s'", filename)
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
 
 	// Prep our environment for command
 	setEnvironment(cxt)

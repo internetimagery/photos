@@ -25,9 +25,9 @@ func TestRunBackup(t *testing.T) {
 	}
 
 	// Set environment
-	cxt.Env["TESTPATH1"] = filepath.Join(event, "testfile1.txt")
-	cxt.Env["TESTPATH2"] = filepath.Join(event, "testfile2.txt")
-	cxt.Env["TESTPATH3"] = filepath.Join(event, "testfile3.txt")
+	cxt.Env["TESTPATH1"] = filepath.Join(event, "event01_001.txt")
+	cxt.Env["TESTPATH2"] = filepath.Join(event, "event01_002.txt")
+	cxt.Env["TESTPATH3"] = filepath.Join(event, "event01_003.txt")
 
 	// Test missing command
 	if err = RunBackup(cxt, "nocommand"); err != nil {
@@ -70,6 +70,36 @@ func TestBackupBadCommand(t *testing.T) {
 
 	if err = RunBackup(cxt, "test"); err == nil {
 		tu.Fail("Passed on bad command!")
+	}
+}
+
+func TestBackupContainsSource(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	event := filepath.Join(tu.Dir, "event01")
+	cxt, err := context.NewContext(event)
+	if err != nil {
+		tu.Fatal(err)
+	}
+
+	if err = RunBackup(cxt, "test"); err == nil {
+		tu.Fail("Allowed backup with source files still present.")
+	}
+}
+
+func TestBackupContainsUnformatted(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	event := filepath.Join(tu.Dir, "event01")
+	cxt, err := context.NewContext(event)
+	if err != nil {
+		tu.Fatal(err)
+	}
+
+	if err = RunBackup(cxt, "test"); err == nil {
+		tu.Fail("Allowed backup with source files still unformatted.")
 	}
 }
 

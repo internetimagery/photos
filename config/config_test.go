@@ -65,23 +65,21 @@ func TestNewConfigBad(t *testing.T) {
 
 	// Make config invalid
 	conf.Location = "" // No project name
-	conf.Unsorted = "" // No unsorted folder
+	conf.Sorted = ""   // No sorted folder
 
 	err := conf.Save(handle)
 	if err == nil {
 		tu.Fail("Allowed invalid config")
 	}
 
-	conf = NewConfig("test")       // Create new config data
-	conf.Unsorted = "/somewhere"   // Path absolute project
-	conf.Sorted = "/somewhereElse" // Path absolute project
+	conf = NewConfig("test")   // Create new config data
+	conf.Sorted = "/somewhere" // Path absolute project
 	err = conf.Save(handle)
 	if err == nil {
 		tu.Fail("Allowed absolute path")
 	}
-	conf = NewConfig("test")            // Create new config data
-	conf.Unsorted = "../../somewhere"   // Path absolute project
-	conf.Sorted = "../../somewhereElse" // Path absolute project
+	conf = NewConfig("test")        // Create new config data
+	conf.Sorted = "../../somewhere" // Path outside project
 	err = conf.Save(handle)
 	if err == nil {
 		tu.Fail("Allowed relative path outside project")
