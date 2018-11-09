@@ -6,8 +6,8 @@
 
 # TODO:
 
-- Use yaml instead of json in config file
-- fix up tagging, bugs etc and add proper tests in main_test
+- fix up tagging, add proper tests in main_test
+- use standard file structure for importing images, and placing them etc
 - make tagging use a web serice, with a basic website for interractive tagging
 - add image duplication checker like phash
 - add video phash check, if possible
@@ -15,6 +15,7 @@
 #### Nice to have
 - manage all actions with an interface (ie file movements, renames etc)
 - track those actions and allow an undo system to exist
+- autocomplete actions
 
 ### Intended use:
 

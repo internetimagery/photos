@@ -26,7 +26,8 @@ type BackupCategory []Command
 // Config : Base class to access root configuration
 type Config struct {
 	ID       string           `yaml:"id"`       // Unique ID
-	Location string           `yaml:"location"` // Location name that refers to photo location
+	Location string           `yaml:"location"` // Location name that refers to project
+    Unsorted string           `yaml:"unsorted`  // Location of folder that contains unsorted media (initial place to put media)
 	Compress CompressCategory `yaml:"compress"` // Compression commands
 	Backup   BackupCategory   `yaml:"backup"`   // Backup commands
 }
@@ -36,7 +37,8 @@ func NewConfig(location string) *Config {
 	newConfig := new(Config)               // Create empty config, and add some default info to assist in fleshing out properly
 	newConfig.ID = xid.New().String()      // Generate random ID
 	newConfig.Location = location          // Nice name for location
-	newConfig.Compress = CompressCategory{ // Useful default entry to demo
+    newConfig.Unsorted = "Unsorted"        // Default location for new media
+	newConfig.Compress = CompressCategory{ // Useful default entry to demo structure
 		Command{Name:"*.jpg *.jpeg *.png", Command:`echo "command to run on image!"`}}
 	newConfig.Backup = BackupCategory{ // Another useful demo
 		Command{Name:"harddrive", Command:`echo "command to backup to 'harddrive'"`}}
