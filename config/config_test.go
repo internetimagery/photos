@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gopkg.in/yaml.v2"
 	"github.com/internetimagery/photos/testutil"
+	"gopkg.in/yaml.v2"
 )
 
 func TestNewConfig(t *testing.T) {
@@ -46,23 +46,23 @@ func TestNewConfigBad(t *testing.T) {
 	handle := new(bytes.Buffer)
 	conf := NewConfig("test") // Create new config data
 
-    // Make config invalid
-    conf.Location = "" // No project name
-    conf.Unsorted = "" // No unsorted folder
+	// Make config invalid
+	conf.Location = "" // No project name
+	conf.Unsorted = "" // No unsorted folder
 
 	err := conf.Save(handle)
 	if err == nil {
 		tu.Fail("Allowed invalid config")
 	}
 
-	conf = NewConfig("test") // Create new config data
-    conf.Unsorted = "/somewhere" // Path absolute project
+	conf = NewConfig("test")     // Create new config data
+	conf.Unsorted = "/somewhere" // Path absolute project
 	err = conf.Save(handle)
 	if err == nil {
 		tu.Fail("Allowed absolute path")
 	}
-	conf = NewConfig("test") // Create new config data
-    conf.Unsorted = "../../somewhere" // Path absolute project
+	conf = NewConfig("test")          // Create new config data
+	conf.Unsorted = "../../somewhere" // Path absolute project
 	err = conf.Save(handle)
 	if err == nil {
 		tu.Fail("Allowed relative path outside project")

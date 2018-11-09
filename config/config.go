@@ -1,12 +1,12 @@
 package config
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"path"
 	"path/filepath"
 	"strings"
-    "fmt"
 
 	"github.com/rs/xid"
 	"gopkg.in/yaml.v2"
@@ -14,7 +14,7 @@ import (
 
 // Command : Structure for a command
 type Command struct {
-	Name string `yaml:"name"`
+	Name    string `yaml:"name"`
 	Command string `yaml:"command"`
 }
 
@@ -28,7 +28,7 @@ type BackupCategory []Command
 type Config struct {
 	ID       string           `yaml:"id"`       // Unique ID
 	Location string           `yaml:"location"` // Location name that refers to project
-    Unsorted string           `yaml:"unsorted`  // Location of folder that contains unsorted media (initial place to put media)
+	Unsorted string           `yaml:"unsorted`  // Location of folder that contains unsorted media (initial place to put media)
 	Compress CompressCategory `yaml:"compress"` // Compression commands
 	Backup   BackupCategory   `yaml:"backup"`   // Backup commands
 }
@@ -38,30 +38,30 @@ func NewConfig(location string) *Config {
 	newConfig := new(Config)               // Create empty config, and add some default info to assist in fleshing out properly
 	newConfig.ID = xid.New().String()      // Generate random ID
 	newConfig.Location = location          // Nice name for location
-    newConfig.Unsorted = "Unsorted"        // Default location for new media
+	newConfig.Unsorted = "Unsorted"        // Default location for new media
 	newConfig.Compress = CompressCategory{ // Useful default entry to demo structure
-		Command{Name:"*.jpg *.jpeg *.png", Command:`echo "command to run on image!"`}}
+		Command{Name: "*.jpg *.jpeg *.png", Command: `echo "command to run on image!"`}}
 	newConfig.Backup = BackupCategory{ // Another useful demo
-		Command{Name:"harddrive", Command:`echo "command to backup to 'harddrive'"`}}
+		Command{Name: "harddrive", Command: `echo "command to backup to 'harddrive'"`}}
 	return newConfig
 }
 
 // ValidateConfig : Run some basic validations on the data
 func (conf *Config) ValidateConfig() error {
-    if strings.TrimSpace(conf.Location) == "" {
-        return fmt.Errorf("empty project Location Name")
-    }
-    trimUnsorted := path.Clean(strings.TrimSpace(conf.Unsorted))
-    if trimUnsorted == "" {
-        return fmt.Errorf("unsorted path is empty")
-    }
-    if path.IsAbs(trimUnsorted) {
-        return fmt.Errorf("unsorted path is absolute, must be relative")
-    }
-    if trimUnsorted == "." || strings.HasPrefix(trimUnsorted, "..")  {
-        return fmt.Errorf("unsorted path must be within project")
-    }
-    return nil
+	if strings.TrimSpace(conf.Location) == "" {
+		return fmt.Errorf("empty project Location Name")
+	}
+	trimUnsorted := path.Clean(strings.TrimSpace(conf.Unsorted))
+	if trimUnsorted == "" {
+		return fmt.Errorf("unsorted path is empty")
+	}
+	if path.IsAbs(trimUnsorted) {
+		return fmt.Errorf("unsorted path is absolute, must be relative")
+	}
+	if trimUnsorted == "." || strings.HasPrefix(trimUnsorted, "..") {
+		return fmt.Errorf("unsorted path must be within project")
+	}
+	return nil
 }
 
 // LoadConfig : Load and populate a new Config from existing config data
@@ -72,18 +72,18 @@ func LoadConfig(reader io.Reader) (*Config, error) {
 	}
 	loadedConfig := new(Config)
 	err = yaml.Unmarshal(loadedData, loadedConfig)
-    if err != nil {
-        return nil, err
-    }
-    return loadedConfig, loadedConfig.ValidateConfig()
+	if err != nil {
+		return nil, err
+	}
+	return loadedConfig, loadedConfig.ValidateConfig()
 }
 
 // Save : Save config data out for writing
 func (conf *Config) Save(writer io.Writer) error {
-    err := conf.ValidateConfig()
-    if err != nil {
-        return err
-    }
+	err := conf.ValidateConfig()
+	if err != nil {
+		return err
+	}
 	data, err := yaml.Marshal(conf)
 	if err != nil {
 		return err
