@@ -26,26 +26,32 @@ func TestNewMedia(t *testing.T) {
 	event := "18-12-08 event"
 
 	// Test filename with tags
-	test1 := event + "_002[one-two three].jpg"
-	media1 := NewMedia(test1)
-	if media1.Event != event || media1.Index != 2 || media1.Path != test1 || media1.Ext != "jpg" || len(media1.Tags) != 2 {
-		tu.Fail("Failed on", test1, media1)
+	test := event + "_002[one-two three].jpg"
+	media := NewMedia(test)
+	if media.Event != event || media.Index != 2 || media.Path != test || media.Ext != "jpg" || len(media.Tags) != 2 {
+		tu.Fail("Failed on", test, media)
 	}
 
 	// Test filename without tags
-	test2 := event + "_202.png"
-	media2 := NewMedia(test2)
-	if media2.Event != event || media2.Index != 202 || media2.Path != test2 || media2.Ext != "png" || len(media2.Tags) != 0 {
-		tu.Fail("Failed on", test2, media2)
+	test = event + "_202.png"
+	media = NewMedia(test)
+	if media.Event != event || media.Index != 202 || media.Path != test || media.Ext != "png" || len(media.Tags) != 0 {
+		tu.Fail("Failed on", test, media)
 	}
 
 	// Test filename unformatted
-	test3 := "my_fav_picture.jpeg"
-	media3 := NewMedia(test3)
-	if media3.Index != 0 {
-		tu.Fail("Failed on", test3, media3)
+	test = "my_fav_picture.jpeg"
+	media = NewMedia(test)
+	if media.Index != 0 {
+		tu.Fail("Failed on", test, media)
 	}
 
+	// Test filename no extension
+	test = event + "_101"
+	media = NewMedia(test)
+	if media.Index != 0 || media.Ext != "" {
+		tu.Fail("Failed on", test, media)
+	}
 }
 
 func TestFormatName(t *testing.T) {

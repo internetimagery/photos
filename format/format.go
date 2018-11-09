@@ -44,7 +44,10 @@ type Media struct {
 func NewMedia(filename string) *Media {
 	media := new(Media)
 	media.Path = filename
-	media.Ext = filepath.Ext(filename)[1:]
+	ext := filepath.Ext(filename)
+	if ext != "" {
+		media.Ext = filepath.Ext(filename)[1:]
+	}
 	media.Tags = make(map[string]struct{})
 	parts := formatReg.FindStringSubmatch(filename)
 	if len(parts) > 0 {
