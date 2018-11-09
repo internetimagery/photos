@@ -77,7 +77,7 @@ func TestSortClean(t *testing.T) {
 
 	// Run sort on project not set up
 	defer tu.UserInput("y\n")()
-	if err := run(event, []string{"exe", "sort"}); err == nil {
+	if err := run(event, []string{"exe", "sort", "event01"}); err == nil {
 		tu.Fail("Allowed usage on non-project folder.")
 	}
 }
@@ -88,7 +88,7 @@ func TestSortRoot(t *testing.T) {
 
 	// Run sort on project not set up
 	defer tu.UserInput("y\n")()
-	if err := run(tu.Dir, []string{"exe", "sort"}); err == nil {
+	if err := run(tu.Dir, []string{"exe", "sort", "."}); err == nil {
 		tu.Fail("Allowed usage on root folder.")
 	}
 }
@@ -98,21 +98,28 @@ func TestSort(t *testing.T) {
 	defer tu.LoadTestdata()()
 
 	unsorted := filepath.Join(tu.Dir, "unsorted")
+	sorted := filepath.Join(tu.Dir, "Sorted")
 
 	tu.ModTime(2018, 10, 10, filepath.Join(unsorted, "file1.txt"))
 	tu.ModTime(2018, 10, 23, filepath.Join(unsorted, "file2.txt"))
 
+	// Run sort without any input
+	defer tu.UserInput("y\n")()
+	if err := run(unsorted, []string{"exe", "sort"}); err == nil {
+		tu.Fail("Allowed no source input")
+	}
+
 	// Run sort on root subdirectory
 	defer tu.UserInput("y\n")()
-	if err := run(unsorted, []string{"exe", "sort"}); err != nil {
+	if err := run(tu.Dir, []string{"exe", "sort", "unsorted"}); err != nil {
 		tu.Fail(err)
 	}
 
 	// Check files are where we expect them.
 	tu.AssertExists(
-		filepath.Join(unsorted, "18-10-10", "file1.txt"),
-		filepath.Join(unsorted, "18-10-23", "file2.txt"),
-		filepath.Join(unsorted, "18-10-23", "file2_1.txt"),
+		filepath.Join(sorted, "18-10-10", "file1.txt"),
+		filepath.Join(sorted, "18-10-23", "file2.txt"),
+		filepath.Join(sorted, "18-10-23", "file2_1.txt"),
 	)
 }
 

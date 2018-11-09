@@ -115,19 +115,20 @@ func TestSortMedia(t *testing.T) {
 	defer tu.LoadTestdata()()
 
 	// Get our context
-	cxt, err := context.NewContext(tu.Dir)
+	project := filepath.Join(tu.Dir, "project")
+	cxt, err := context.NewContext(project)
 	if err != nil {
 		tu.Fatal(err)
 	}
 
-	dateDir := filepath.Join(tu.Dir, "18-10-22")
+	dateDir := filepath.Join(project, "Sorted", "18-10-22")
 	tu.ModTime(2018, 10, 22,
-		filepath.Join(tu.Dir, "file1.txt"),
+		filepath.Join(tu.Dir, "file1.txt"), // Keeping media outside project
 		filepath.Join(tu.Dir, "file2.txt"),
 	)
 
 	// Run our sort
-	err = SortMedia(cxt)
+	err = SortMedia(cxt, tu.Dir)
 	if err != nil {
 		tu.Fail(err)
 	}
@@ -137,4 +138,40 @@ func TestSortMedia(t *testing.T) {
 		filepath.Join(dateDir, "file2.txt"),
 		filepath.Join(dateDir, "file2_1.txt"),
 	)
+}
+
+func TestSortMediaInsideProject(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	// Get our context
+	project := filepath.Join(tu.Dir, "project")
+	cxt, err := context.NewContext(project)
+	if err != nil {
+		tu.Fatal(err)
+	}
+
+	// Run our sort
+	err = SortMedia(cxt, filepath.Join(project, "event01"))
+	if err == nil {
+		tu.Fail("Allowed sorting media inside project")
+	}
+}
+
+func TestSortMediaMissing(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	// Get our context
+	project := filepath.Join(tu.Dir, "project")
+	cxt, err := context.NewContext(project)
+	if err != nil {
+		tu.Fatal(err)
+	}
+
+	// Run our sort
+	err = SortMedia(cxt, filepath.Join(tu.Dir, "somewhere"))
+	if err == nil {
+		tu.Fail("Allowed missing source")
+	}
 }

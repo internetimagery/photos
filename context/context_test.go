@@ -65,5 +65,23 @@ func TestContextPrepCommand(t *testing.T) {
 	if len(command.Args) != 2 && command.Args[1] != "VALUE" {
 		tu.Fail("Got args", command.Args)
 	}
+}
 
+func TestContextAbsPath(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	cwd, _ := os.Getwd()
+	cxt := &Context{WorkingDir: cwd}
+
+	if expect, _ := filepath.Abs("/four/five"); expect != cxt.AbsPath("/four/five") {
+		tu.FailE(expect, cxt.AbsPath("/four/five"))
+	}
+	if expect, _ := filepath.Abs("four/five"); expect != cxt.AbsPath("four/five") {
+		tu.FailE(expect, cxt.AbsPath("four/five"))
+	}
+	if expect, _ := filepath.Abs("."); expect != cxt.AbsPath(".") {
+		tu.FailE(expect, cxt.AbsPath("."))
+	}
+	if expect, _ := filepath.Abs("four/../../five"); expect != cxt.AbsPath("four/../../five") {
+		tu.FailE(expect, cxt.AbsPath("four/../../five"))
+	}
 }

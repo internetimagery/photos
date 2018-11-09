@@ -67,7 +67,14 @@ func UniqueName(filename string) string {
 }
 
 // SortMedia : Grab dates assosicated with media in working directory, and place them in corresponding folders
-func SortMedia(cxt *context.Context) error {
+func SortMedia(cxt *context.Context, source ...string) error {
+
+	// Validate our inputs
+	cleanSource := []string{}
+	for _, src := range source { // Make paths absolute, relative to
+
+	}
+
 	infos, err := ioutil.ReadDir(cxt.WorkingDir)
 	if err != nil {
 		return err
