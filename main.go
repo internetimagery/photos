@@ -146,9 +146,6 @@ func run(cwd string, args []string) error {
 		}
 		// Check if we want to remove or create tags
 		remove, i := false, 2
-		if args[2] == "--remove" {
-			remove, i = true, 3
-		}
 
 		// Collect local data for index based checking
 		media, err := format.GetMediaFromDirectory(cxt.WorkingDir)
@@ -161,6 +158,10 @@ func run(cwd string, args []string) error {
 		tagReg := regexp.MustCompile("^" + format.TagReg + "$")
 		for ; i < len(args); i++ {
 			arg := args[i]
+			if arg == "--remove" {
+				remove = true
+				continue
+			}
 			// Forcefully swapping to tag input
 			if arg == "--" {
 				break
@@ -201,6 +202,10 @@ func run(cwd string, args []string) error {
 		// Collect tags
 		tagNames := []string{}
 		for i++; i < len(args); i++ {
+			if args[i] == "--remove" {
+				remove = true
+				continue
+			}
 			if !tagReg.MatchString(args[i]) {
 				return fmt.Errorf("Invalid tag '%s'", args[i])
 			}

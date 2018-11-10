@@ -229,3 +229,40 @@ func TestAddTag(t *testing.T) {
 	}
 
 }
+
+func TestRemoveTag(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	// Remove tag by filename
+	event := filepath.Join(tu.Dir, "event01")
+	tu.Must(run(event, []string{"exe", "tag", "--remove", filepath.Join(event, "event01_010[5 three one two].txt"), "two"}))
+	tu.AssertExists(filepath.Join(event, "event01_010[5 one three].txt"))
+
+	// Remove tag by index
+	tu.Must(run(event, []string{"exe", "tag", "--remove", "10", "one"}))
+	tu.AssertExists(filepath.Join(event, "event01_010[5 three].txt"))
+
+	// Remove numeric (index looking) tag by index using --
+	tu.Must(run(event, []string{"exe", "tag", "--remove", "10", "--", "5"}))
+	tu.AssertExists(filepath.Join(event, "event01_010[three].txt"))
+
+	// --remove in different spot
+	tu.Must(run(event, []string{"exe", "tag", "10", "--remove", "three"}))
+	tu.AssertExists(filepath.Join(event, "event01_010.txt"))
+
+	// --remove in tag section
+	tu.Must(run(event, []string{"exe", "tag", "10", "--", "--remove", "three"}))
+	tu.AssertExists(filepath.Join(event, "event01_010.txt"))
+
+	// no tags, stopping with --
+	if err := run(event, []string{"exe", "tag", "10", "--", "--remove"}); err == nil {
+		tu.Fail("Allowed no tags to be specified.")
+	}
+
+	// no files, starting with --
+	if err := run(event, []string{"exe", "tag", "--remove", "--", "10"}); err == nil {
+		tu.Fail("Allowed no files to be specified.")
+	}
+
+}
