@@ -11,12 +11,15 @@ import (
 )
 
 // TEMPPREFIX : Prefix for temporary working files. Ignore these files.
-var TEMPPREFIX = `tmp-`    // Prefix for temporary working files
-var eventReg = `[\w\-_ ]+` // Valid event
-var indexReg = `\d+`       // Valid Index
-var tagReg = `[\w\-_ ]+`   // Valid Tags
+var TEMPPREFIX = `tmp-` // Prefix for temporary working files
+// EventReg : Event name. Restrictive characters
+var EventReg = `[\w\-_ ]+` // Valid event
+// IndexReg : Valid index
+var IndexReg = `\d+` // Valid Index
+// TagReg : Valid tag characters
+var TagReg = `[\w\-_ ]+` // Valid Tags
 var extReg = `\w+`
-var formatReg = regexp.MustCompile(fmt.Sprintf(`(%s)_(%s)(?:\[(%s)\])?\.(%s)$`, eventReg, indexReg, tagReg, extReg))
+var formatReg = regexp.MustCompile(fmt.Sprintf(`(%s)_(%s)(?:\[(%s)\])?\.(%s)$`, EventReg, IndexReg, TagReg, extReg))
 
 // MakeTempPath : Apply temporary prefix to filepath
 func MakeTempPath(path string) string {
@@ -66,7 +69,7 @@ func NewMedia(filename string) *Media {
 // FormatName : Given the current settings (which may have been modified), validate and format a corresponding name.
 func (media *Media) FormatName() (string, error) {
 	// Validate our inputs
-	if !regexp.MustCompile("^"+eventReg+"$").MatchString(media.Event) || strings.TrimSpace(media.Event) == "" {
+	if !regexp.MustCompile("^"+EventReg+"$").MatchString(media.Event) || strings.TrimSpace(media.Event) == "" {
 		return "", fmt.Errorf("Bad Event: '%s'", media.Event)
 	}
 	if media.Index <= 0 {
@@ -75,7 +78,7 @@ func (media *Media) FormatName() (string, error) {
 	if !regexp.MustCompile("^"+extReg+"$").MatchString(media.Ext) || strings.TrimSpace(media.Ext) == "" {
 		return "", fmt.Errorf("Bad extension: '%s'", media.Ext)
 	}
-	tagTest := regexp.MustCompile("^" + tagReg + "$")
+	tagTest := regexp.MustCompile("^" + TagReg + "$")
 	for tag := range media.Tags {
 		if !tagTest.MatchString(tag) || strings.TrimSpace(tag) == "" {
 			return "", fmt.Errorf("Bad tag: '%s'", tag)

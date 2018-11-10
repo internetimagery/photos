@@ -25,76 +25,86 @@ func getMedia(filename string) (*format.Media, error) {
 }
 
 // AddTag : Apply tagnames to a file
-func AddTag(filename string, tagnames ...string) error {
-	media, err := getMedia(filename)
-	if err != nil {
-		return err
-	}
-	if media.Index == 0 { // Media not formatted. Leave it alone
-		return nil
-	}
-	oldname, err := media.FormatName()
-	if err != nil {
-		return err
-	}
-	// Apply tags
-	for _, tagname := range tagnames {
-		tagname = strings.TrimSpace(tagname)
-		if tagname != "" {
-			media.Tags[tagname] = struct{}{}
+func AddTag(filenames []string, tagnames []string) error {
+	for _, filename := range filenames {
+		media, err := getMedia(filename)
+		if err != nil {
+			return err
+		}
+		if media.Index == 0 { // Media not formatted. Leave it alone
+			continue
+		}
+		oldname, err := media.FormatName()
+		if err != nil {
+			return err
+		}
+		// Apply tags
+		for _, tagname := range tagnames {
+			tagname = strings.TrimSpace(tagname)
+			if tagname != "" {
+				media.Tags[tagname] = struct{}{}
+			}
+		}
+		// Build new path
+		newname, err := media.FormatName()
+		if err != nil {
+			return err
+		} else if oldname == newname { // Nothing has changed. Nothing to do...
+			continue
+		}
+		fileDir := filepath.Dir(filename)
+		newPath := filepath.Join(fileDir, newname)
+		// Ensure newpath does not exist
+		if _, err := os.Stat(newPath); !os.IsNotExist(err) {
+			if err == nil {
+				return os.ErrExist
+			}
+			return err
+		}
+		if err := os.Rename(filename, newPath); err != nil {
+			return err
 		}
 	}
-	// Build new path
-	newname, err := media.FormatName()
-	if err != nil {
-		return err
-	} else if oldname == newname { // Nothing has changed. Nothing to do...
-		return nil
-	}
-	fileDir := filepath.Dir(filename)
-	newPath := filepath.Join(fileDir, newname)
-	// Ensure newpath does not exist
-	if _, err := os.Stat(newPath); !os.IsNotExist(err) {
-		if err == nil {
-			return os.ErrExist
-		}
-		return err
-	}
-	return os.Rename(filename, newPath)
+	return nil
 }
 
 // RemoveTag : Remove tagnames from a file
-func RemoveTag(filename string, tagnames ...string) error {
-	media, err := getMedia(filename)
-	if err != nil {
-		return err
-	}
-	if media.Index == 0 { // Media not formatted. Leave it alone
-		return nil
-	}
-	oldname, err := media.FormatName()
-	if err != nil {
-		return err
-	}
-	// Remove tags
-	for _, tagname := range tagnames {
-		delete(media.Tags, tagname)
-	}
-	newname, err := media.FormatName()
-	if err != nil {
-		return err
-	} else if oldname == newname { // No change. We're done here!
-		return nil
-	}
-	// Build new path
-	fileDir := filepath.Dir(filename)
-	newPath := filepath.Join(fileDir, newname)
-	// Ensure newpath does not exist
-	if _, err := os.Stat(newPath); !os.IsNotExist(err) {
-		if err == nil {
-			return os.ErrExist
+func RemoveTag(filenames []string, tagnames []string) error {
+	for _, filename := range filenames {
+		media, err := getMedia(filename)
+		if err != nil {
+			return err
 		}
-		return err
+		if media.Index == 0 { // Media not formatted. Leave it alone
+			continue
+		}
+		oldname, err := media.FormatName()
+		if err != nil {
+			return err
+		}
+		// Remove tags
+		for _, tagname := range tagnames {
+			delete(media.Tags, tagname)
+		}
+		newname, err := media.FormatName()
+		if err != nil {
+			return err
+		} else if oldname == newname { // No change. We're done here!
+			continue
+		}
+		// Build new path
+		fileDir := filepath.Dir(filename)
+		newPath := filepath.Join(fileDir, newname)
+		// Ensure newpath does not exist
+		if _, err := os.Stat(newPath); !os.IsNotExist(err) {
+			if err == nil {
+				return os.ErrExist
+			}
+			return err
+		}
+		if err := os.Rename(filename, newPath); err != nil {
+			return err
+		}
 	}
-	return os.Rename(filename, newPath)
+	return nil
 }

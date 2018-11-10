@@ -7,11 +7,14 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/internetimagery/photos/backup"
 	"github.com/internetimagery/photos/config"
 	"github.com/internetimagery/photos/context"
+	"github.com/internetimagery/photos/format"
 	"github.com/internetimagery/photos/rename"
 	"github.com/internetimagery/photos/sort"
 	"github.com/internetimagery/photos/tags"
@@ -29,7 +32,7 @@ func sendHelp() {
 	fmt.Println("  ", root, "init <name>                               ", "// Set up a new project. Creates a config file also serving as the root of the project.")
 	fmt.Println("  ", root, "sort <filename> <filename> ...            ", "// Bring in external files, and sort them by date.")
 	fmt.Println("  ", root, "rename                                    ", "// Rename (and compress) files in current directory to their parent directory's namespace (event).")
-	fmt.Println("  ", root, "tag <filename> [--remove] <tag> <tag> ... ", "// Add and optionally remove tags from renamed files.")
+	fmt.Println("  ", root, "tag [--remove] <filename/index> <filename/index...> -- <tag> <tag...>", "// Add and optionally remove tags from renamed files.")
 	fmt.Println("  ", root, "backup <name>                             ", "// Execute specified procedure in config to backup files from the current directory.")
 }
 
@@ -138,37 +141,80 @@ func run(cwd string, args []string) error {
 		}
 
 	case "tag": // Tag files. Assist searching etc.
-		if len(args) < 4 {
+		if len(args) < 4 { // At least [exec, tag, file, tagname]
 			return fmt.Errorf("Please provide a filename, and some tags")
 		}
-		// Validate and collect options
-		remove := false
-		filename := args[2]
-		if !filepath.IsAbs(filename) { // Could use filepath.Abs, but want to be able to test
-			filename = filepath.Join(cxt.WorkingDir, filename)
-			if !filepath.HasPrefix(filename, cxt.Root) {
-				return fmt.Errorf("Path is outside project '%s'", filename)
-			}
+		// Check if we want to remove or create tags
+		remove, i := false, 2
+		if args[2] == "--remove" {
+			remove, i = true, 3
 		}
 
-		tagNames := []string{}
-		for _, arg := range args[3:] {
-			if strings.HasPrefix(arg, "-") {
-				if arg == "--remove" {
-					remove = true
-				} else {
-					return fmt.Errorf("Unrecognised option '%s'. Did you mean --rename?", arg)
+		// Collect local data for index based checking
+		media, err := format.GetMediaFromDirectory(cxt.WorkingDir)
+		if err != nil {
+			return err
+		}
+
+		// Load in files
+		tagMedia := []string{}
+		tagReg := regexp.MustCompile("^" + format.TagReg + "$")
+		for ; i < len(args); i++ {
+			arg := args[i]
+			// Forcefully swapping to tag input
+			if arg == "--" {
+				break
+			}
+			// Check if arg is an index, get file if so
+			if index, err := strconv.Atoi(arg); err == nil {
+				for _, m := range media {
+					if m.Index == index {
+						tagMedia = append(tagMedia, m.Path)
+						break
+					}
 				}
-			} else {
-				tagNames = append(tagNames, arg)
+				continue
 			}
+			// If file is path, test if it exists
+			checkPath := cxt.AbsPath(arg)
+			if info, err := os.Stat(checkPath); err == nil {
+				if info.IsDir() {
+					return fmt.Errorf("Path is a directory, not a file '%s'", arg)
+				}
+				tagMedia = append(tagMedia, checkPath)
+				continue
+			} else if !os.IsNotExist(err) {
+				return err
+			}
+			// Can't really be a file at this point. Last minute check to see if it's intended on being a flag
+			if tagReg.MatchString(arg) {
+				i-- // Wind back, so we pick this tag up in next step
+				break
+			}
+			// Assume only option left is arg must be a path
+			tagMedia = append(tagMedia, cxt.AbsPath(arg))
+		}
+		if len(tagMedia) == 0 {
+			return fmt.Errorf("no files specified")
 		}
 
-		if remove {
-			tags.RemoveTag(filename, tagNames...)
-		} else {
-			tags.AddTag(filename, tagNames...)
+		// Collect tags
+		tagNames := []string{}
+		for i++; i < len(args); i++ {
+			if !tagReg.MatchString(args[i]) {
+				return fmt.Errorf("Invalid tag '%s'", args[i])
+			}
+			tagNames = append(tagNames, args[i])
 		}
+		if len(tagNames) == 0 {
+			return fmt.Errorf("no tags specified")
+		}
+
+		// Apply / Remove tags!
+		if remove {
+			return tags.RemoveTag(tagMedia, tagNames)
+		}
+		return tags.AddTag(tagMedia, tagNames)
 
 	case "backup": // Backup files within working directory to specified destination
 		if len(args) < 3 {

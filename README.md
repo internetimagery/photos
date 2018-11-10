@@ -6,7 +6,9 @@
 
 # TODO:
 
+
 - fix up tagging, add proper tests in main_test
+- allow index as argument for tag file. with -- to separate tags from filenames
 - make tagging use a web serice, with a basic website for interractive tagging
 - add image duplication checker like phash
 - add video phash check, if possible
@@ -36,6 +38,21 @@ photos rename
 
 Run through all files within the working directory.
 Use the parent directory name as the namespace (or event) and checks the filenames against a predetermined format ("event_index[tag tag].ext"). Files that do not match this format are determined to be newly added, and are renamed. If a compression command is provided in the config file, this will be run on the file (ie mozjpeg "$SOURCEPATH" > "$DESTPATH").
+
+```
+photos tag [--remove] <filename> <filename...> -- <tag> <tag...>
+```
+
+Apply (or remove) tags from files. Either singuarly or in bulk.
+If the file resides in the current working directory, it can be specified by its index as shorthand. ie:
+
+```
+photos tag 18-01-10 Event_004.jpg person
+photos tag 4 person
+```
+
+The former can be used as the latter, shorthand.
+
 
 ```
 photos backup name

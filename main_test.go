@@ -205,7 +205,27 @@ func TestAddTag(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 	defer tu.LoadTestdata()()
 
+	// Add tag by filename
 	event := filepath.Join(tu.Dir, "event01")
 	tu.Must(run(event, []string{"exe", "tag", filepath.Join(event, "event01_010[one].txt"), "two", "three"}))
 	tu.AssertExists(filepath.Join(event, "event01_010[one three two].txt"))
+
+	// Add tag by index
+	tu.Must(run(event, []string{"exe", "tag", "10", "four"}))
+	tu.AssertExists(filepath.Join(event, "event01_010[four one three two].txt"))
+
+	// Add numeric (index looking) tag by index using --
+	tu.Must(run(event, []string{"exe", "tag", "10", "--", "5"}))
+	tu.AssertExists(filepath.Join(event, "event01_010[5 four one three two].txt"))
+
+	// no tags, stopping with --
+	if err := run(event, []string{"exe", "tag", "10", "--"}); err == nil {
+		tu.Fail("Allowed no tags to be specified.")
+	}
+
+	// no files, starting with --
+	if err := run(event, []string{"exe", "tag", "--", "10"}); err == nil {
+		tu.Fail("Allowed no files to be specified.")
+	}
+
 }
