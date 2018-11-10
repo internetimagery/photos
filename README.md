@@ -7,7 +7,6 @@
 # TODO:
 
 - fix up tagging, add proper tests in main_test
-- use standard file structure for importing images, and placing them etc
 - make tagging use a web serice, with a basic website for interractive tagging
 - add image duplication checker like phash
 - add video phash check, if possible
@@ -26,10 +25,10 @@ photos init "some name"
 Initialize working directory as project root. Create a configuration file at that location that serves to mark the root, and also provides a space to add custom commands for backups / compression.
 
 ```
-photos sort
+photos sort <filename> <filename...>
 ```
 
-Take all loose media in working directory, and add them to a folders named based on their date. Use EXIF where available.
+Take all specified files, and add them to the project, sorted into folders named based on their date. Use EXIF where available.
 
 ```
 photos rename

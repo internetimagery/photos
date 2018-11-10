@@ -2,7 +2,6 @@ package sort
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -10,6 +9,7 @@ import (
 	"time"
 
 	"github.com/internetimagery/photos/context"
+	"github.com/internetimagery/photos/format"
 	"github.com/rwcarlsen/goexif/exif"
 )
 
@@ -74,32 +74,30 @@ func SortMedia(cxt *context.Context, source ...string) error {
 	if len(source) == 0 {
 		return fmt.Errorf("no sources provided to sort")
 	}
-	media := map[string]struct{}{}
+	mediaPaths := map[string]struct{}{}
 	for _, src := range source { // Make paths absolute
 		cleansrc := cxt.AbsPath(src)
 		if strings.HasPrefix(cleansrc, cxt.Root) {
 			return fmt.Errorf("sorting source directory cannot be from within project")
 		}
-		if info, err := os.Stat(cleansrc); err == nil {
-			if info.Mode().IsRegular() { // Add single files
-				media[cleansrc] = struct{}{}
-			} else if info.IsDir() {
-				if infos, err := ioutil.ReadDir(cleansrc); err == nil {
-					for _, info = range infos {
-						if info.Mode().IsRegular() {
-							media[filepath.Join(cleansrc, info.Name())] = struct{}{}
-						}
-					}
-				} else {
-					return err
-				}
-			}
-		} else {
+		info, err := os.Stat(cleansrc)
+		if err != nil {
 			return err
+		}
+		if info.Mode().IsRegular() { // Add single files
+			mediaPaths[cleansrc] = struct{}{}
+		} else if info.IsDir() {
+			mediaItems, err := format.GetMediaFromDirectory(cleansrc)
+			if err != nil {
+				return err
+			}
+			for _, media := range mediaItems { // Add files from directory
+				mediaPaths[media.Path] = struct{}{}
+			}
 		}
 	}
 
-	if len(media) == 0 {
+	if len(mediaPaths) == 0 {
 		return nil // Nothing to do...
 	}
 
@@ -110,7 +108,7 @@ func SortMedia(cxt *context.Context, source ...string) error {
 	}
 
 	// Move files into their folders
-	for sourcePath := range media {
+	for sourcePath := range mediaPaths {
 		date, err := GetMediaDate(sourcePath)
 		if err != nil {
 			return err
