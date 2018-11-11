@@ -20,7 +20,7 @@ import (
 // GenerateContentHash : Generate hash from content to compare contents
 func GenerateContentHash(hashType string, handle io.Reader) (string, error) {
 	switch hashType {
-	case "MD5":
+	case "SHA256":
 		hasher := sha256.New()
 		if _, err := io.Copy(hasher, handle); err != nil {
 			return "", err
@@ -103,7 +103,7 @@ func (sshot *Snapshot) Generate(filename string) chan error {
         sshot.ModTime = info.ModTime()
         sshot.Size = info.Size()
 
-        chash, err := GenerateContentHash("MD5", handle) // MD5 hardcoded for now
+        chash, err := GenerateContentHash("SHA256", handle) // SHA256 hardcoded for now
         if err != nil {
             return
         }
@@ -120,6 +120,39 @@ func (sshot *Snapshot) Generate(filename string) chan error {
     return done
 }
 
+// CheckFile : Check if a file matches corresponding snapshot
+func CheckFile(filename string, sshot *Snapshot) error {
+	// Get a handle
+    handle, err := os.Open(filename)
+    if err != nil {
+        return err
+    }
+    defer handle.Close()
+    info, err := handle.Stat()
+    if err != nil {
+        return err
+    }
+
+    // Some checking, escallating in complexity
+    if filepath.Base(filename) != sshot.Name {
+        return fmt.Errorf("Names do not match")
+    }
+    if info.Size() != sshot.Size {
+        return fmt.Errorf("Sizes do not match")
+    }
+    if info.ModTime() == sshot.ModTime {
+        // Roughly conclude a match!
+        return nil
+    }
+    hash, err := GenerateContentHash("SHA256", handle) // SHA256 hardcoding for now
+    if err != nil {
+        return err
+    }
+    if hash != sshot.ContentHash {
+        return fmt.Errorf("Content does not match")
+    }
+    return nil
+}
 
 // TODO: manage file, listing snapshots
 
