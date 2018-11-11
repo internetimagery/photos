@@ -2,6 +2,7 @@ package context
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -22,10 +23,7 @@ func TestContext(t *testing.T) {
 	defer tu.LoadTestdata()()
 
 	workingDir := filepath.Join(tu.Dir, "some-event")
-	cxt, err := NewContext(workingDir)
-	if err != nil {
-		tu.Fail(err)
-	}
+	cxt := tu.Must(NewContext(workingDir)).(*Context)
 
 	// Check we reached root file
 	if cxt.Root != tu.Dir {
@@ -41,10 +39,7 @@ func TestContextEnv(t *testing.T) {
 	os.Setenv("TESTENV", "SUCCESS")
 
 	// Build context and check environment var came through
-	cxt, err := NewContext(tu.Dir)
-	if err != nil {
-		tu.Fatal(err)
-	}
+	cxt := tu.Must(NewContext(tu.Dir)).(*Context)
 	if cxt.Env["TESTENV"] != "SUCCESS" {
 		tu.Fail("Env was not passed into context")
 	}
@@ -58,10 +53,7 @@ func TestContextPrepCommand(t *testing.T) {
 	}}
 
 	expectCommand := "echo $TESTENV"
-	command, err := cxt.PrepCommand(expectCommand)
-	if err != nil {
-		tu.Fail(err)
-	}
+	command := tu.Must(cxt.PrepCommand(expectCommand)).(*exec.Cmd)
 	if len(command.Args) != 2 && command.Args[1] != "VALUE" {
 		tu.Fail("Got args", command.Args)
 	}

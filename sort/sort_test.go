@@ -13,11 +13,7 @@ import (
 func TestFormatDate(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 	testDate := "08-10-16"
-	location, err := time.LoadLocation("")
-	if err != nil {
-		tu.Fatal(err)
-	}
-	testTime := time.Date(2008, 10, 16, 12, 0, 0, 0, location)
+	testTime := time.Date(2008, 10, 16, 12, 0, 0, 0, time.Local)
 
 	compareDate := FormatDate(testTime)
 	if compareDate != testDate {
@@ -33,10 +29,7 @@ func TestGetMediaDate(t *testing.T) {
 	testTime1 := "18-10-22"
 	tu.ModTime(2018, 10, 22, testFile1)
 
-	compareTime, err := GetMediaDate(testFile1)
-	if err != nil {
-		tu.Fail(err)
-	}
+	compareTime := tu.Must(GetMediaDate(testFile1)).(time.Time)
 
 	layout := "06-01-02"
 
@@ -45,12 +38,12 @@ func TestGetMediaDate(t *testing.T) {
 	}
 
 	testfile2 := filepath.Join(tu.Dir, "testdir")
-	if _, err = GetMediaDate(testfile2); err == nil {
+	if _, err := GetMediaDate(testfile2); err == nil {
 		tu.Fail("Failed to exclude folders.")
 	}
 
 	testfile3 := filepath.Join(tu.Dir, "testfilemissing.txt")
-	if _, err = GetMediaDate(testfile3); !os.IsNotExist(err) {
+	if _, err := GetMediaDate(testfile3); !os.IsNotExist(err) {
 		if err == nil {
 			tu.Fail("Failed to error on missing file.")
 		} else {
@@ -66,14 +59,9 @@ func TestGetMediaDateEXIF(t *testing.T) {
 
 	testFile := filepath.Join(tu.Dir, "img01.JPG")
 	modtime := time.Date(2000, 10, 10, 10, 10, 10, 10, time.Local)
-	if err := os.Chtimes(testFile, modtime, modtime); err != nil { // Make sure modtime differs from exif
-		tu.Fatal(err)
-	}
+	tu.MustFatal(os.Chtimes(testFile, modtime, modtime)) // Make sure modtime differs from exif
 
-	compareTime, err := GetMediaDate(testFile)
-	if err != nil {
-		tu.Fail(err)
-	}
+	compareTime := tu.Must(GetMediaDate(testFile)).(time.Time)
 
 	layout := "06-01-02"
 	testTime := "18-03-17"
@@ -116,10 +104,7 @@ func TestSortMedia(t *testing.T) {
 
 	// Get our context
 	project := filepath.Join(tu.Dir, "project")
-	cxt, err := context.NewContext(project)
-	if err != nil {
-		tu.Fatal(err)
-	}
+	cxt := tu.MustFatal(context.NewContext(project)).(*context.Context)
 
 	dateDir := filepath.Join(project, "Sorted", "18-10-22")
 	tu.ModTime(2018, 10, 22,
@@ -148,13 +133,10 @@ func TestSortMediaInsideProject(t *testing.T) {
 
 	// Get our context
 	project := filepath.Join(tu.Dir, "project")
-	cxt, err := context.NewContext(project)
-	if err != nil {
-		tu.Fatal(err)
-	}
+	cxt := tu.MustFatal(context.NewContext(project)).(*context.Context)
 
 	// Run our sort
-	if err = SortMedia(cxt, filepath.Join(project, "event01")); err == nil {
+	if err := SortMedia(cxt, filepath.Join(project, "event01")); err == nil {
 		tu.Fail("Allowed sorting media inside project")
 	}
 }
@@ -165,13 +147,10 @@ func TestSortMediaMissing(t *testing.T) {
 
 	// Get our context
 	project := filepath.Join(tu.Dir, "project")
-	cxt, err := context.NewContext(project)
-	if err != nil {
-		tu.Fatal(err)
-	}
+	cxt := tu.MustFatal(context.NewContext(project)).(*context.Context)
 
 	// Run our sort
-	if err = SortMedia(cxt, filepath.Join(tu.Dir, "somewhere")); err == nil {
+	if err := SortMedia(cxt, filepath.Join(tu.Dir, "somewhere")); err == nil {
 		tu.Fail("Allowed missing source")
 	}
 }

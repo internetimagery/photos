@@ -87,10 +87,7 @@ func TestGetMediaFromDirectory(t *testing.T) {
 	defer tu.LoadTestdata()()
 
 	event := filepath.Join(tu.Dir, "18-05-12 event")
-	result, err := GetMediaFromDirectory(event)
-	if err != nil {
-		tu.Fail(err)
-	}
+	result := tu.Must(GetMediaFromDirectory(event)).([]*Media)
 
 	if len(result) != 4 {
 		tu.Fail("Expected 4 media items. Got", len(result))

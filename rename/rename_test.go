@@ -1,7 +1,6 @@
 package rename
 
 import (
-	"fmt"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -16,10 +15,7 @@ func TestRename(t *testing.T) {
 
 	// Get context
 	event := filepath.Join(tu.Dir, "18-02-01 event")
-	cxt, err := context.NewContext(event)
-	if err != nil {
-		tu.Fatal(err)
-	}
+	cxt := tu.MustFatal(context.NewContext(event)).(*context.Context)
 
 	// Add copy command to windows
 	if runtime.GOOS == "windows" {
@@ -43,11 +39,7 @@ func TestRenameNoNew(t *testing.T) {
 
 	// Get context
 	event := filepath.Join(tu.Dir, "event01")
-	cxt, err := context.NewContext(event)
-	if err != nil {
-		fmt.Println("HERE")
-		tu.Fatal(err)
-	}
+	cxt := tu.MustFatal(context.NewContext(event)).(*context.Context)
 
 	// Perform rename with compression
 	tu.Must(Rename(cxt, true))
