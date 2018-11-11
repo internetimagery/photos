@@ -68,11 +68,42 @@ func (util *TestUtil) ModTime(year, month, day int, filePaths ...string) {
 	}
 }
 
-// Must : Wrapper for functions that give out a single error.
-func (util *TestUtil) Must(err error) {
-	if err != nil {
-		util.Fail(err)
+// Must : Convenience wrapper for functions that fail on error.
+func (util *TestUtil) Must(args ...interface{}) interface{} {
+	argLen := len(args)
+	if argLen > 2 {
+		util.Fatal("Too many args for Must", args)
 	}
+	if argLen == 0 {
+		return nil
+	}
+	err := args[len(args)-1]
+	if err != nil {
+		util.Fail(err.(error))
+	}
+	if argLen == 2 {
+		return args[0]
+	}
+	return nil
+}
+
+// MustFatal : Convenience for functions that fatal on error.
+func (util *TestUtil) MustFatal(args ...interface{}) interface{} {
+	argLen := len(args)
+	if argLen > 2 {
+		util.Fatal("Too many args for Must", args)
+	}
+	if argLen == 0 {
+		return nil
+	}
+	err := args[len(args)-1]
+	if err != nil {
+		util.Fail(err.(error))
+	}
+	if argLen == 2 {
+		return args[0]
+	}
+	return nil
 }
 
 // AssertExists : Check if file exists. Fail if not

@@ -101,10 +101,8 @@ compress:
     command: all
 `
 	handle := bytes.NewReader([]byte(testData))
-	conf, err := LoadConfig(handle)
-	if err != nil {
-		tu.Fail(err)
-	}
+	conf := tu.Must(LoadConfig(handle)).(*Config)
+
 	// Do some testing!
 	tests := map[string]string{
 		"anything":                         "all",
@@ -139,10 +137,8 @@ backup:
     command: local
 `
 	handle := bytes.NewReader([]byte(testData))
-	conf, err := LoadConfig(handle)
-	if err != nil {
-		tu.Fail(err)
-	}
+	conf := tu.Must(LoadConfig(handle)).(*Config)
+
 	// Do some testing!
 	tests := map[string]map[string]bool{
 		"local":   map[string]bool{"local": true},

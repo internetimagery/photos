@@ -14,10 +14,7 @@ func TestRunBackup(t *testing.T) {
 	defer tu.LoadTestdata()()
 
 	event := filepath.Join(tu.Dir, "event01")
-	cxt, err := context.NewContext(event)
-	if err != nil {
-		tu.Fatal(err)
-	}
+	cxt := tu.MustFatal(context.NewContext(event)).(*context.Context)
 
 	// Add touch command to windows
 	if runtime.GOOS == "windows" {
@@ -55,12 +52,9 @@ func TestBackupBadCommand(t *testing.T) {
 	defer tu.LoadTestdata()()
 
 	event := filepath.Join(tu.Dir, "event01")
-	cxt, err := context.NewContext(event)
-	if err != nil {
-		tu.Fatal(err)
-	}
+	cxt := tu.MustFatal(context.NewContext(event)).(*context.Context)
 
-	if err = RunBackup(cxt, "test"); err == nil {
+	if err := RunBackup(cxt, "test"); err == nil {
 		tu.Fail("Passed on bad command!")
 	}
 }
@@ -70,12 +64,9 @@ func TestBackupContainsSource(t *testing.T) {
 	defer tu.LoadTestdata()()
 
 	event := filepath.Join(tu.Dir, "event01")
-	cxt, err := context.NewContext(event)
-	if err != nil {
-		tu.Fatal(err)
-	}
+	cxt := tu.MustFatal(context.NewContext(event)).(*context.Context)
 
-	if err = RunBackup(cxt, "test"); err == nil {
+	if err := RunBackup(cxt, "test"); err == nil {
 		tu.Fail("Allowed backup with source files still present.")
 	}
 }
@@ -85,12 +76,9 @@ func TestBackupContainsUnformatted(t *testing.T) {
 	defer tu.LoadTestdata()()
 
 	event := filepath.Join(tu.Dir, "event01")
-	cxt, err := context.NewContext(event)
-	if err != nil {
-		tu.Fatal(err)
-	}
+	cxt := tu.MustFatal(context.NewContext(event)).(*context.Context)
 
-	if err = RunBackup(cxt, "test"); err == nil {
+	if err := RunBackup(cxt, "test"); err == nil {
 		tu.Fail("Allowed backup with source files still unformatted.")
 	}
 }

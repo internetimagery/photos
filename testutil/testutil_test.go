@@ -60,6 +60,32 @@ func TestMust(t *testing.T) {
 		t.Log("Did not output message")
 		t.Fail()
 	}
+	if "ab" != "a"+tu.Must("b", nil).(string) {
+		tu.Fail("Did not return properly")
+	}
+}
+
+func TestMustFatal(t *testing.T) {
+	mock := &TestMock{}
+	tu := NewTestUtil(mock)
+	tu.MustFatal(nil)
+	if mock.Failed {
+		t.Log("Unexpected fail!")
+		t.Fail()
+	}
+	mock.Failed = false
+	tu.MustFatal(fmt.Errorf("Fail"))
+	if !mock.Failed {
+		t.Log("Did not fail when supposed to")
+		t.Fail()
+	}
+	if mock.LogStr != "Fail" {
+		t.Log("Did not output message")
+		t.Fail()
+	}
+	if "ab" != "a"+tu.MustFatal("b", nil).(string) {
+		tu.Fail("Did not return properly")
+	}
 }
 
 // LoadTestdata : Load in testdata for testing
