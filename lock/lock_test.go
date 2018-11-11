@@ -13,7 +13,7 @@ func TestGenerateContentHash(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 
 	buff := bytes.NewReader([]byte("SOME DATA HERE"))
-	expectHash := "j7BgIUq2w472YYetmry+ieE0D3kqaVRdU6Ri6uq2hTY=" // MD5
+	expectHash := "MD5:j7BgIUq2w472YYetmry+ieE0D3kqaVRdU6Ri6uq2hTY=" // MD5
 
 	testHash := tu.Must(GenerateContentHash("MD5", buff)).(string)
 	if expectHash != testHash {
@@ -21,6 +21,8 @@ func TestGenerateContentHash(t *testing.T) {
 	}
 }
 
+// TODO: test different image types (eg png)
+// TODO: test error on non-image type
 func TestGeneratePercetualHash(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 	defer tu.LoadTestdata()()
