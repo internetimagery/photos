@@ -7,6 +7,9 @@
 # TODO:
 
 
+-lock mechanism / command. Make everything in folder read only. Add "lock.yaml" file that contains information about all files
+within folder. phash, md5 hash, filesize, modification time, filename, etc. When command invoked again on locked folder, compare against existing files. Error out if files are different.
+- Use lock mechanism before backup commands are run. Add --force option to override changes.
 - fix up tagging, add proper tests in main_test
 - allow index as argument for tag file. with -- to separate tags from filenames
 - make tagging use a web serice, with a basic website for interractive tagging
