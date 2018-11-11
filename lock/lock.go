@@ -47,6 +47,8 @@ func GeneratePerceptualHash(hashType string, handle io.Reader) (string, error) {
 	return "", fmt.Errorf("Unknown hash format '%s'", hashType)
 }
 
+// TODO: add similar images to test this on. Also differently compressed versions of same image.
+
 // IsSamePerceptualHash : Hash comparison looking for equality
 func IsSamePerceptualHash(hash1, hash2 string) (bool, error) {
 	test1, err := goimagehash.ImageHashFromString(hash1)
@@ -74,7 +76,50 @@ type Snapshot struct {
 	PerceptualHash map[string]string `yaml:"phash"` // Hash of the image
 }
 
-// TODO: new snapshot, create all data
+// Generate : Generate new snapshot data from file, with all the trimmings. "err <-&Snapshot{}.Generate(name)"
+func (sshot *Snapshot) Generate(filename string) chan error {
+    done := make(chan error)
+    go func(){
+        var err error
+        defer func(){
+            done <- err
+        }()
+
+        // Get a handle on things!
+        handle, err := os.Open(filename)
+        if err != nil {
+            return
+        }
+        defer handle.Close()
+
+        // Collect basic info on file!
+        info, err := handle.Stat()
+        if err != nil {
+            return
+        }
+
+        // Basic info
+        sshot.Name = info.Name()
+        sshot.ModTime = info.ModTime()
+        sshot.Size = info.Size()
+
+        chash, err := GenerateContentHash("MD5", handle) // MD5 hardcoded for now
+        if err != nil {
+            return
+        }
+        sshot.ContentHash = chash
+
+        // TODO: This error needs to be managed for files that cannot have a phash (non-images)
+        handle.Seek(0)
+        phash, err := GeneratePerceptualHash("Average", handle) // Average hardcoded for now
+        if err != nil {
+            return
+        }
+        sshot.PerceptualHash = phash
+    }()
+    return done
+}
+
 
 // TODO: manage file, listing snapshots
 
