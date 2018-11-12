@@ -77,20 +77,36 @@ func TestSnapshot(t *testing.T) {
 	tu.Must(<-sshot1.Generate(testfile1))
 	tu.Must(<-sshot2.Generate(testfile2))
 
-	if sshot1.Name != "testimg1.txt" ||
-		sshot1.Size != 24 ||
-		!modtime1.Equal(sshot1.ModTime) ||
-		sshot1.ContentHash["SHA256"] != "SHA256:h13POS/MwQ0SHVmJOSHgeN7+fM9ymIJZvdZt3nnLAqY=" ||
-		sshot1.PerceptualHash != nil {
-		tu.Fail("Invalid snapshot 1")
+	if expect := "testimg1.txt"; sshot1.Name != expect {
+		tu.FailE(expect, sshot1.Name)
+	}
+	if expect := int64(24); sshot1.Size != expect {
+		tu.FailE(expect, sshot1.Size)
+	}
+	if !modtime1.Equal(sshot1.ModTime) {
+		tu.FailE(modtime1, sshot1.ModTime)
+	}
+	if expect := "SHA256:h13POS/MwQ0SHVmJOSHgeN7+fM9ymIJZvdZt3nnLAqY="; sshot1.ContentHash["SHA256"] != expect {
+		tu.FailE(expect, sshot1.ContentHash["SHA256"])
+	}
+	if sshot1.PerceptualHash != nil {
+		tu.FailE(nil, sshot1.PerceptualHash)
 	}
 
-	if sshot2.Name != "testimg2.jpg" ||
-		sshot2.Size != 281378 ||
-		!modtime2.Equal(sshot2.ModTime) ||
-		sshot2.ContentHash["SHA256"] != "SHA256:E0fI8SqLFxqd2d501xzadaCBg0/ypYiYj5fMCxjJqcg=" ||
-		sshot2.PerceptualHash["average"] != "a:00070f0f7f1f0703" {
-		tu.Fail("Invalid snapshot 2")
+	if expect := "testimg2.jpg"; sshot2.Name != expect {
+		tu.FailE(expect, sshot2.Name)
+	}
+	if expect := int64(281378); sshot2.Size != expect {
+		tu.FailE(expect, sshot2.Size)
+	}
+	if !modtime2.Equal(sshot2.ModTime) {
+		tu.FailE(modtime2, sshot2.ModTime)
+	}
+	if expect := "SHA256:E0fI8SqLFxqd2d501xzadaCBg0/ypYiYj5fMCxjJqcg="; sshot2.ContentHash["SHA256"] != expect {
+		tu.FailE(expect, sshot2.ContentHash["SHA256"])
+	}
+	if expect := "a:00070f0f7f1f0703"; sshot2.PerceptualHash["average"] != expect {
+		tu.FailE(expect, sshot2.PerceptualHash["average"])
 	}
 }
 
