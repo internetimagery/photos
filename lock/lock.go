@@ -7,7 +7,6 @@ import (
 	"image/jpeg"
 	"io"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/corona10/goimagehash"
@@ -123,38 +122,49 @@ func (sshot *Snapshot) Generate(filename string) chan error {
 	return done
 }
 
+// MissmatchError : Error type for missmatches
+type MissmatchError struct {
+	err string
+}
+
+func (err *MissmatchError) Error() string {
+	return err.err
+}
+
 // CheckFile : Check if a file matches corresponding snapshot
-func CheckFile(filename string, sshot *Snapshot) (string, error) {
+func (sshot *Snapshot) CheckFile(filename string) error {
 	// Get a handle
 	handle, err := os.Open(filename)
 	if err != nil {
-		return "", err
+		return err
 	}
 	defer handle.Close()
 	info, err := handle.Stat()
 	if err != nil {
-		return "", err
+		return err
 	}
 
+	// TODO: Do I want this check? If I'm using the name to find this check, it is assumed to already match
+	// TODO: then also not having this could assist in finding renames
 	// Some checking, escallating in complexity
-	if filepath.Base(filename) != sshot.Name {
-		return fmt.Sprintf("Name does not match '%s'", filename), nil
-	}
+	// if filepath.Base(filename) != sshot.Name {
+	// 	return MissmatchError{"Name does not match: "+ filename}
+	// }
 	if info.Size() != sshot.Size {
-		return fmt.Sprintf("Size does not match '%s'", filename), nil
+		return &MissmatchError{"Size does not match: " + filename}
 	}
 	if info.ModTime() == sshot.ModTime {
 		// Roughly conclude a match!
-		return "", nil
+		return nil
 	}
 	hash, err := GenerateContentHash("SHA256", handle) // SHA256 hardcoding for now
 	if err != nil {
-		return "", err
+		return err
 	}
 	if hash != sshot.ContentHash["SHA256"] {
-		return fmt.Sprintf("Content does not match '%s'", filename), nil
+		return &MissmatchError{"Content does not match: " + filename}
 	}
-	return "", nil
+	return nil
 }
 
 // TODO: manage file, listing snapshots

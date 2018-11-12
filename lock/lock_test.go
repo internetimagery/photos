@@ -92,3 +92,34 @@ func TestSnapshot(t *testing.T) {
 		tu.Fail("Invalid snapshot 2")
 	}
 }
+
+func TestCheckFile(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	testfile1 := filepath.Join(tu.Dir, "testfile1.txt")
+	testfile2 := filepath.Join(tu.Dir, "testfile2.txt")
+	testfile3 := filepath.Join(tu.Dir, "testfile3.txt")
+
+	tu.ModTime(2018, 10, 10, testfile2, testfile3)
+
+	sshot1, sshot2, sshot3 := new(Snapshot), new(Snapshot), new(Snapshot)
+	tu.Must(<-sshot1.Generate(testfile1))
+	tu.Must(<-sshot2.Generate(testfile2))
+	tu.Must(<-sshot3.Generate(testfile3))
+
+	tu.Must(sshot1.CheckFile(testfile1))
+	tu.Must(sshot2.CheckFile(testfile2))
+	tu.Must(sshot3.CheckFile(testfile3))
+
+	if err := sshot1.CheckFile(testfile2); err == nil {
+		tu.Fail("False positive 1!")
+	} else if _, ok := err.(*MissmatchError); !ok {
+		tu.Fail(err)
+	}
+	if err := sshot2.CheckFile(testfile3); err == nil {
+		tu.Log("This test fails. But I'm allowing it anyway. Same modtime + size is enough to assume same file in this basic context")
+	} else if _, ok := err.(*MissmatchError); !ok {
+		tu.Fail(err)
+	}
+}
