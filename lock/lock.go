@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"image/jpeg"
 	"io"
+	"os"
+	"path/filepath"
 	"time"
-    "os"
-    "path/filepath"
+
 	"github.com/corona10/goimagehash"
 )
 
@@ -72,87 +73,88 @@ func IsSamePerceptualHash(hash1, hash2 string) (bool, error) {
 type Snapshot struct {
 	Name           string            `yaml:"name"`  // Base of path. Ie /one/two.three = two.three
 	ModTime        time.Time         `yaml:"mod"`   // Modification time
-	Size           int64               `yaml:"size"`  // Filesize!
+	Size           int64             `yaml:"size"`  // Filesize!
 	ContentHash    map[string]string `yaml:"chash"` // Hash of the content
 	PerceptualHash map[string]string `yaml:"phash"` // Hash of the image
 }
 
 // Generate : Generate new snapshot data from file, with all the trimmings. "err <-&Snapshot{}.Generate(name)"
 func (sshot *Snapshot) Generate(filename string) chan error {
-    done := make(chan error)
-    go func(){
-        var err error
-        defer func(){
-            done <- err
-        }()
+	done := make(chan error)
+	go func() {
+		var err error
+		defer func() {
+			done <- err
+		}()
 
-        // Get a handle on things!
-        handle, err := os.Open(filename)
-        if err != nil {
-            return
-        }
-        defer handle.Close()
+		// Get a handle on things!
+		handle, err := os.Open(filename)
+		if err != nil {
+			return
+		}
+		defer handle.Close()
 
-        // Collect basic info on file!
-        info, err := handle.Stat()
-        if err != nil {
-            return
-        }
+		// Collect basic info on file!
+		info, err := handle.Stat()
+		if err != nil {
+			return
+		}
 
-        // Basic info
-        sshot.Name = info.Name()
-        sshot.ModTime = info.ModTime()
-        sshot.Size = info.Size()
+		// Basic info
+		sshot.Name = info.Name()
+		sshot.ModTime = info.ModTime()
+		sshot.Size = info.Size()
 
-        chash, err := GenerateContentHash("SHA256", handle) // SHA256 hardcoded for now
-        if err != nil {
-            return
-        }
-        sshot.ContentHash = map[string]string{"SHA256": chash}
+		chash, err := GenerateContentHash("SHA256", handle) // SHA256 hardcoded for now
+		if err != nil {
+			return
+		}
+		sshot.ContentHash = map[string]string{"SHA256": chash}
 
-        // TODO: This error needs to be managed for files that cannot have a phash (non-images)
-        handle.Seek(0, 0)
-        phash, err := GeneratePerceptualHash("average", handle) // SHA256 hardcoded for now
-        if err != nil {
-            return
-        }
-        sshot.PerceptualHash = map[string]string{"average": phash}
-    }()
-    return done
+		// TODO: This error needs to be managed for files that cannot have a phash (non-images)
+		handle.Seek(0, 0)
+		phash, err := GeneratePerceptualHash("average", handle)
+		if err == nil { // SHA256 hardcoded for now
+			sshot.PerceptualHash = map[string]string{"average": phash}
+		} else if _, ok := err.(jpeg.FormatError); ok {
+			err = nil // Ignore format error
+		}
+	}()
+	return done
 }
 
 // CheckFile : Check if a file matches corresponding snapshot
 func CheckFile(filename string, sshot *Snapshot) (string, error) {
 	// Get a handle
-    handle, err := os.Open(filename)
-    if err != nil {
-        return "", err
-    }
-    defer handle.Close()
-    info, err := handle.Stat()
-    if err != nil {
-        return "", err
-    }
+	handle, err := os.Open(filename)
+	if err != nil {
+		return "", err
+	}
+	defer handle.Close()
+	info, err := handle.Stat()
+	if err != nil {
+		return "", err
+	}
 
-    // Some checking, escallating in complexity
-    if filepath.Base(filename) != sshot.Name {
-        return fmt.Sprintf("Name does not match '%s'", filename), nil
-    }
-    if info.Size() != sshot.Size {
-        return fmt.Sprintf("Size does not match '%s'", filename), nil
-    }
-    if info.ModTime() == sshot.ModTime {
-        // Roughly conclude a match!
-        return "", nil
-    }
-    hash, err := GenerateContentHash("SHA256", handle) // SHA256 hardcoding for now
-    if err != nil {
-        return "", err
-    }
-    if hash != sshot.ContentHash["SHA256"] {
-        return fmt.Sprintf("Content does not match '%s'", filename), nil
-    }
-    return "", nil
+	// Some checking, escallating in complexity
+	if filepath.Base(filename) != sshot.Name {
+		return fmt.Sprintf("Name does not match '%s'", filename), nil
+	}
+	if info.Size() != sshot.Size {
+		return fmt.Sprintf("Size does not match '%s'", filename), nil
+	}
+	if info.ModTime() == sshot.ModTime {
+		// Roughly conclude a match!
+		return "", nil
+	}
+	hash, err := GenerateContentHash("SHA256", handle) // SHA256 hardcoding for now
+	if err != nil {
+		return "", err
+	}
+	if hash != sshot.ContentHash["SHA256"] {
+		return fmt.Sprintf("Content does not match '%s'", filename), nil
+	}
+	return "", nil
 }
 
 // TODO: manage file, listing snapshots

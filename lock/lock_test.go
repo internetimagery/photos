@@ -21,8 +21,6 @@ func TestGenerateContentHash(t *testing.T) {
 	}
 }
 
-// TODO: test different image types (eg png)
-// TODO: test error on non-image type
 func testgeneratepercetualhash(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 	defer tu.LoadTestdata()()
@@ -63,4 +61,34 @@ func testgeneratepercetualhash(t *testing.T) {
 		tu.Fail("False positive")
 	}
 
+}
+
+func TestSnapshot(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	testfile1 := filepath.Join(tu.Dir, "testimg1.txt")
+	testfile2 := filepath.Join(tu.Dir, "testimg2.jpg")
+	modtime1 := tu.MustFatal(os.Stat(testfile1)).(os.FileInfo).ModTime()
+	modtime2 := tu.MustFatal(os.Stat(testfile2)).(os.FileInfo).ModTime()
+
+	sshot1, sshot2 := new(Snapshot), new(Snapshot)
+	tu.Must(<-sshot1.Generate(testfile1))
+	tu.Must(<-sshot2.Generate(testfile2))
+
+	if sshot1.Name != "testimg1.txt" ||
+		sshot1.Size != 24 ||
+		!modtime1.Equal(sshot1.ModTime) ||
+		sshot1.ContentHash["SHA256"] != "SHA256:h13POS/MwQ0SHVmJOSHgeN7+fM9ymIJZvdZt3nnLAqY=" ||
+		sshot1.PerceptualHash != nil {
+		tu.Fail("Invalid snapshot 1")
+	}
+
+	if sshot2.Name != "testimg2.jpg" ||
+		sshot2.Size != 281378 ||
+		!modtime2.Equal(sshot2.ModTime) ||
+		sshot2.ContentHash["SHA256"] != "SHA256:E0fI8SqLFxqd2d501xzadaCBg0/ypYiYj5fMCxjJqcg=" ||
+		sshot2.PerceptualHash["average"] != "a:00070f0f7f1f0703" {
+		tu.Fail("Invalid snapshot 2")
+	}
 }
