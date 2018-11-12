@@ -2,6 +2,7 @@ package lock
 
 import (
 	"bytes"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -120,6 +121,24 @@ func TestCheckFile(t *testing.T) {
 	if err := sshot2.CheckFile(testfile3); err == nil {
 		tu.Log("This test fails. But I'm allowing it anyway. Same modtime + size is enough to assume same file in this basic context")
 	} else if _, ok := err.(*MissmatchError); !ok {
+		tu.Fail(err)
+	}
+}
+
+func TestReadOnly(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	testfile := filepath.Join(tu.Dir, "testfile.txt")
+	tu.MustFatal(ioutil.WriteFile(testfile, []byte("hello there"), 0666))
+
+	tu.Must(ReadOnly(testfile))
+
+	handle, err := os.OpenFile(testfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err == nil {
+		handle.Close()
+		tu.Fail("File is not readonly!")
+	} else if !os.IsPermission(err) {
 		tu.Fail(err)
 	}
 }

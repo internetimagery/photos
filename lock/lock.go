@@ -131,7 +131,7 @@ func (err *MissmatchError) Error() string {
 	return err.err
 }
 
-// CheckFile : Check if a file matches corresponding snapshot
+// CheckFile : Check if a snapshot matches corresponding file. Return missmatch error if not matching
 func (sshot *Snapshot) CheckFile(filename string) error {
 	// Get a handle
 	handle, err := os.Open(filename)
@@ -163,6 +163,18 @@ func (sshot *Snapshot) CheckFile(filename string) error {
 	}
 	if hash != sshot.ContentHash["SHA256"] {
 		return &MissmatchError{"Content does not match: " + filename}
+	}
+	return nil
+}
+
+// ReadOnly : Make file readonly
+func ReadOnly(filename string) error {
+	info, err := os.Stat(filename)
+	if err != nil {
+		return err
+	}
+	if err := os.Chmod(filename, info.Mode().Perm()&0444); err != nil {
+		return err
 	}
 	return nil
 }
