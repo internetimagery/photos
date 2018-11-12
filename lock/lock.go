@@ -144,6 +144,11 @@ func (sshot *Snapshot) CheckFile(filename string) error {
 		return err
 	}
 
+	// TODO: Remove this name entirely. Then the overall structure can change from:
+	// [ snapshot, Snapshot]
+	// to
+	// { filename: snapshot, filename: snapshot}
+
 	// TODO: Do I want this check? If I'm using the name to find this check, it is assumed to already match
 	// TODO: then also not having this could assist in finding renames
 	// Some checking, escallating in complexity
@@ -153,7 +158,7 @@ func (sshot *Snapshot) CheckFile(filename string) error {
 	if info.Size() != sshot.Size {
 		return &MissmatchError{"Size does not match: " + filename}
 	}
-	if info.ModTime() == sshot.ModTime {
+	if info.ModTime() == sshot.ModTime { // There needs to be some margin of error here. But how much? What does rclone do?
 		// Roughly conclude a match!
 		return nil
 	}
