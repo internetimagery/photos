@@ -6,7 +6,7 @@
 
 # TODO:
 
-
+- go though errors, and panic important errors that should never-not stop the entire tool from working
 -lock mechanism / command. Make everything in folder read only. Add "lock.yaml" file that contains information about all files
 within folder. phash, md5 hash, filesize, modification time, filename, etc. When command invoked again on locked folder, compare against existing files. Error out if files are different.
 - Use lock mechanism before backup commands are run. Add --force option to override changes.

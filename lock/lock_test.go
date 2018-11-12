@@ -13,9 +13,9 @@ func TestGenerateContentHash(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 
 	buff := bytes.NewReader([]byte("SOME DATA HERE"))
-	expectHash := "MD5:j7BgIUq2w472YYetmry+ieE0D3kqaVRdU6Ri6uq2hTY=" // MD5
+	expectHash := "SHA256:j7BgIUq2w472YYetmry+ieE0D3kqaVRdU6Ri6uq2hTY=" // MD5
 
-	testHash := tu.Must(GenerateContentHash("MD5", buff)).(string)
+	testHash := tu.Must(GenerateContentHash("SHA256", buff)).(string)
 	if expectHash != testHash {
 		tu.FailE(expectHash, testHash)
 	}
@@ -44,7 +44,7 @@ func TestGeneratePercetualHash(t *testing.T) {
 		tu.Fail("Succeeded on bad second argument")
 	}
 
-	testHash := tu.Must(GeneratePerceptualHash("Average", handle)).(string)
+	testHash := tu.Must(GeneratePerceptualHash("average", handle)).(string)
 	if !tu.Must(IsSamePerceptualHash(expectHash, testHash)).(bool) {
 		tu.FailE(expectHash, testHash)
 	}

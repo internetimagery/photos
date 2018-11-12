@@ -7,7 +7,8 @@ import (
 	"image/jpeg"
 	"io"
 	"time"
-
+    "os"
+    "path/filepath"
 	"github.com/corona10/goimagehash"
 )
 
@@ -37,7 +38,7 @@ func GeneratePerceptualHash(hashType string, handle io.Reader) (string, error) {
 		return "", err
 	}
 	switch hashType {
-	case "Average":
+	case "average":
 		hash, err := goimagehash.AverageHash(img)
 		if err != nil {
 			return "", err
@@ -71,7 +72,7 @@ func IsSamePerceptualHash(hash1, hash2 string) (bool, error) {
 type Snapshot struct {
 	Name           string            `yaml:"name"`  // Base of path. Ie /one/two.three = two.three
 	ModTime        time.Time         `yaml:"mod"`   // Modification time
-	Size           int               `yaml:"size"`  // Filesize!
+	Size           int64               `yaml:"size"`  // Filesize!
 	ContentHash    map[string]string `yaml:"chash"` // Hash of the content
 	PerceptualHash map[string]string `yaml:"phash"` // Hash of the image
 }
@@ -107,15 +108,15 @@ func (sshot *Snapshot) Generate(filename string) chan error {
         if err != nil {
             return
         }
-        sshot.ContentHash = chash
+        sshot.ContentHash = map[string]string{"SHA256": chash}
 
         // TODO: This error needs to be managed for files that cannot have a phash (non-images)
-        handle.Seek(0)
-        phash, err := GeneratePerceptualHash("Average", handle) // Average hardcoded for now
+        handle.Seek(0, 0)
+        phash, err := GeneratePerceptualHash("average", handle) // SHA256 hardcoded for now
         if err != nil {
             return
         }
-        sshot.PerceptualHash = phash
+        sshot.PerceptualHash = map[string]string{"average": phash}
     }()
     return done
 }
@@ -148,7 +149,7 @@ func CheckFile(filename string, sshot *Snapshot) (string, error) {
     if err != nil {
         return "", err
     }
-    if hash != sshot.ContentHash {
+    if hash != sshot.ContentHash["SHA256"] {
         return fmt.Sprintf("Content does not match '%s'", filename), nil
     }
     return "", nil
