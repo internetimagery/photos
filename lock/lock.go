@@ -121,37 +121,37 @@ func (sshot *Snapshot) Generate(filename string) chan error {
 }
 
 // CheckFile : Check if a file matches corresponding snapshot
-func CheckFile(filename string, sshot *Snapshot) error {
+func CheckFile(filename string, sshot *Snapshot) (string, error) {
 	// Get a handle
     handle, err := os.Open(filename)
     if err != nil {
-        return err
+        return "", err
     }
     defer handle.Close()
     info, err := handle.Stat()
     if err != nil {
-        return err
+        return "", err
     }
 
     // Some checking, escallating in complexity
     if filepath.Base(filename) != sshot.Name {
-        return fmt.Errorf("Names do not match")
+        return fmt.Sprintf("Name does not match '%s'", filename), nil
     }
     if info.Size() != sshot.Size {
-        return fmt.Errorf("Sizes do not match")
+        return fmt.Sprintf("Size does not match '%s'", filename), nil
     }
     if info.ModTime() == sshot.ModTime {
         // Roughly conclude a match!
-        return nil
+        return "", nil
     }
     hash, err := GenerateContentHash("SHA256", handle) // SHA256 hardcoding for now
     if err != nil {
-        return err
+        return "", err
     }
     if hash != sshot.ContentHash {
-        return fmt.Errorf("Content does not match")
+        return fmt.Sprintf("Content does not match '%s'", filename), nil
     }
-    return nil
+    return "", nil
 }
 
 // TODO: manage file, listing snapshots
