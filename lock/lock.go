@@ -8,9 +8,12 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/corona10/goimagehash"
+	"github.com/internetimagery/photos/context"
+	"github.com/internetimagery/photos/format"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -182,7 +185,6 @@ func ReadOnly(filename string) error {
 
 // LockFile : Format and usage of locked file
 type LockFile struct {
-	Path      string               // Path to file
 	Snapshots map[string]*Snapshot // Basic representations of the files
 }
 
@@ -205,10 +207,73 @@ func (lock *LockFile) Load(handle io.Reader) error {
 	return yaml.Unmarshal(data, lock)
 }
 
-// TODO: manage file, listing snapshots
+// LockEvent : Attempt to lock event. If lock exists, check for any changes and update lock.
+func LockEvent(cxt *context.Context, force bool) error {
+	// Grab media from within file
+	mediaList, err := format.GetMediaFromDirectory(cxt.WorkingDir)
+	if err != nil {
+		return err
+	}
+	// If there is nothing to use, ignore!
+	if len(mediaList) == 0 {
+		return nil
+	}
 
-// todo validate files (is mod-time expected to be equal?) perhaps if size is same, and modtime is different, fall back to hash
+	// Load lockfile snapshot data
+	lockfilePath := filepath.Join(cxt.WorkingDir, LOCKFILENAME)
+	lockfile := LockFile{}
+	if handle, err := os.Open(lockfilePath); err == nil {
+		err = lockfile.Load(handle)
+		handle.Close()
+		if err != nil {
+			return err
+		}
+	} else if !os.IsNotExist(err) {
+		return err
+	}
 
-// TODO: create lock function. perform lock on new files. validate existing files
+	// Verify all files. Kick off new snapshots
+	jobs := []chan error{}
+	for _, media := range mediaList {
+		name := filepath.Base(media.Path)
+		sshot, ok := lockfile.Snapshots[name]
+		if ok && !force { // File exists, compare snapshot, unless we are force locking things
+			if err = sshot.CheckFile(media.Path); err != nil {
+				return err
+			}
+		} else if media.Index > 0 { // Ignore unformatted files
+			sshot = new(Snapshot)
+			lockfile.Snapshots[name] = sshot
+			jobs = append(jobs, sshot.Generate(media.Path))
+		}
+	}
 
-// create "read only" function for linux/osx but also for windows
+	if len(jobs) > 0 { // We have added some things to the lockfile!
+		// Finish up jobs
+		for _, job := range jobs {
+			if err = <-job; err != nil {
+				return err
+			}
+		}
+
+		// Make files readonly
+		for file := range lockfile.Snapshots {
+			err := ReadOnly(filepath.Join(cxt.WorkingDir, file))
+			if err != nil {
+				return err
+			}
+		}
+
+		// Save lockfile!
+		handle, err := os.OpenFile(lockfilePath, os.O_CREATE|os.O_TRUNC, 0644)
+		if err != nil {
+			return err
+		}
+		defer handle.Close()
+		if err = lockfile.Save(handle); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
