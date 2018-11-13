@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"image/jpeg"
 	"io"
+	"io/ioutil"
 	"os"
 	"time"
 
 	"github.com/corona10/goimagehash"
+	yaml "gopkg.in/yaml.v2"
 )
 
 // TODO: generate phash
@@ -17,6 +19,9 @@ import (
 // TODO: impliment checking
 // TODO: impliment serializing lock data
 // TODO: make function to set files readonly, linux/osx/windows
+
+// LOCKFILENAME : Name of file displaying the locked state of an event
+const LOCKFILENAME = "locked.yaml"
 
 // GenerateContentHash : Generate hash from content to compare contents
 func GenerateContentHash(hashType string, handle io.Reader) (string, error) {
@@ -70,11 +75,12 @@ func IsSamePerceptualHash(hash1, hash2 string) (bool, error) {
 
 // Snapshot : Hold information about a particular files information
 type Snapshot struct {
-	Name           string            `yaml:"name"`  // Base of path. Ie /one/two.three = two.three
-	ModTime        time.Time         `yaml:"mod"`   // Modification time
-	Size           int64             `yaml:"size"`  // Filesize!
-	ContentHash    map[string]string `yaml:"chash"` // Hash of the content
-	PerceptualHash map[string]string `yaml:"phash"` // Hash of the image
+	Created        time.Time         `yaml:"created"` // Time this snapshot was created
+	Name           string            `yaml:"name"`    // Base of path. Ie /one/two.three = two.three
+	ModTime        time.Time         `yaml:"mod"`     // Modification time
+	Size           int64             `yaml:"size"`    // Filesize!
+	ContentHash    map[string]string `yaml:"chash"`   // Hash of the content
+	PerceptualHash map[string]string `yaml:"phash"`   // Hash of the image
 }
 
 // Generate : Generate new snapshot data from file, with all the trimmings. "err <-&Snapshot{}.Generate(name)"
@@ -118,6 +124,7 @@ func (sshot *Snapshot) Generate(filename string) chan error {
 		} else if _, ok := err.(jpeg.FormatError); ok {
 			err = nil // Ignore format error
 		}
+		sshot.Created = time.Now()
 	}()
 	return done
 }
@@ -144,17 +151,6 @@ func (sshot *Snapshot) CheckFile(filename string) error {
 		return err
 	}
 
-	// TODO: Remove this name entirely. Then the overall structure can change from:
-	// [ snapshot, Snapshot]
-	// to
-	// { filename: snapshot, filename: snapshot}
-
-	// TODO: Do I want this check? If I'm using the name to find this check, it is assumed to already match
-	// TODO: then also not having this could assist in finding renames
-	// Some checking, escallating in complexity
-	// if filepath.Base(filename) != sshot.Name {
-	// 	return MissmatchError{"Name does not match: "+ filename}
-	// }
 	if info.Size() != sshot.Size {
 		return &MissmatchError{"Size does not match: " + filename}
 	}
@@ -182,6 +178,31 @@ func ReadOnly(filename string) error {
 		return err
 	}
 	return nil
+}
+
+// LockFile : Format and usage of locked file
+type LockFile struct {
+	Path      string               // Path to file
+	Snapshots map[string]*Snapshot // Basic representations of the files
+}
+
+// Save : Save lockfile data!
+func (lock *LockFile) Save(handle io.Writer) error {
+	data, err := yaml.Marshal(lock)
+	if err != nil {
+		return err
+	}
+	_, err = handle.Write(data)
+	return err
+}
+
+// Load : Load lockfile data
+func (lock *LockFile) Load(handle io.Reader) error {
+	data, err := ioutil.ReadAll(handle)
+	if err != nil {
+		return err
+	}
+	return yaml.Unmarshal(data, lock)
 }
 
 // TODO: manage file, listing snapshots

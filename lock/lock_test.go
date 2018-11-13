@@ -2,6 +2,7 @@ package lock
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -80,6 +81,7 @@ func TestSnapshot(t *testing.T) {
 	if expect := "testimg1.txt"; sshot1.Name != expect {
 		tu.FailE(expect, sshot1.Name)
 	}
+	fmt.Println("SIZE!", sshot1.Size)
 	if expect := int64(24); sshot1.Size != expect {
 		tu.FailE(expect, sshot1.Size)
 	}
