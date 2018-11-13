@@ -2,12 +2,12 @@ package lock
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/internetimagery/photos/context"
 	"github.com/internetimagery/photos/testutil"
 )
 
@@ -81,7 +81,6 @@ func TestSnapshot(t *testing.T) {
 	if expect := "testimg1.txt"; sshot1.Name != expect {
 		tu.FailE(expect, sshot1.Name)
 	}
-	fmt.Println("SIZE!", sshot1.Size)
 	if expect := int64(24); sshot1.Size != expect {
 		tu.FailE(expect, sshot1.Size)
 	}
@@ -159,4 +158,14 @@ func TestReadOnly(t *testing.T) {
 	} else if !os.IsPermission(err) {
 		tu.Fail(err)
 	}
+}
+
+func TestLockEvent(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	event := filepath.Join(tu.Dir, "event01")
+	cxt := &context.Context{WorkingDir: event}
+	tu.Must(LockEvent(cxt, false)) // Lock down the event!
+	tu.AssertExists(filepath.Join(event, LOCKFILENAME))
 }

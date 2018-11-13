@@ -221,7 +221,7 @@ func LockEvent(cxt *context.Context, force bool) error {
 
 	// Load lockfile snapshot data
 	lockfilePath := filepath.Join(cxt.WorkingDir, LOCKFILENAME)
-	lockfile := LockFile{}
+	lockfile := LockFile{Snapshots: map[string]*Snapshot{}}
 	if handle, err := os.Open(lockfilePath); err == nil {
 		err = lockfile.Load(handle)
 		handle.Close()
