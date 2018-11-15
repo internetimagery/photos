@@ -39,23 +39,29 @@ func TestGeneratepercetualHash(t *testing.T) {
 	defer handle5.Close()
 	handle6 := tu.MustFatal(os.Open(filepath.Join(tu.Dir, "testimg6.txt"))).(*os.File)
 	defer handle6.Close()
+	handle7 := tu.MustFatal(os.Open(filepath.Join(tu.Dir, "testimg7.tiff"))).(*os.File)
+	defer handle7.Close()
 
 	testHash1 := tu.Must(GeneratePerceptualHash("average", handle1)).(string)
 	testHash2 := tu.Must(GeneratePerceptualHash("average", handle2)).(string)
 	testHash3 := tu.Must(GeneratePerceptualHash("average", handle3)).(string)
 	testHash4 := tu.Must(GeneratePerceptualHash("average", handle4)).(string)
-	_, err := GeneratePerceptualHash("average", handle5)
-	if err == nil {
-		tu.Fail("Allowed unsupported img")
-	}
-	_, err = GeneratePerceptualHash("average", handle6)
+	testHash5 := tu.Must(GeneratePerceptualHash("average", handle5)).(string)
+	_, err := GeneratePerceptualHash("average", handle6)
 	if err == nil {
 		tu.Fail("Allowed unsupported file")
+	}
+	_, err = GeneratePerceptualHash("average", handle7)
+	if err == nil {
+		tu.Fail("Allowed unsupported img")
 	}
 
 	if !tu.Must(IsSamePerceptualHash(testHash1, testHash2)).(bool) ||
 		!tu.Must(IsSamePerceptualHash(testHash1, testHash3)).(bool) ||
-		!tu.Must(IsSamePerceptualHash(testHash2, testHash3)).(bool) {
+		!tu.Must(IsSamePerceptualHash(testHash1, testHash5)).(bool) ||
+		!tu.Must(IsSamePerceptualHash(testHash2, testHash3)).(bool) ||
+		!tu.Must(IsSamePerceptualHash(testHash2, testHash5)).(bool) ||
+		!tu.Must(IsSamePerceptualHash(testHash3, testHash5)).(bool) {
 		tu.Fail("Equals not equal")
 	}
 

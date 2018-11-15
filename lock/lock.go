@@ -4,7 +4,9 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"image"
 	"image/jpeg"
+	"image/png"
 	"io"
 	"io/ioutil"
 	"os"
@@ -17,7 +19,6 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-// TODO: generate phash
 // TODO: make lock object to contain information
 // TODO: impliment checking
 // TODO: impliment serializing lock data
@@ -40,10 +41,16 @@ func GenerateContentHash(hashType string, handle io.Reader) (string, error) {
 }
 
 // GeneratePerceptualHash : Generate hash representing visual to compare imagery
-func GeneratePerceptualHash(hashType string, handle io.Reader) (string, error) {
+func GeneratePerceptualHash(hashType string, handle io.ReadSeeker) (string, error) {
 	img, err := jpeg.Decode(handle)
-	if err != nil {
-		return "", err
+	if _, ok := err.(jpeg.FormatError); ok { // Not a jpeg
+		handle.Seek(0, 0)
+		img, err = png.Decode(handle)
+		if err != nil { // Not png either...
+			return "", image.ErrFormat
+		}
+	} else if err != nil {
+		return "", image.ErrFormat
 	}
 	switch hashType {
 	case "average":
