@@ -23,7 +23,7 @@ func TestGenerateContentHash(t *testing.T) {
 	}
 }
 
-func testgeneratepercetualhash(t *testing.T) {
+func TestGeneratepercetualHash(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 	defer tu.LoadTestdata()()
 
