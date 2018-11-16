@@ -2,12 +2,12 @@ package lock
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/internetimagery/photos/context"
 	"github.com/internetimagery/photos/testutil"
 )
 
@@ -166,12 +166,38 @@ func TestReadOnly(t *testing.T) {
 	}
 }
 
-func TestLockEvent(t *testing.T) {
+func TestLockFile(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
-	defer tu.LoadTestdata()()
 
-	event := filepath.Join(tu.Dir, "event01")
-	cxt := &context.Context{WorkingDir: event}
-	tu.Must(LockEvent(cxt, false)) // Lock down the event!
-	tu.AssertExists(filepath.Join(event, LOCKFILENAME))
+	lockfileHandle := bytes.NewReader([]byte(`---
+myfile:
+  created: "2006-01-02T15:04:05Z"
+  name: myfile
+  mod: "2006-01-02T15:04:05Z"
+  size: 123
+  chash:
+    SHA256: jargon
+  phash:
+    average: alsojargon`))
+
+	lockfile := &LockFile{}
+	tu.Must(lockfile.Load(lockfileHandle))
+	fmt.Println(lockfile)
+	sshot, ok := lockfile.Snapshots["myfile"]
+	if !ok {
+		tu.Fail("Data not in map")
+	}
+	if sshot.Name != "myfile" || sshot.ContentHash["SHA256"] != "jargon" || sshot.PerceptualHash["average"] != "alsojargon" {
+		tu.Fail("name/hash was missing / incorrect")
+	}
 }
+
+// func TestLockEvent(t *testing.T) {
+// 	tu := testutil.NewTestUtil(t)
+// 	defer tu.LoadTestdata()()
+//
+// 	event := filepath.Join(tu.Dir, "event01")
+// 	cxt := &context.Context{WorkingDir: event}
+// 	tu.Must(LockEvent(cxt, false)) // Lock down the event!
+// 	tu.AssertExists(filepath.Join(event, LOCKFILENAME))
+// }

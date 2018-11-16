@@ -211,7 +211,7 @@ func (lock *LockFile) Load(handle io.Reader) error {
 	if err != nil {
 		return err
 	}
-	return yaml.Unmarshal(data, lock)
+	return yaml.Unmarshal(data, &lock.Snapshots)
 }
 
 // LockEvent : Attempt to lock event. If lock exists, check for any changes and update lock.
