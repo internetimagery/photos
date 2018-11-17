@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/internetimagery/photos/context"
 	"github.com/internetimagery/photos/testutil"
 )
 
@@ -181,7 +182,7 @@ myfile:
     average: alsojargon`)
 	lockfileHandle := bytes.NewReader(lockfileData)
 
-	lockfile := LockFile{}
+	lockfile := LockMap{}
 	tu.Must(lockfile.Load(lockfileHandle))
 
 	sshot, ok := lockfile["myfile"]
@@ -203,12 +204,31 @@ myfile:
 	}
 }
 
-// func TestLockEvent(t *testing.T) {
-// 	tu := testutil.NewTestUtil(t)
-// 	defer tu.LoadTestdata()()
-//
-// 	event := filepath.Join(tu.Dir, "event01")
-// 	cxt := &context.Context{WorkingDir: event}
-// 	tu.Must(LockEvent(cxt, false)) // Lock down the event!
-// 	tu.AssertExists(filepath.Join(event, LOCKFILENAME))
-// }
+func TestLockEvent(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	event := filepath.Join(tu.Dir, "event01")
+	testfile := filepath.Join(event, "event01_001.txt")
+	cxt := &context.Context{WorkingDir: event}
+	tu.Must(LockEvent(cxt, false)) // Lock down the event!
+	tu.AssertExists(filepath.Join(event, LOCKFILENAME))
+	if err := ioutil.WriteFile(testfile, []byte("Fail"), 0644); !os.IsPermission(err) {
+		if err == nil {
+			tu.Fail("Did not make file readonly")
+		} else {
+			tu.Fail(err)
+		}
+	}
+
+	tu.MustFatal(os.Chmod(testfile, 0644))
+	tu.MustFatal(ioutil.WriteFile(testfile, []byte("something new"), 0644))
+	if err, ok := LockEvent(cxt, false).(*MissmatchError); !ok {
+		if err == nil {
+			tu.Fail("Failed to detect difference in file")
+		} else {
+			tu.Fail(err)
+		}
+	}
+	tu.Must(LockEvent(cxt, true))
+}

@@ -190,11 +190,11 @@ func ReadOnly(filename string) error {
 	return nil
 }
 
-// LockFile : Format and usage of locked file
-type LockFile map[string]*Snapshot // Basic representations of the files
+// LockMap : Format and usage of locked file
+type LockMap map[string]*Snapshot // Basic representations of the files
 
 // Save : Save lockfile data!
-func (lock *LockFile) Save(handle io.Writer) error {
+func (lock *LockMap) Save(handle io.Writer) error {
 	data, err := yaml.Marshal(lock)
 	if err != nil {
 		return err
@@ -204,7 +204,7 @@ func (lock *LockFile) Save(handle io.Writer) error {
 }
 
 // Load : Load lockfile data
-func (lock *LockFile) Load(handle io.Reader) error {
+func (lock *LockMap) Load(handle io.Reader) error {
 	data, err := ioutil.ReadAll(handle)
 	if err != nil {
 		return err
@@ -226,7 +226,7 @@ func LockEvent(cxt *context.Context, force bool) error {
 
 	// Load lockfile snapshot data
 	lockfilePath := filepath.Join(cxt.WorkingDir, LOCKFILENAME)
-	lockfile := LockFile{}
+	lockfile := LockMap{}
 	if handle, err := os.Open(lockfilePath); err == nil {
 		err = lockfile.Load(handle)
 		handle.Close()
