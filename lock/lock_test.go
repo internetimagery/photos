@@ -253,6 +253,7 @@ func TestLockEventMissing(t *testing.T) {
 			tu.Fail(err)
 		}
 	}
+	tu.Must(LockEvent(cxt, true)) // Force!
 }
 
 func TestLockEventChanged(t *testing.T) {
@@ -268,6 +269,7 @@ func TestLockEventChanged(t *testing.T) {
 			tu.Fail(err)
 		}
 	}
+	tu.Must(LockEvent(cxt, true)) // Force it
 }
 
 func TestLockEventRenamed(t *testing.T) {
