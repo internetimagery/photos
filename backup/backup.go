@@ -9,6 +9,7 @@ import (
 
 	"github.com/internetimagery/photos/context"
 	"github.com/internetimagery/photos/format"
+	"github.com/internetimagery/photos/lock"
 	"github.com/internetimagery/photos/rename"
 )
 
@@ -26,10 +27,10 @@ func RunBackup(cxt *context.Context, name string) error {
 
 	// Validate our project
 	if err := filepath.Walk(cxt.WorkingDir, func(filename string, info os.FileInfo, err error) error {
-		if info.IsDir() { // Only looking for files
-			return nil
+		if info.IsDir() { // Lock files in directory! Also a validation
+			return lock.LockEvent(filename, false)
 		}
-		if info.Name()[0] == '.' { // Ignore .dot files. They can be backed up
+		if !format.IsUsable(filename) { // Ignore any file deemed unusable
 			return nil
 		}
 		if strings.Contains(filename, rename.SOURCEDIR) {

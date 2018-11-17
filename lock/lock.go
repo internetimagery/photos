@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/corona10/goimagehash"
-	"github.com/internetimagery/photos/context"
 	"github.com/internetimagery/photos/format"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -208,15 +207,15 @@ func (lock *LockMap) Load(handle io.Reader) error {
 }
 
 // LockEvent : Attempt to lock event. If lock exists, check for any changes and update lock.
-func LockEvent(cxt *context.Context, force bool) error {
+func LockEvent(directoryname string, force bool) error {
 	// Grab media from within file
-	mediaList, err := format.GetMediaFromDirectory(cxt.WorkingDir)
+	mediaList, err := format.GetMediaFromDirectory(directoryname)
 	if err != nil {
 		return err
 	}
 
 	// Load lockfile snapshot data if it exists
-	lockmapPath := filepath.Join(cxt.WorkingDir, LOCKFILENAME)
+	lockmapPath := filepath.Join(directoryname, LOCKFILENAME)
 	lockmap := LockMap{}
 	if handle, err := os.Open(lockmapPath); err == nil {
 		err = lockmap.Load(handle)
@@ -244,7 +243,7 @@ func LockEvent(cxt *context.Context, force bool) error {
 		}
 	}
 	for basename := range lockmap {
-		filename := filepath.Join(cxt.WorkingDir, basename)
+		filename := filepath.Join(directoryname, basename)
 		if _, ok := checkFiles[filename]; !ok {
 			removedFiles[basename] = struct{}{} // File exists in list, but not in folder. It has been removed (or renamed)
 		}

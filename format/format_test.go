@@ -112,3 +112,19 @@ func TestGetMediaFromDirectory(t *testing.T) {
 	}
 
 }
+
+func TestIsUsable(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+
+	testpath1 := "/one/two/three.four"     // normal file
+	testpath2 := "/one/two/three.yaml"     // config file
+	testpath3 := "/one/two/.three"         // dotted file
+	testpath4 := "/one/two/tmp-three.four" // temp file
+
+	if !IsUsable(testpath1) {
+		tu.Fail("Failed on normal path")
+	}
+	if IsUsable(testpath2) || IsUsable(testpath3) || IsUsable(testpath4) {
+		tu.Fail("Failed on unusable path")
+	}
+}

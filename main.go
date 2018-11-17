@@ -15,13 +15,14 @@ import (
 	"github.com/internetimagery/photos/config"
 	"github.com/internetimagery/photos/context"
 	"github.com/internetimagery/photos/format"
+	"github.com/internetimagery/photos/lock"
 	"github.com/internetimagery/photos/rename"
 	"github.com/internetimagery/photos/sort"
 	"github.com/internetimagery/photos/tags"
 )
 
 // VERSION : Version information
-const VERSION = "0.3"
+const VERSION = "0.4"
 
 // sendHelp : Print out helpful message.
 func sendHelp() {
@@ -33,7 +34,8 @@ func sendHelp() {
 	fmt.Println("  ", root, "sort <filename> <filename> ...            ", "// Bring in external files, and sort them by date.")
 	fmt.Println("  ", root, "rename                                    ", "// Rename (and compress) files in current directory to their parent directory's namespace (event).")
 	fmt.Println("  ", root, "tag [--remove] <filename/index> <filename/index...> -- <tag> <tag...>", "// Add and optionally remove tags from renamed files.")
-	fmt.Println("  ", root, "backup <name>                             ", "// Execute specified procedure in config to backup files from the current directory.")
+	fmt.Println("  ", root, "lock [--force]                            ", "// Make files readonly and create a snapshot of their contents. Check existing locked files for changes since last lock.")
+	fmt.Println("  ", root, "backup [--no-lock] <name>                 ", "// Execute specified procedure in config to backup files from the current directory. Files are locked first by default.")
 }
 
 // question : Ask yes or no
@@ -220,6 +222,19 @@ func run(cwd string, args []string) error {
 			return tags.RemoveTag(tagMedia, tagNames)
 		}
 		return tags.AddTag(tagMedia, tagNames)
+
+	case "lock": // Lock down files to prevent accidental modification
+		fmt.Printf("Locking media in '%s'\n", cxt.WorkingDir)
+		force := false
+		if len(args) > 2 && args[2] == "--force" { // Override changes instead of warning about them
+			force = true
+		}
+		if err, ok := lock.LockEvent(cxt.WorkingDir, force).(*lock.MissmatchError); ok {
+			fmt.Println("WARNING: Files have changed since they were last locked. To update them run the 'lock' command with '--force'.")
+			return err
+		} else if err != nil {
+			return err
+		}
 
 	case "backup": // Backup files within working directory to specified destination
 		if len(args) < 3 {

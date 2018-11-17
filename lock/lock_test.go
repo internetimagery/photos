@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/internetimagery/photos/context"
 	"github.com/internetimagery/photos/testutil"
 )
 
@@ -213,8 +212,7 @@ func TestLockEvent(t *testing.T) {
 
 	event := filepath.Join(tu.Dir, "event01")
 	testfile := filepath.Join(event, "event01_001.txt")
-	cxt := &context.Context{WorkingDir: event}
-	tu.Must(LockEvent(cxt, false)) // Lock down the event!
+	tu.Must(LockEvent(event, false)) // Lock down the event!
 	tu.AssertExists(filepath.Join(event, LOCKFILENAME))
 	testReadOnly(tu, testfile)
 }
@@ -224,8 +222,7 @@ func TestLockEventNew(t *testing.T) {
 	defer tu.LoadTestdata()()
 
 	event := filepath.Join(tu.Dir, "event01")
-	cxt := &context.Context{WorkingDir: event}
-	tu.Must(LockEvent(cxt, false))
+	tu.Must(LockEvent(event, false))
 
 	testReadOnly(tu, filepath.Join(event, "event01_001.txt"))
 	testReadOnly(tu, filepath.Join(event, "event01_002.txt"))
@@ -245,15 +242,14 @@ func TestLockEventMissing(t *testing.T) {
 	defer tu.LoadTestdata()()
 
 	event := filepath.Join(tu.Dir, "event01")
-	cxt := &context.Context{WorkingDir: event}
-	if err, ok := LockEvent(cxt, false).(*MissmatchError); !ok {
+	if err, ok := LockEvent(event, false).(*MissmatchError); !ok {
 		if err == nil {
 			tu.Fail("Did not trigger error for missing file")
 		} else {
 			tu.Fail(err)
 		}
 	}
-	tu.Must(LockEvent(cxt, true)) // Force!
+	tu.Must(LockEvent(event, true)) // Force!
 }
 
 func TestLockEventChanged(t *testing.T) {
@@ -261,15 +257,14 @@ func TestLockEventChanged(t *testing.T) {
 	defer tu.LoadTestdata()()
 
 	event := filepath.Join(tu.Dir, "event01")
-	cxt := &context.Context{WorkingDir: event}
-	if err, ok := LockEvent(cxt, false).(*MissmatchError); !ok {
+	if err, ok := LockEvent(event, false).(*MissmatchError); !ok {
 		if err == nil {
 			tu.Fail("Did not trigger error for changed data")
 		} else {
 			tu.Fail(err)
 		}
 	}
-	tu.Must(LockEvent(cxt, true)) // Force it
+	tu.Must(LockEvent(event, true)) // Force it
 }
 
 func TestLockEventRenamed(t *testing.T) {
@@ -277,6 +272,5 @@ func TestLockEventRenamed(t *testing.T) {
 	defer tu.LoadTestdata()()
 
 	event := filepath.Join(tu.Dir, "event01")
-	cxt := &context.Context{WorkingDir: event}
-	tu.Must(LockEvent(cxt, false))
+	tu.Must(LockEvent(event, false))
 }

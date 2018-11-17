@@ -34,6 +34,13 @@ func IsTempPath(path string) bool {
 	return strings.HasPrefix(basename, TEMPPREFIX)
 }
 
+// IsUsable : Helper function that determines if a path should be considered usable as media
+func IsUsable(path string) bool {
+	return !IsTempPath(path) && // Do not want temp paths
+		filepath.Base(path)[0] != '.' && // Cannot be a file starting with .
+		!strings.HasSuffix(path, ".yaml") // Cannot be a config file
+}
+
 // Media : Container for information about media item
 type Media struct {
 	Path  string              // File name
@@ -108,7 +115,7 @@ func GetMediaFromDirectory(dirPath string) ([]*Media, error) {
 	}
 	sort.Slice(files, func(i, j int) bool { return files[i].Name() < files[j].Name() })
 	for _, file := range files {
-		if file.Mode().IsRegular() && !strings.HasPrefix(file.Name(), TEMPPREFIX) && file.Name()[0] != '.' {
+		if file.Mode().IsRegular() && IsUsable(filepath.Join(dirPath, file.Name())) { // Ignore unusable files
 			fullPath := filepath.Join(dirPath, file.Name())
 			media := NewMedia(fullPath)
 			if media.Event != event {
