@@ -191,13 +191,11 @@ func ReadOnly(filename string) error {
 }
 
 // LockFile : Format and usage of locked file
-type LockFile struct {
-	Snapshots map[string]*Snapshot // Basic representations of the files
-}
+type LockFile map[string]*Snapshot // Basic representations of the files
 
 // Save : Save lockfile data!
 func (lock *LockFile) Save(handle io.Writer) error {
-	data, err := yaml.Marshal(lock.Snapshots)
+	data, err := yaml.Marshal(lock)
 	if err != nil {
 		return err
 	}
@@ -211,7 +209,7 @@ func (lock *LockFile) Load(handle io.Reader) error {
 	if err != nil {
 		return err
 	}
-	return yaml.Unmarshal(data, &lock.Snapshots)
+	return yaml.Unmarshal(data, &lock)
 }
 
 // LockEvent : Attempt to lock event. If lock exists, check for any changes and update lock.
@@ -228,7 +226,7 @@ func LockEvent(cxt *context.Context, force bool) error {
 
 	// Load lockfile snapshot data
 	lockfilePath := filepath.Join(cxt.WorkingDir, LOCKFILENAME)
-	lockfile := LockFile{Snapshots: map[string]*Snapshot{}}
+	lockfile := LockFile{}
 	if handle, err := os.Open(lockfilePath); err == nil {
 		err = lockfile.Load(handle)
 		handle.Close()
@@ -243,14 +241,14 @@ func LockEvent(cxt *context.Context, force bool) error {
 	jobs := []chan error{}
 	for _, media := range mediaList {
 		name := filepath.Base(media.Path)
-		sshot, ok := lockfile.Snapshots[name]
+		sshot, ok := lockfile[name]
 		if ok && !force { // File exists, compare snapshot, unless we are force locking things
 			if err = sshot.CheckFile(media.Path); err != nil {
 				return err
 			}
 		} else if media.Index > 0 { // Ignore unformatted files
 			sshot = new(Snapshot)
-			lockfile.Snapshots[name] = sshot
+			lockfile[name] = sshot
 			jobs = append(jobs, sshot.Generate(media.Path))
 		}
 	}
@@ -264,7 +262,7 @@ func LockEvent(cxt *context.Context, force bool) error {
 		}
 
 		// Make files readonly
-		for file := range lockfile.Snapshots {
+		for file := range lockfile {
 			err := ReadOnly(filepath.Join(cxt.WorkingDir, file))
 			if err != nil {
 				return err

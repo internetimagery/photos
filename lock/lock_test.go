@@ -23,7 +23,7 @@ func TestGenerateContentHash(t *testing.T) {
 	}
 }
 
-func TestGeneratepercetualHash(t *testing.T) {
+func TestGeneratePerceptualHash(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 	defer tu.LoadTestdata()()
 
@@ -181,10 +181,10 @@ myfile:
     average: alsojargon`)
 	lockfileHandle := bytes.NewReader(lockfileData)
 
-	lockfile := &LockFile{}
+	lockfile := LockFile{}
 	tu.Must(lockfile.Load(lockfileHandle))
 
-	sshot, ok := lockfile.Snapshots["myfile"]
+	sshot, ok := lockfile["myfile"]
 	if !ok {
 		tu.Fail("Data not in map")
 	}
