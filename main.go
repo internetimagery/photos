@@ -121,7 +121,7 @@ func run(cwd string, args []string) error {
 		if len(args) < 3 {
 			return fmt.Errorf("Please provide a source directory to sort")
 		}
-		fmt.Printf("About to sort media in '%s'\n", cxt.WorkingDir)
+		fmt.Printf("About to sort media in '%s'\n", strings.Join(args[2:], ", "))
 		if question() {
 			fmt.Println("Sorting...")
 			if err = sort.SortMedia(cxt, args[2:]...); err != nil {
