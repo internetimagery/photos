@@ -239,3 +239,33 @@ func TestLockEventNew(t *testing.T) {
 		tu.Fail("Failed to add entry for new event")
 	}
 }
+
+func TestLockEventMissing(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	event := filepath.Join(tu.Dir, "event01")
+	cxt := &context.Context{WorkingDir: event}
+	if err, ok := LockEvent(cxt, false).(*MissmatchError); !ok {
+		if err == nil {
+			tu.Fail("Did not trigger error for missing file")
+		} else {
+			tu.Fail(err)
+		}
+	}
+}
+
+func TestLockEventChanged(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	event := filepath.Join(tu.Dir, "event01")
+	cxt := &context.Context{WorkingDir: event}
+	if err, ok := LockEvent(cxt, false).(*MissmatchError); !ok {
+		if err == nil {
+			tu.Fail("Did not trigger error for changed data")
+		} else {
+			tu.Fail(err)
+		}
+	}
+}
