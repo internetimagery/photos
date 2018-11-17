@@ -19,11 +19,6 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-// TODO: make lock object to contain information
-// TODO: impliment checking
-// TODO: impliment serializing lock data
-// TODO: make function to set files readonly, linux/osx/windows
-
 // LOCKFILENAME : Name of file displaying the locked state of an event
 const LOCKFILENAME = "locked.yaml"
 

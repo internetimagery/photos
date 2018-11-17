@@ -12,6 +12,16 @@ import (
 	"github.com/internetimagery/photos/testutil"
 )
 
+func testReadOnly(tu *testutil.TestUtil, filename string) {
+	if err := ioutil.WriteFile(filename, []byte("Fail"), 0644); !os.IsPermission(err) {
+		if err == nil {
+			tu.Log("Did not make file readonly", filename)
+		} else {
+			tu.Fail(err)
+		}
+	}
+}
+
 func TestGenerateContentHash(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 
@@ -157,14 +167,7 @@ func TestReadOnly(t *testing.T) {
 	tu.MustFatal(ioutil.WriteFile(testfile, []byte("hello there"), 0666))
 
 	tu.Must(ReadOnly(testfile))
-
-	handle, err := os.OpenFile(testfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err == nil {
-		handle.Close()
-		tu.Fail("File is not readonly!")
-	} else if !os.IsPermission(err) {
-		tu.Fail(err)
-	}
+	testReadOnly(tu, testfile)
 }
 
 func TestLockFile(t *testing.T) {
@@ -213,22 +216,26 @@ func TestLockEvent(t *testing.T) {
 	cxt := &context.Context{WorkingDir: event}
 	tu.Must(LockEvent(cxt, false)) // Lock down the event!
 	tu.AssertExists(filepath.Join(event, LOCKFILENAME))
-	if err := ioutil.WriteFile(testfile, []byte("Fail"), 0644); !os.IsPermission(err) {
-		if err == nil {
-			tu.Fail("Did not make file readonly")
-		} else {
-			tu.Fail(err)
-		}
-	}
+	testReadOnly(tu, testfile)
+}
 
-	tu.MustFatal(os.Chmod(testfile, 0644))
-	tu.MustFatal(ioutil.WriteFile(testfile, []byte("something new"), 0644))
-	if err, ok := LockEvent(cxt, false).(*MissmatchError); !ok {
-		if err == nil {
-			tu.Fail("Failed to detect difference in file")
-		} else {
-			tu.Fail(err)
-		}
+func TestLockEventNew(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	event := filepath.Join(tu.Dir, "event01")
+	cxt := &context.Context{WorkingDir: event}
+	tu.Must(LockEvent(cxt, false))
+
+	testReadOnly(tu, filepath.Join(event, "event01_001.txt"))
+	testReadOnly(tu, filepath.Join(event, "event01_002.txt"))
+
+	lockmap := LockMap{}
+	handle := tu.MustFatal(os.Open(filepath.Join(event, LOCKFILENAME))).(*os.File)
+	defer handle.Close()
+	tu.MustFatal(lockmap.Load(handle))
+
+	if _, ok := lockmap["event01_002.txt"]; !ok {
+		tu.Fail("Failed to add entry for new event")
 	}
-	tu.Must(LockEvent(cxt, true))
 }
