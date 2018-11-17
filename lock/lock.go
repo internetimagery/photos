@@ -131,7 +131,7 @@ func (sshot *Snapshot) Generate(filename string) chan error {
 		phash, err := GeneratePerceptualHash("average", handle)
 		if err == nil { // SHA256 hardcoded for now
 			sshot.PerceptualHash = map[string]string{"average": phash}
-		} else if _, ok := err.(jpeg.FormatError); ok {
+		} else if err == image.ErrFormat {
 			err = nil // Ignore format error
 		}
 		sshot.Created = time.Now()
@@ -197,7 +197,7 @@ type LockFile struct {
 
 // Save : Save lockfile data!
 func (lock *LockFile) Save(handle io.Writer) error {
-	data, err := yaml.Marshal(lock)
+	data, err := yaml.Marshal(lock.Snapshots)
 	if err != nil {
 		return err
 	}

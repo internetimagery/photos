@@ -2,10 +2,10 @@ package lock
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/internetimagery/photos/testutil"
@@ -169,26 +169,37 @@ func TestReadOnly(t *testing.T) {
 func TestLockFile(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 
-	lockfileHandle := bytes.NewReader([]byte(`---
+	lockfileData := []byte(`
 myfile:
-  created: "2006-01-02T15:04:05Z"
+  created: 2018-11-17T15:04:45.9077169+13:00
   name: myfile
-  mod: "2006-01-02T15:04:05Z"
+  mod: 2018-11-17T15:04:45.9077169+13:00
   size: 123
   chash:
     SHA256: jargon
   phash:
-    average: alsojargon`))
+    average: alsojargon`)
+	lockfileHandle := bytes.NewReader(lockfileData)
 
 	lockfile := &LockFile{}
 	tu.Must(lockfile.Load(lockfileHandle))
-	fmt.Println(lockfile)
+
 	sshot, ok := lockfile.Snapshots["myfile"]
 	if !ok {
 		tu.Fail("Data not in map")
 	}
 	if sshot.Name != "myfile" || sshot.ContentHash["SHA256"] != "jargon" || sshot.PerceptualHash["average"] != "alsojargon" {
 		tu.Fail("name/hash was missing / incorrect")
+	}
+
+	outputHandle := bytes.NewBuffer([]byte(""))
+	tu.Must(lockfile.Save(outputHandle))
+
+	testString := strings.TrimSpace(string(lockfileData))
+	expectString := strings.TrimSpace(outputHandle.String())
+
+	if expectString != testString {
+		tu.FailE(testString, expectString)
 	}
 }
 
