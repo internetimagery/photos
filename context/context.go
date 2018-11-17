@@ -31,6 +31,8 @@ func NewContext(workingDir string) (*Context, error) {
 		configPath = filepath.Join(currentRoot, ROOTCONF) // Check if config file exists
 		if _, err := os.Stat(configPath); err == nil {
 			break
+		} else if !os.IsNotExist(err) {
+			panic(err)
 		}
 		if currentRoot[len(currentRoot)-1] == filepath.Separator { // Check if we have hit root finding nothing, leave if so
 			return nil, os.ErrNotExist

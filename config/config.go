@@ -104,7 +104,7 @@ func (conf *Config) Save(writer io.Writer) error {
 	}
 	data, err := yaml.Marshal(conf)
 	if err != nil {
-		return err
+		panic(err) // This should never fail!
 	}
 	_, err = writer.Write(data)
 	return err
