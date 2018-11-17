@@ -214,16 +214,12 @@ func LockEvent(cxt *context.Context, force bool) error {
 	if err != nil {
 		return err
 	}
-	// If there is nothing to use, ignore!
-	if len(mediaList) == 0 {
-		return nil
-	}
 
-	// Load lockfile snapshot data
-	lockfilePath := filepath.Join(cxt.WorkingDir, LOCKFILENAME)
-	lockfile := LockMap{}
-	if handle, err := os.Open(lockfilePath); err == nil {
-		err = lockfile.Load(handle)
+	// Load lockfile snapshot data if it exists
+	lockmapPath := filepath.Join(cxt.WorkingDir, LOCKFILENAME)
+	lockmap := LockMap{}
+	if handle, err := os.Open(lockmapPath); err == nil {
+		err = lockmap.Load(handle)
 		handle.Close()
 		if err != nil {
 			return err
@@ -232,48 +228,87 @@ func LockEvent(cxt *context.Context, force bool) error {
 		return err
 	}
 
-	// Verify all files. Kick off new snapshots
-	jobs := []chan error{}
-	for _, media := range mediaList {
-		name := filepath.Base(media.Path)
-		sshot, ok := lockfile[name]
-		if ok && !force { // File exists, compare snapshot, unless we are force locking things
-			if err = sshot.CheckFile(media.Path); err != nil {
-				return err
-			}
-		} else if media.Index > 0 { // Ignore unformatted files
-			sshot = new(Snapshot)
-			lockfile[name] = sshot
-			jobs = append(jobs, sshot.Generate(media.Path))
+	// Sort out our files!
+	newFiles := map[string]struct{}{}
+	checkFiles := map[string]*Snapshot{}
+	removedFiles := map[string]struct{}{}
+	for _, media := range mediaList { // Look through existing files
+		if media.Index <= 0 { // Skip unformatted media
+			continue
+		}
+		basename := filepath.Base(media.Path)
+		if sshot, ok := lockmap[basename]; ok {
+			checkFiles[media.Path] = sshot // File exists in folder and in locked list. Check for changes
+		} else {
+			newFiles[media.Path] = struct{}{} // New file not in locked list
+		}
+	}
+	for basename := range lockmap {
+		filename := filepath.Join(cxt.WorkingDir, basename)
+		if _, ok := checkFiles[filename]; !ok {
+			removedFiles[basename] = struct{}{} // File exists in list, but not in folder. It has been removed (or renamed)
 		}
 	}
 
-	if len(jobs) > 0 { // We have added some things to the lockfile!
-		// Finish up jobs
-		for _, job := range jobs {
-			if err = <-job; err != nil {
+	// If we have nothing to do... we're done!
+	if len(newFiles) == 0 && len(checkFiles) == 0 && len(removedFiles) == 0 {
+		return nil
+	}
+
+	// First, we'll make snapshots out of our new files
+	newSnapshots := map[*Snapshot]chan error{}
+	for filename := range newFiles {
+		sshot := new(Snapshot)
+		newSnapshots[sshot] = sshot.Generate(filename)
+	}
+	for sshot, job := range newSnapshots {
+		if err = <-job; err != nil {
+			return err
+		}
+		lockmap[sshot.Name] = sshot
+	}
+
+	// Next we'll check to see if any missing files are actually in the new snapshots (rename)
+	for basename := range removedFiles {
+		ok := false
+		for sshot := range newSnapshots { // compare hashes (hard coded sha256 for now...)
+			if lockmap[basename].ContentHash["SHA256"] == sshot.ContentHash["SHA256"] {
+				ok = true // Looks like this file matches another new file. Transparently deal with the rename and continue
+				delete(lockmap, basename)
+			}
+		}
+		if !ok && !force {
+			return &MissmatchError{"File was removed: " + basename}
+		}
+	}
+
+	// Finally lets verify that our existing files are still ok!
+	for filename, sshot := range checkFiles {
+		if err = sshot.CheckFile(filename); err != nil {
+			if _, ok := err.(*MissmatchError); !ok {
+				return err
+			} else if !force {
 				return err
 			}
 		}
+	}
 
-		// Make files readonly
-		for file := range lockfile {
-			err := ReadOnly(filepath.Join(cxt.WorkingDir, file))
-			if err != nil {
-				return err
-			}
-		}
+	// Save lockmap!
+	handle, err := os.OpenFile(lockmapPath, os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return err
+	}
+	defer handle.Close()
+	if err = lockmap.Save(handle); err != nil {
+		return err
+	}
 
-		// Save lockfile!
-		handle, err := os.OpenFile(lockfilePath, os.O_CREATE|os.O_TRUNC, 0644)
+	// Make new files readonly
+	for filename := range newFiles {
+		err := ReadOnly(filename)
 		if err != nil {
 			return err
 		}
-		defer handle.Close()
-		if err = lockfile.Save(handle); err != nil {
-			return err
-		}
 	}
-
 	return nil
 }

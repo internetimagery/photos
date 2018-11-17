@@ -269,3 +269,12 @@ func TestLockEventChanged(t *testing.T) {
 		}
 	}
 }
+
+func TestLockEventRenamed(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	event := filepath.Join(tu.Dir, "event01")
+	cxt := &context.Context{WorkingDir: event}
+	tu.Must(LockEvent(cxt, false))
+}
