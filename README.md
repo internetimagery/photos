@@ -6,8 +6,6 @@
 
 # TODO:
 
-- Add tests for locking mechanism
-- Use lock mechanism before backup commands are run. Add --force option to override changes.
 - make tagging use a web serice, with a basic website for interractive tagging
 - add image duplication checker like phash
 - add video phash check, if possible
