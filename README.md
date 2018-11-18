@@ -47,7 +47,7 @@ photos rename
 
 By design files follow a strict naming scheme. They take an element from the directory they reside in, are given an id, and can have tags. Files that do not follow this scheme are assumed to have not yet been added/compressed.
 
-Running the above command will format the names of all files not already formatted in the working directory of the shell. It will also run any compression commands specified in the photos-config.yaml file at the base of the project, based on pattern matching of the filename against the name of the command. For instance, a useful setup using mozjpeg and ffmpeg to compress jpeg and mp4 media could look like this:
+Running the above command will format the names of all files not already formatted in the working directory of the shell. It will also run any compression commands specified in the photos-config.yaml file, based on pattern matching of the filename against the name of the command. For instance, a useful setup using mozjpeg and ffmpeg to compress jpeg and mp4 media could look like this:
 
 ```
 compress:
@@ -118,3 +118,7 @@ backup:
     name: "b2"
     command: "rclone copy \"$SOURCEPATH\" \"backup:my-bucket/$RELPATH\" -v"
 ```
+
+Prior to the backup taking place, a lock command is run on the files. This both locks files (see section above) and also checks if they have changed since they were last locked. If any files are found to have been changed, the backup will abort as a safety measure. If the files changing was an intentional situation, you will need to run the lock command above with the "--force" flag to update the lock, then re-run the backup.
+
+This may seem convoluted, but it's a step towards ensuring a corrupt or otherwise unintended change is not backed up and overrides a "real" copy of a file.
