@@ -61,6 +61,8 @@ compress:
 
 There are environment variables set for use in these commands as they are run. Typically all you'd want is SOURCEPATH and DESTPATH here.
 
+All original media (regardless of if compression happens or not) will be moved into a temporary folder. If you see anything wrong with your renamed and perhaps compressed files, you can easily bring back the original. Once you're happy with the changes however, feel free to delete the originals folder.
+
 #### (4) Tag media
 
 ```
