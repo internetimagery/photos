@@ -97,13 +97,13 @@ func TestSnapshot(t *testing.T) {
 	if expect := "testimg1.txt"; sshot1.Name != expect {
 		tu.FailE(expect, sshot1.Name)
 	}
-	if expect := int64(24); sshot1.Size != expect {
+	if expect := int64(10); sshot1.Size != expect {
 		tu.FailE(expect, sshot1.Size)
 	}
 	if !modtime1.Equal(sshot1.ModTime) {
 		tu.FailE(modtime1, sshot1.ModTime)
 	}
-	if expect := "SHA256:h13POS/MwQ0SHVmJOSHgeN7+fM9ymIJZvdZt3nnLAqY="; sshot1.ContentHash["SHA256"] != expect {
+	if expect := "SHA256:Ll7eSE5uEweBelTgVMt4nSymO71cWELFfbzj3b6mtTU="; sshot1.ContentHash["SHA256"] != expect {
 		tu.FailE(expect, sshot1.ContentHash["SHA256"])
 	}
 	if sshot1.PerceptualHash != nil {
