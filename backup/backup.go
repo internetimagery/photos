@@ -25,6 +25,8 @@ func setEnvironment(cxt *context.Context) {
 // RunBackup : Run backup commands given a name. Can accept wildcards to run more than one.
 func RunBackup(cxt *context.Context, name string) error {
 
+	sortDir := filepath.Join(cxt.Root, cxt.Config.Sorted)
+
 	// Validate our project
 	if err := filepath.Walk(cxt.WorkingDir, func(filename string, info os.FileInfo, err error) error {
 		if info.IsDir() { // Lock files in directory! Also a validation
@@ -34,7 +36,10 @@ func RunBackup(cxt *context.Context, name string) error {
 			return nil
 		}
 		if strings.Contains(filename, rename.SOURCEDIR) {
-			return fmt.Errorf("refusing to backup with source files still inside '%s'", filepath.Join(filename))
+			return fmt.Errorf("refusing to backup with source files still inside '%s'", filename)
+		}
+		if strings.HasPrefix(filename, sortDir) {
+			return fmt.Errorf("refusing to backup within the sorting directory '%s'", filename)
 		}
 		event := filepath.Base(filepath.Dir(filename))
 		if media := format.NewMedia(info.Name()); media.Index == 0 || media.Event != event {
