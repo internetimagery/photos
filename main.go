@@ -31,7 +31,7 @@ func sendHelp() {
 	root := filepath.Base(os.Args[0])
 	fmt.Println("  ", root, "version                                   ", "// Print out current version of the tool.")
 	fmt.Println("  ", root, "init <name>                               ", "// Set up a new project. Creates a config file also serving as the root of the project.")
-	fmt.Println("  ", root, "sort <filename> <filename> ...            ", "// Bring in external files, and sort them by date.")
+	fmt.Println("  ", root, "sort [--copy] <filename> <filename> ...   ", "// Bring in external files, and sort them by date.")
 	fmt.Println("  ", root, "rename                                    ", "// Rename (and compress) files in current directory to their parent directory's namespace (event).")
 	fmt.Println("  ", root, "tag [--remove] <filename/index> <filename/index...> -- <tag> <tag...>", "// Add and optionally remove tags from renamed files.")
 	fmt.Println("  ", root, "lock [--force]                            ", "// Make files readonly and create a snapshot of their contents. Check existing locked files for changes since last lock.")
@@ -121,10 +121,18 @@ func run(cwd string, args []string) error {
 		if len(args) < 3 {
 			return fmt.Errorf("Please provide a source directory to sort")
 		}
-		fmt.Printf("About to sort media in '%s'\n", strings.Join(args[2:], ", "))
+		sortTargets, copyFile := []string{}, false
+		for _, target := range args[2:]{
+			if target == "--copy" {
+				copyFile = true
+			} else {
+				sortTargets = append(sortTargets, target)
+			}
+		}
+		fmt.Printf("About to sort media in '%s'\n", strings.Join(sortTargets, ", "))
 		if question() {
 			fmt.Println("Sorting...")
-			if err = sort.SortMedia(cxt, false, args[2:]...); err != nil {
+			if err = sort.SortMedia(cxt, copyFile, sortTargets...); err != nil {
 				return err
 			}
 		}

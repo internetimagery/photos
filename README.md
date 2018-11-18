@@ -36,7 +36,7 @@ This file serves to both let the "photos" program know where the root of this pr
 #### (2) Adding media, sorting
 
 ```
-photos sort <filename> <filename...>
+photos sort [--copy] <filename> <filename...>
 ```
 
 The next step is to pull in some media. The sort command above will do the trick. You must use it (like all commands) from within your project. It will grab all the files from the specified directory and put them into a "sorted" directory with the project itself. Each file within a sub-directory sorted according to date.
@@ -46,6 +46,8 @@ The intention then is to manually go through the images and put them into a fold
 ```
 project-root / year (2018) / event (18-10-10 eventname) / media
 ```
+If you wish to keep the original media in the directory it was found, add the "--copy" flag to copy the files instead of moving them.
+
 
 #### (3) Format / compress media, rename
 

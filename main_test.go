@@ -118,7 +118,44 @@ func TestSort(t *testing.T) {
 		filepath.Join(sorted, "18-10-23", "file2.txt"),
 		filepath.Join(sorted, "18-10-23", "file2_1.txt"),
 	)
+	tu.AssertNotExists(
+		filepath.Join(tu.Dir, "file1.txt"),
+		filepath.Join(tu.Dir, "file2.txt"),
+	)
 }
+
+func TestSortCopy(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	project := filepath.Join(tu.Dir, "project")
+	sorted := filepath.Join(project, "Sorted")
+
+	tu.ModTime(2018, 10, 10, filepath.Join(tu.Dir, "file1.txt"))
+	tu.ModTime(2018, 10, 23, filepath.Join(tu.Dir, "file2.txt"))
+
+	// Run sort without any input
+	defer tu.UserInput("y\n")()
+	if err := run(project, []string{"exe", "sort", "--copy"}); err == nil {
+		tu.Fail("Allowed no source input")
+	}
+
+	// Run sort on files
+	defer tu.UserInput("y\n")()
+	tu.Must(run(project, []string{"exe", "sort", "../", "--copy"}))
+
+	// Check files are where we expect them.
+	tu.AssertExists(
+		filepath.Join(sorted, "18-10-10", "file1.txt"),
+		filepath.Join(sorted, "18-10-23", "file2.txt"),
+		filepath.Join(sorted, "18-10-23", "file2_1.txt"),
+	)
+	tu.AssertExists(
+		filepath.Join(tu.Dir, "file1.txt"),
+		filepath.Join(tu.Dir, "file2.txt"),
+	)
+}
+
 
 func TestRenameClean(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
