@@ -10,6 +10,7 @@ import (
 
 	"github.com/internetimagery/photos/context"
 	"github.com/internetimagery/photos/format"
+	"github.com/internetimagery/photos/copy"
 	"github.com/rwcarlsen/goexif/exif"
 )
 
@@ -68,7 +69,7 @@ func UniqueName(filename string) string {
 }
 
 // SortMedia : Grab dates assosicated with media in working directory, and place them in corresponding folders
-func SortMedia(cxt *context.Context, source ...string) error {
+func SortMedia(cxt *context.Context, copyFiles bool, source ...string) error {
 
 	// Validate our inputs
 	if len(source) == 0 {
@@ -118,9 +119,16 @@ func SortMedia(cxt *context.Context, source ...string) error {
 			return err
 		}
 		destPath := UniqueName(filepath.Join(folderPath, filepath.Base(sourcePath)))
-		log.Println("Moving:", sourcePath, "--->", destPath)
-		if err = os.Rename(sourcePath, destPath); err != nil {
-			return err
+		if copyFiles {
+			log.Println("Copying:", sourcePath, "--->", destPath)
+			if err = <-copy.File(sourcePath, destPath); err != nil {
+				return err
+			}
+		} else {
+			log.Println("Moving:", sourcePath, "--->", destPath)
+			if err = os.Rename(sourcePath, destPath); err != nil {
+				return err
+			}
 		}
 	}
 

@@ -114,17 +114,57 @@ func TestSortMedia(t *testing.T) {
 	)
 
 	// Run our sort on directory
-	tu.Must(SortMedia(cxt, tu.Dir))
+	tu.Must(SortMedia(cxt, false, tu.Dir))
 
 	tu.AssertExists(
 		filepath.Join(dateDir, "file1.txt"),
 		filepath.Join(dateDir, "file2.txt"),
 		filepath.Join(dateDir, "file2_1.txt"),
 	)
+	tu.AssertNotExists(
+		filepath.Join(tu.Dir, "file1.txt"),
+		filepath.Join(tu.Dir, "file2.txt"),
+	)
 
 	// Run our sort on individual file
-	tu.Must(SortMedia(cxt, filepath.Join(tu.Dir, "outside", "file3.txt")))
+	tu.Must(SortMedia(cxt, false, filepath.Join(tu.Dir, "outside", "file3.txt")))
 	tu.AssertExists(filepath.Join(dateDir, "file3.txt"))
+	tu.AssertNotExists(filepath.Join(tu.Dir, "outside", "file3.txt"))
+}
+
+
+func TestSortMediaCopy(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	// Get our context
+	project := filepath.Join(tu.Dir, "project")
+	cxt := tu.MustFatal(context.NewContext(project)).(*context.Context)
+
+	dateDir := filepath.Join(project, "Sorted", "18-10-22")
+	tu.ModTime(2018, 10, 22,
+		filepath.Join(tu.Dir, "file1.txt"), // Keeping media outside project
+		filepath.Join(tu.Dir, "file2.txt"),
+		filepath.Join(tu.Dir, "outside", "file3.txt"),
+	)
+
+	// Run our sort on directory
+	tu.Must(SortMedia(cxt, true, tu.Dir))
+
+	tu.AssertExists(
+		filepath.Join(dateDir, "file1.txt"),
+		filepath.Join(dateDir, "file2.txt"),
+		filepath.Join(dateDir, "file2_1.txt"),
+	)
+	tu.AssertExists(
+		filepath.Join(tu.Dir, "file1.txt"),
+		filepath.Join(tu.Dir, "file2.txt"),
+	)
+
+	// Run our sort on individual file
+	tu.Must(SortMedia(cxt, true, filepath.Join(tu.Dir, "outside", "file3.txt")))
+	tu.AssertExists(filepath.Join(dateDir, "file3.txt"))
+	tu.AssertExists(filepath.Join(tu.Dir, "outside", "file3.txt"))
 }
 
 func TestSortMediaInsideProject(t *testing.T) {
@@ -136,7 +176,7 @@ func TestSortMediaInsideProject(t *testing.T) {
 	cxt := tu.MustFatal(context.NewContext(project)).(*context.Context)
 
 	// Run our sort
-	if err := SortMedia(cxt, filepath.Join(project, "event01")); err == nil {
+	if err := SortMedia(cxt, false, filepath.Join(project, "event01")); err == nil {
 		tu.Fail("Allowed sorting media inside project")
 	}
 }
@@ -150,7 +190,7 @@ func TestSortMediaMissing(t *testing.T) {
 	cxt := tu.MustFatal(context.NewContext(project)).(*context.Context)
 
 	// Run our sort
-	if err := SortMedia(cxt, filepath.Join(tu.Dir, "somewhere")); err == nil {
+	if err := SortMedia(cxt, false, filepath.Join(tu.Dir, "somewhere")); err == nil {
 		tu.Fail("Allowed missing source")
 	}
 }

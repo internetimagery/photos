@@ -124,7 +124,7 @@ func run(cwd string, args []string) error {
 		fmt.Printf("About to sort media in '%s'\n", strings.Join(args[2:], ", "))
 		if question() {
 			fmt.Println("Sorting...")
-			if err = sort.SortMedia(cxt, args[2:]...); err != nil {
+			if err = sort.SortMedia(cxt, false, args[2:]...); err != nil {
 				return err
 			}
 		}
