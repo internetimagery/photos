@@ -118,5 +118,5 @@ An example backup solution is the amazing rclone. It can be set up independently
 backup:
   -
     name: "b2"
-    command: "rclone copy \"$SOURCEPATH\" \"backup:my-bucket/$RELPATH\" --immutable -v"
+    command: "rclone copy \"$SOURCEPATH\" \"backup:my-bucket/$RELPATH\" -v"
 ```
