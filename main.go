@@ -243,6 +243,9 @@ func run(cwd string, args []string) error {
 		if len(args) < 3 {
 			return fmt.Errorf("please provide a name for the backup script you wish to run")
 		}
+		if cxt.WorkingDir == cxt.Root {
+			return fmt.Errorf("Cannot backup the root directory (same place as config file.)")
+		}
 		fmt.Printf("About to run backup scripts that match the name '%s'.\nTo backup the media in '%s'\n", args[2], cxt.WorkingDir)
 		if question() {
 			fmt.Printf("Backing up media in '%s'\n", cxt.WorkingDir)
