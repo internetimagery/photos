@@ -22,7 +22,7 @@ import (
 )
 
 // VERSION : Version information
-const VERSION = "0.4"
+const VERSION = "0.5"
 
 // sendHelp : Print out helpful message.
 func sendHelp() {
@@ -122,7 +122,7 @@ func run(cwd string, args []string) error {
 			return fmt.Errorf("Please provide a source directory to sort")
 		}
 		sortTargets, copyFile := []string{}, false
-		for _, target := range args[2:]{
+		for _, target := range args[2:] {
 			if target == "--copy" {
 				copyFile = true
 			} else {

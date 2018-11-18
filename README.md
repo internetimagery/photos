@@ -4,14 +4,13 @@
 
 # TODO:
 
-- add --copy flag to "sort", to leave media in its original place and only copy across info
 - check and see if os.Rename works across drives. Create a test if it doesn't.
 - add phash check before and after compression as a failsafe to ensure the copy is faithful to the original (and a test)
 - add more tests for things like bad data
-- stop all commands from being run in root
+- stop all commands that use working dir from being run in root
 - make a tag searching function to collect all tags. Provide prompt for spelling errors against similar tags.
 - make tagging use a web serice, with a basic website for interractive tagging
-- add image duplication checker like phash
+- add image duplication using lockfile phash information
 - add video phash check, if possible
 
 #### Nice to have

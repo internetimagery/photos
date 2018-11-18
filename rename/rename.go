@@ -4,12 +4,16 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"fmt"
+	"image"
 
 	"github.com/internetimagery/photos/context"
 	"github.com/internetimagery/photos/copy"
 	"github.com/internetimagery/photos/sort"
 
 	"github.com/internetimagery/photos/format"
+	"github.com/internetimagery/photos/lock"
+
 )
 
 // SOURCEDIR : File to store originals for manual checking
@@ -120,6 +124,30 @@ func Rename(cxt *context.Context, compress bool) error {
 				if err = com.Run(); err != nil {
 					return err
 				}
+
+				// Verify file made it to its location and it matches
+				desthandle, err := os.Open(tempDest)
+				if err != nil {
+					return err
+				}
+				desthash, err := lock.GeneratePerceptualHash("average", desthandle)
+				desthandle.Close()
+				if err == nil {
+					srchandle, err := os.Open(src)
+					if err != nil {
+						return err
+					}
+					srchash, err := lock.GeneratePerceptualHash("average", srchandle)
+					srchandle.Close()
+					if err == nil {
+						if issame, err := lock.IsSamePerceptualHash(desthash, srchash); err == nil && !issame{
+							return fmt.Errorf("Compressed image does not match source '%s", src)
+						}
+					}
+				}
+				if err != nil && err != image.ErrFormat {
+					return err
+				}
 			}
 		} else {
 			// We asked not to compress the file. Just copy it instead
@@ -127,11 +155,6 @@ func Rename(cxt *context.Context, compress bool) error {
 			if err = <-copy.File(src, tempDest); err != nil {
 				return err
 			}
-		}
-
-		// Verify file made it to its location
-		if _, err = os.Stat(tempDest); err != nil {
-			return err
 		}
 
 		// Move file to its correct location

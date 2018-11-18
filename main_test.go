@@ -156,7 +156,6 @@ func TestSortCopy(t *testing.T) {
 	)
 }
 
-
 func TestRenameClean(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 	defer tu.LoadTestdata()()
