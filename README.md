@@ -1,8 +1,6 @@
 # Basic photo management (very WIP)
 
-[![Build Status](https://travis-ci.org/internetimagery/photos.svg?branch=master)](https://travis-ci.org/internetimagery/photos)
-
-[![Coverage Status](https://coveralls.io/repos/github/internetimagery/photos/badge.svg?branch=master)](https://coveralls.io/github/internetimagery/photos?branch=master)
+[![Build Status](https://travis-ci.org/internetimagery/photos.svg?branch=master)](https://travis-ci.org/internetimagery/photos) [![Coverage Status](https://coveralls.io/repos/github/internetimagery/photos/badge.svg?branch=master)](https://coveralls.io/github/internetimagery/photos?branch=master)
 
 # TODO:
 
