@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/internetimagery/photos/context"
+	"github.com/internetimagery/photos/lock"
 	"github.com/internetimagery/photos/rename"
 	"github.com/internetimagery/photos/testutil"
 )
@@ -199,6 +200,30 @@ func TestRename(t *testing.T) {
 		filepath.Join(event, "event01_003.test"),
 		filepath.Join(event, rename.SOURCEDIR, "newfile.test"),
 	)
+}
+
+func TestLock(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	event := filepath.Join(tu.Dir, "event01")
+	if err, ok := run(event, []string{"exe", "lock"}).(*lock.MissmatchError); !ok {
+		if err == nil {
+			tu.Fail("Allowed missmatch lock")
+		} else {
+			tu.Fail(err)
+		}
+	}
+	tu.Must(run(event, []string{"exe", "lock", "--force"}))
+}
+
+func TestLockRoot(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	if err := run(tu.Dir, []string{"exe", "lock"}); err == nil {
+		tu.Fail("Allowed locking root")
+	}
 }
 
 func TestAddTag(t *testing.T) {

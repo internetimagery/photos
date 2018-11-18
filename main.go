@@ -224,6 +224,9 @@ func run(cwd string, args []string) error {
 		return tags.AddTag(tagMedia, tagNames)
 
 	case "lock": // Lock down files to prevent accidental modification
+		if cxt.WorkingDir == cxt.Root {
+			return fmt.Errorf("Cannot lock the root directory (same place as config file.)")
+		}
 		fmt.Printf("Locking media in '%s'\n", cxt.WorkingDir)
 		force := false
 		if len(args) > 2 && args[2] == "--force" { // Override changes instead of warning about them
