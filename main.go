@@ -35,7 +35,7 @@ func sendHelp() {
 	fmt.Println("  ", root, "rename                                    ", "// Rename (and compress) files in current directory to their parent directory's namespace (event).")
 	fmt.Println("  ", root, "tag [--remove] <filename/index> <filename/index...> -- <tag> <tag...>", "// Add and optionally remove tags from renamed files.")
 	fmt.Println("  ", root, "lock [--force]                            ", "// Make files readonly and create a snapshot of their contents. Check existing locked files for changes since last lock.")
-	fmt.Println("  ", root, "backup [--no-lock] <name>                 ", "// Execute specified procedure in config to backup files from the current directory. Files are locked first by default.")
+	fmt.Println("  ", root, "backup <name>                             ", "// Execute specified procedure in config to backup files from the current directory. Files are locked first by default.")
 }
 
 // question : Ask yes or no
