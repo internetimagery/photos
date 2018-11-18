@@ -4,6 +4,8 @@
 
 # TODO:
 
+- add --copy flag to "sort", to leave media in its original place and only copy across info
+- check and see if os.Rename works across drives. Create a test if it doesn't.
 - add phash check before and after compression as a failsafe to ensure the copy is faithful to the original (and a test)
 - add more tests for things like bad data
 - stop all commands from being run in root
@@ -13,6 +15,7 @@
 - add video phash check, if possible
 
 #### Nice to have
+- Test for, and create functionality for the situation where premature shutdown happens (ctrl+c / power outage)
 - manage all actions with an interface (ie file movements, renames etc)
 - track those actions and allow an undo system to exist
 - autocomplete actions
