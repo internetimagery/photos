@@ -4,6 +4,10 @@
 
 # TODO:
 
+- add phash check before and after compression as a failsafe to ensure the copy is faithful to the original (and a test)
+- add more tests for things like bad data
+- stop all commands from being run in root
+- make a tag searching function to collect all tags. Provide prompt for spelling errors against similar tags.
 - make tagging use a web serice, with a basic website for interractive tagging
 - add image duplication checker like phash
 - add video phash check, if possible
@@ -12,6 +16,7 @@
 - manage all actions with an interface (ie file movements, renames etc)
 - track those actions and allow an undo system to exist
 - autocomplete actions
+- run compressions in a few threads
 
 ### Intended use:
 
