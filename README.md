@@ -5,7 +5,7 @@
 # TODO:
 
 - check and see if os.Rename works across drives. Create a test if it doesn't.
-- add phash check before and after compression as a failsafe to ensure the copy is faithful to the original (and a test)
+- add test for phash check after compression (use precompressed file, and different file tests)
 - add more tests for things like bad data
 - stop all commands that use working dir from being run in root
 - make a tag searching function to collect all tags. Provide prompt for spelling errors against similar tags.
