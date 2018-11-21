@@ -18,6 +18,7 @@ const ROOTCONF = "photos-config.yaml"
 type Context struct {
 	Root       string            // Path to base of repository (location of config)
 	WorkingDir string            // Path of current working directory
+	SortDir    string    // Sorted files directory
 	Env        map[string]string // Representation of the environment
 	Config     *config.Config    // Configuration information
 }
@@ -51,6 +52,9 @@ func NewContext(workingDir string) (*Context, error) {
 		return nil, err
 	}
 
+	// Set up dirs
+	sortDir := filepath.Join(currentRoot, conf.Sorted)
+
 	// Build out our environment vars
 	env := make(map[string]string)
 	for _, entry := range os.Environ() {
@@ -60,7 +64,12 @@ func NewContext(workingDir string) (*Context, error) {
 		}
 	}
 
-	return &Context{Root: currentRoot, WorkingDir: workingDir, Config: conf, Env: env}, nil
+	return &Context{
+		Root: currentRoot,
+		WorkingDir: workingDir,
+		SortDir: sortDir,
+		Config: conf,
+		Env: env}, nil
 }
 
 // expandEnv : Expand environment variables with those from context. Make safe the backslashes also!

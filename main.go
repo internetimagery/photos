@@ -141,6 +141,9 @@ func run(cwd string, args []string) error {
 		if cxt.WorkingDir == cxt.Root {
 			return fmt.Errorf("Cannot rename media in the root directory (same place as config file.)")
 		}
+		if cxt.WorkingDir == cxt.SortDir {
+			return fmt.Errorf("Cannot rename media in the sort directory. Please move to your own structure when ready to format.")
+		}
 		fmt.Printf("About to rename media in '%s'\n", cxt.WorkingDir)
 		if question() {
 			fmt.Printf("Renaming media in '%s'\n", cxt.WorkingDir)
@@ -235,6 +238,9 @@ func run(cwd string, args []string) error {
 		if cxt.WorkingDir == cxt.Root {
 			return fmt.Errorf("Cannot lock the root directory (same place as config file.)")
 		}
+		if cxt.WorkingDir == cxt.SortDir {
+			return fmt.Errorf("Cannot lock media in the sort directory. Please move to your own structure when ready to lock.")
+		}
 		fmt.Printf("Locking media in '%s'\n", cxt.WorkingDir)
 		force := false
 		if len(args) > 2 && args[2] == "--force" { // Override changes instead of warning about them
@@ -253,6 +259,9 @@ func run(cwd string, args []string) error {
 		}
 		if cxt.WorkingDir == cxt.Root {
 			return fmt.Errorf("Cannot backup the root directory (same place as config file.)")
+		}
+		if cxt.WorkingDir == cxt.SortDir {
+			return fmt.Errorf("Cannot backup media in the sort directory. Please move to your own structure and format.")
 		}
 		fmt.Printf("About to run backup scripts that match the name '%s'.\nTo backup the media in '%s'\n", args[2], cxt.WorkingDir)
 		if question() {

@@ -4,6 +4,7 @@
 
 # TODO:
 
+- add tests for failing in sort directory for backups / tags / format
 - check and see if os.Rename works across drives. Create a test if it doesn't.
 - add test for phash check after compression (use precompressed file, and different file tests)
 - add more tests for things like bad data
