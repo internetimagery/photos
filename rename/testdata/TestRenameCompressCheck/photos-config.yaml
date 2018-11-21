@@ -1,0 +1,4 @@
+location: test
+compress:
+  - name: "*.jpg"
+    command: "cp \"$MOCKPATH\" \"$DESTPATH\""

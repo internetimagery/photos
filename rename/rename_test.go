@@ -51,6 +51,40 @@ func TestRenameNoNew(t *testing.T) {
 	)
 }
 
+func TestRenameCompressCheck(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	// Test compressed but same image
+	sameimg := filepath.Join(tu.Dir, "sameimg")
+	cxt := tu.MustFatal(context.NewContext(sameimg)).(*context.Context)
+	cxt.Env["MOCKPATH"] = filepath.Join(cxt.Root, "mockimg.jpg")
+
+	// Add copy command to windows
+	if runtime.GOOS == "windows" {
+		cxt.Env["PATH"] = tu.Dir + ";" + cxt.Env["PATH"]
+	}
+
+	// Perform rename with compression
+	tu.Must(Rename(cxt, true))
+	tu.AssertExists(filepath.Join(sameimg, "sameimg_001.jpg"))
+
+	// Test compressed but same image
+	diffimg := filepath.Join(tu.Dir, "diffimg")
+	cxt = tu.MustFatal(context.NewContext(diffimg)).(*context.Context)
+	cxt.Env["MOCKPATH"] = filepath.Join(cxt.Root, "mockimg.jpg")
+
+	// Add copy command to windows
+	if runtime.GOOS == "windows" {
+		cxt.Env["PATH"] = tu.Dir + ";" + cxt.Env["PATH"]
+	}
+
+	// Perform rename with compression
+	if err := Rename(cxt, true); err == nil {
+		tu.Fail("Allowed corrupt image from third party compression")
+	}
+}
+
 func TestSetEnviron(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 

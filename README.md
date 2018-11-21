@@ -47,6 +47,7 @@ The intention then is to manually go through the images and put them into a fold
 ```
 project-root / year (2018) / event (18-10-10 eventname) / media
 ```
+
 If you wish to keep the original media in the directory it was found, add the "--copy" flag to copy the files instead of moving them.
 
 
