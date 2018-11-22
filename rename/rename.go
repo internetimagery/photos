@@ -1,11 +1,11 @@
 package rename
 
 import (
+	"fmt"
+	"image"
 	"log"
 	"os"
 	"path/filepath"
-	"fmt"
-	"image"
 
 	"github.com/internetimagery/photos/context"
 	"github.com/internetimagery/photos/copy"
@@ -13,7 +13,6 @@ import (
 
 	"github.com/internetimagery/photos/format"
 	"github.com/internetimagery/photos/lock"
-
 )
 
 // SOURCEDIR : File to store originals for manual checking
@@ -130,17 +129,17 @@ func Rename(cxt *context.Context, compress bool) error {
 				if err != nil {
 					return err
 				}
-				desthash, err := lock.GeneratePerceptualHash("average", desthandle)
+				desthash, err := lock.GeneratePerceptualHash("difference", desthandle)
 				desthandle.Close()
 				if err == nil {
 					srchandle, err := os.Open(src)
 					if err != nil {
 						return err
 					}
-					srchash, err := lock.GeneratePerceptualHash("average", srchandle)
+					srchash, err := lock.GeneratePerceptualHash("difference", srchandle)
 					srchandle.Close()
 					if err == nil {
-						if issame, err := lock.IsSamePerceptualHash(desthash, srchash); err == nil && !issame{
+						if issame, err := lock.IsSamePerceptualHash(desthash, srchash); err == nil && !issame {
 							return fmt.Errorf("Compressed image does not match source '%s", src)
 						}
 					}

@@ -53,6 +53,18 @@ func GeneratePerceptualHash(hashType string, handle io.ReadSeeker) (string, erro
 			return "", err
 		}
 		return hash.ToString(), nil
+	case "difference":
+		hash, err := goimagehash.DifferenceHash(img)
+		if err != nil {
+			return "", err
+		}
+		return hash.ToString(), nil
+	case "perception":
+		hash, err := goimagehash.PerceptionHash(img)
+		if err != nil {
+			return "", err
+		}
+		return hash.ToString(), nil
 	}
 	return "", fmt.Errorf("Unknown hash format '%s'", hashType)
 }
@@ -74,7 +86,7 @@ func IsSamePerceptualHash(hash1, hash2 string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return dist < 2, nil
+	return dist < 5, nil
 }
 
 // Snapshot : Hold information about a particular files information
