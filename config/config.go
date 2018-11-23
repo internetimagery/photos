@@ -43,9 +43,9 @@ func NewConfig(location string) *Config {
 	newConfig.Location = location          // Nice name for location
 	newConfig.Sorted = SORTED              // Default location for sorted media
 	newConfig.Compress = CompressCategory{ // Useful default entry to demo structure
-		Command{Name: "*.jpg *.jpeg *.png", Command: `echo "command to run on image!"`}}
+		Command{Name: "*.jpg *.jpeg *.png", Command: `echo "This is an example command that will run on jpg, jpeg, png files."`}}
 	newConfig.Backup = BackupCategory{ // Another useful demo
-		Command{Name: "harddrive", Command: `echo "command to backup to 'harddrive'"`}}
+		Command{Name: "harddrive", Command: `echo "This is an example command that will run when requesting a backup to 'harddrive'"`}}
 	return newConfig
 }
 
