@@ -5,6 +5,7 @@ import (
 	"image"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/internetimagery/photos/context"
@@ -57,7 +58,12 @@ func Rename(cxt *context.Context, compress bool) error {
 		if media.Index == 0 { // Media is not already named correctly
 			maxIndex++
 			media.Index = maxIndex
-			media.Event = eventName
+			media.Event = event.Name
+			date, err := sort.GetMediaDate(media.Path)
+			if err != nil {
+				return err
+			}
+			media.Date = &date
 			newName, err := media.FormatName()
 			if err != nil {
 				return err
@@ -115,7 +121,8 @@ func Rename(cxt *context.Context, compress bool) error {
 			} else {
 				// We have a command. Prep and execute it.
 				log.Println("Compressing:", src)
-				com, err := cxt.PrepCommand(command)
+				var com *exec.Cmd
+				com, err = cxt.PrepCommand(command)
 				if err != nil {
 					return err
 				}
@@ -125,22 +132,26 @@ func Rename(cxt *context.Context, compress bool) error {
 				}
 
 				// Verify file made it to its location and it matches
-				desthandle, err := os.Open(tempDest)
+				var desthandle, srchandle *os.File
+				desthandle, err = os.Open(tempDest)
 				if err != nil {
 					return err
 				}
-				desthash, err := lock.GeneratePerceptualHash("difference", desthandle)
+				var srchash, desthash string
+				desthash, err = lock.GeneratePerceptualHash("difference", desthandle)
 				desthandle.Close()
 				if err == nil {
-					srchandle, err := os.Open(src)
+					srchandle, err = os.Open(src)
 					if err != nil {
 						return err
 					}
-					srchash, err := lock.GeneratePerceptualHash("difference", srchandle)
+					srchash, err = lock.GeneratePerceptualHash("difference", srchandle)
 					srchandle.Close()
 					if err == nil {
-						if issame, err := lock.IsSamePerceptualHash(desthash, srchash); err == nil && !issame {
-							return fmt.Errorf("Compressed image does not match source '%s", src)
+						var issame bool
+						if issame, err = lock.IsSamePerceptualHash(desthash, srchash); err == nil && !issame {
+							err = fmt.Errorf("Compressed image does not match source '%s", src)
+							return err
 						}
 					}
 				}

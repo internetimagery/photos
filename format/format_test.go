@@ -79,7 +79,7 @@ func TestNewMedia(t *testing.T) {
 	// Test filename bad date
 	test = "20-30-40 event_101.log"
 	media = NewMedia(test)
-	if media.Index != 0 || media.Ext != "" {
+	if media.Index != 0 || media.Ext != "log" {
 		tu.Fail("Failed on", test, media)
 	}
 

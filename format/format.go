@@ -128,7 +128,6 @@ func NewMedia(filename string) *Media {
 			media.Date = &date
 		} else {
 			media.Index = 0 // Mark invalid
-			media.Ext = ""
 		}
 
 		if len(parts[4]) > 0 {
