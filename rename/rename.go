@@ -29,14 +29,14 @@ func setEnvironment(sourcePath, destPath string, cxt *context.Context) {
 // Rename : Rename and compress files within an event (directory). Optionally compress while renaming.
 func Rename(cxt *context.Context, compress bool) error {
 
-	// Get event name from path
-	eventName := filepath.Base(cxt.WorkingDir)
+	// Get event from path
+	event := format.NewEvent(cxt.WorkingDir)
 
 	// Get source path
 	sourcePath := filepath.Join(cxt.WorkingDir, SOURCEDIR)
 
 	// Grab files from given path
-	mediaList, err := format.GetMediaFromDirectory(cxt.WorkingDir)
+	mediaList, err := event.GetMedia()
 	if err != nil {
 		return err
 	}

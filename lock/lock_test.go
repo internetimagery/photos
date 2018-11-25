@@ -211,7 +211,7 @@ func TestLockEvent(t *testing.T) {
 	defer tu.LoadTestdata()()
 
 	event := filepath.Join(tu.Dir, "event01")
-	testfile := filepath.Join(event, "event01_001.txt")
+	testfile := filepath.Join(event, "18-10-10 event01_001.txt")
 	tu.Must(LockEvent(event, false)) // Lock down the event!
 	tu.AssertExists(filepath.Join(event, LOCKFILENAME))
 	testReadOnly(tu, testfile)
@@ -224,15 +224,15 @@ func TestLockEventNew(t *testing.T) {
 	event := filepath.Join(tu.Dir, "event01")
 	tu.Must(LockEvent(event, false))
 
-	testReadOnly(tu, filepath.Join(event, "event01_001.txt"))
-	testReadOnly(tu, filepath.Join(event, "event01_002.txt"))
+	testReadOnly(tu, filepath.Join(event, "18-11-25 event01_001.txt"))
+	testReadOnly(tu, filepath.Join(event, "18-11-25 event01_002.txt"))
 
 	lockmap := LockMap{}
 	handle := tu.MustFatal(os.Open(filepath.Join(event, LOCKFILENAME))).(*os.File)
 	defer handle.Close()
 	tu.MustFatal(lockmap.Load(handle))
 
-	if _, ok := lockmap["event01_002.txt"]; !ok {
+	if _, ok := lockmap["18-11-25 event01_002.txt"]; !ok {
 		tu.Fail("Failed to add entry for new event")
 	}
 }

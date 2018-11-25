@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/internetimagery/photos/context"
-	"github.com/internetimagery/photos/format"
 	"github.com/internetimagery/photos/copy"
+	"github.com/internetimagery/photos/format"
 	"github.com/rwcarlsen/goexif/exif"
 )
 
@@ -88,7 +88,7 @@ func SortMedia(cxt *context.Context, copyFiles bool, source ...string) error {
 		if info.Mode().IsRegular() { // Add single files
 			mediaPaths[cleansrc] = struct{}{}
 		} else if info.IsDir() {
-			mediaItems, err := format.GetMediaFromDirectory(cleansrc)
+			mediaItems, err := format.NewEvent(cleansrc).GetMedia()
 			if err != nil {
 				return err
 			}

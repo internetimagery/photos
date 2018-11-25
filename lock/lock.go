@@ -221,7 +221,7 @@ func (lock *LockMap) Load(handle io.Reader) error {
 // LockEvent : Attempt to lock event. If lock exists, check for any changes and update lock.
 func LockEvent(directoryname string, force bool) error {
 	// Grab media from within file
-	mediaList, err := format.GetMediaFromDirectory(directoryname)
+	mediaList, err := format.NewEvent(directoryname).GetMedia()
 	if err != nil {
 		return err
 	}
@@ -321,5 +321,14 @@ func LockEvent(directoryname string, force bool) error {
 			return err
 		}
 	}
+
+	// Refresh readonly on existing files
+	for filename := range checkFiles {
+		err := ReadOnly(filename)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
