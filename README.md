@@ -4,20 +4,17 @@
 
 # TODO:
 
-- incorporate date into file format. so different dates are allowed in a single event
-- add date into event format as optional, but don't use it when checking file
-- events could use same format as media... 
-
+- Use proper flag parser for cli args. Too much logic in command runner.
 - add tests for failing in sort directory for backups / tags / format
 - check and see if os.Rename works across drives. Create a test if it doesn't.
 - add more tests for things like bad data
 - stop all commands that use working dir from being run in root
 - make a tag searching function to collect all tags. Provide prompt for spelling errors against similar tags.
-- make tagging use a web serice, with a basic website for interractive tagging
 - add image duplication using lockfile phash information
-- add video phash check, if possible
+- add video phash check, if possible - would require ffmpeg static link... if this happens consider baking in ffmpeg compression functionality to replace cli args in config.
 
 #### Nice to have
+- make tagging use a web serice, with a basic website for interractive tagging
 - Test for, and create functionality for the situation where premature shutdown happens (ctrl+c / power outage)
 - manage all actions with an interface (ie file movements, renames etc)
 - track those actions and allow an undo system to exist
