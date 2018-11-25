@@ -74,6 +74,31 @@ func NewEvent(dirname string) *Event {
 	return event
 }
 
+// GetMedia : Walk through directory, and return a list of media items represented there
+func (event *Event) GetMedia() ([]*Media, error) {
+	mediaList := []*Media{}
+	if strings.TrimSpace(event.Name) == "" {
+		return mediaList, fmt.Errorf("event has no name, '%s'", event.Path)
+	}
+	files, err := ioutil.ReadDir(event.Path)
+	if err != nil {
+		return mediaList, err
+	}
+	sort.Slice(files, func(i, j int) bool { return files[i].Name() < files[j].Name() })
+	for _, file := range files {
+		fullPath := filepath.Join(event.Path, file.Name())
+		if file.Mode().IsRegular() && IsUsable(fullPath) { // Ignore unusable files
+			media := NewMedia(fullPath)
+			if media.Event != event.Name {
+				media.Index = 0 // Index 0 means unformatted
+				media.Event = event.Name
+			}
+			mediaList = append(mediaList, media)
+		}
+	}
+	return mediaList, nil
+}
+
 // Media : Container for information about media item
 type Media struct {
 	Path  string              // File name
@@ -148,27 +173,4 @@ func (media *Media) FormatName() (string, error) {
 	}
 	ext := strings.ToLower(media.Ext)
 	return fmt.Sprintf("%s %s_%03d%s.%s", media.Date.Format(DateLayout), media.Event, media.Index, tags, ext), nil
-}
-
-// GetMediaFromDirectory : Walk through directory, and return a list of media items represented there
-func GetMediaFromDirectory(dirPath string) ([]*Media, error) {
-	mediaList := []*Media{}
-	files, err := ioutil.ReadDir(dirPath)
-	event := filepath.Base(dirPath)
-	if err != nil {
-		return mediaList, err
-	}
-	sort.Slice(files, func(i, j int) bool { return files[i].Name() < files[j].Name() })
-	for _, file := range files {
-		if file.Mode().IsRegular() && IsUsable(filepath.Join(dirPath, file.Name())) { // Ignore unusable files
-			fullPath := filepath.Join(dirPath, file.Name())
-			media := NewMedia(fullPath)
-			if media.Event != event {
-				media.Index = 0 // Index 0 means unformatted
-				media.Event = event
-			}
-			mediaList = append(mediaList, media)
-		}
-	}
-	return mediaList, nil
 }

@@ -115,22 +115,24 @@ func TestFormatName(t *testing.T) {
 	}
 }
 
-func TestGetMediaFromDirectory(t *testing.T) {
+func TestGetMedia(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 	defer tu.LoadTestdata()()
 
-	event := filepath.Join(tu.Dir, "18-05-12 event")
-	result := tu.Must(GetMediaFromDirectory(event)).([]*Media)
+	event := NewEvent(filepath.Join(tu.Dir, "18-05-12 event"))
+	result := tu.Must(event.GetMedia()).([]*Media)
 
 	if len(result) != 4 {
 		tu.Fail("Expected 4 media items. Got", len(result))
 	}
 
+	testTime1 := time.Date(2018, 05, 12, 0, 0, 0, 0, time.Local)
+	testTime2 := time.Date(2012, 10, 12, 0, 0, 0, 0, time.Local)
 	testFiles := map[string]Media{
-		filepath.Join(event, "18-05-12 event_034.img"):                Media{Event: "18-05-12 event", Index: 34, Ext: "img"},
-		filepath.Join(event, "18-05-12 event_034[one two-three].img"): Media{Event: "18-05-12 event", Index: 34, Tags: map[string]struct{}{"one": struct{}{}, "two-three": struct{}{}}, Ext: "img"},
-		filepath.Join(event, "12-10-12 event_034.png"):                Media{Event: "18-05-12 event", Ext: "png"},
-		filepath.Join(event, "document_scanned.jpg"):                  Media{Event: "18-05-12 event", Ext: "jpg"},
+		filepath.Join(event.Path, "18-05-12 event_034.img"):                Media{Date: &testTime1, Event: "event", Index: 34, Ext: "img"},
+		filepath.Join(event.Path, "18-05-12 event_034[one two-three].img"): Media{Date: &testTime1, Event: "event", Index: 34, Tags: map[string]struct{}{"one": struct{}{}, "two-three": struct{}{}}, Ext: "img"},
+		filepath.Join(event.Path, "12-10-12 event_034.png"):                Media{Date: &testTime2, Event: "event", Ext: "png"},
+		filepath.Join(event.Path, "document_scanned.jpg"):                  Media{Date: &testTime1, Event: "event", Ext: "jpg"},
 	}
 
 	for _, testFile := range result {
