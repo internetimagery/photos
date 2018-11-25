@@ -4,6 +4,10 @@
 
 # TODO:
 
+- incorporate date into file format. so different dates are allowed in a single event
+- add date into event format as optional, but don't use it when checking file
+- events could use same format as media... 
+
 - add tests for failing in sort directory for backups / tags / format
 - check and see if os.Rename works across drives. Create a test if it doesn't.
 - add more tests for things like bad data

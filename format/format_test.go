@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/internetimagery/photos/testutil"
 )
@@ -23,19 +24,18 @@ func TestTempPath(t *testing.T) {
 
 func TestNewMedia(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
-	event := "18-12-08 event"
 
 	// Test filename with tags
-	test := event + "_002[one-two three].jpg"
+	test := "18-12-08 event_002[one-two three].jpg"
 	media := NewMedia(test)
-	if media.Event != event || media.Index != 2 || media.Path != test || media.Ext != "jpg" || len(media.Tags) != 2 {
+	if media.Date.Equal(time.Date(2018, 12, 8, 0, 0, 0, 0, time.Local)) || media.Event != "event" || media.Index != 2 || media.Path != test || media.Ext != "jpg" || len(media.Tags) != 2 {
 		tu.Fail("Failed on", test, media)
 	}
 
 	// Test filename without tags
-	test = event + "_202.png"
+	test = "18-12-08 event_202.png"
 	media = NewMedia(test)
-	if media.Event != event || media.Index != 202 || media.Path != test || media.Ext != "png" || len(media.Tags) != 0 {
+	if media.Date.Equal(time.Date(2018, 12, 8, 0, 0, 0, 0, time.Local)) || media.Event != "event" || media.Index != 202 || media.Path != test || media.Ext != "png" || len(media.Tags) != 0 {
 		tu.Fail("Failed on", test, media)
 	}
 
@@ -47,11 +47,19 @@ func TestNewMedia(t *testing.T) {
 	}
 
 	// Test filename no extension
-	test = event + "_101"
+	test = "18-12-08 event_101"
 	media = NewMedia(test)
 	if media.Index != 0 || media.Ext != "" {
 		tu.Fail("Failed on", test, media)
 	}
+
+	// Test filename bad date
+	test = "20-30-40 event_101.log"
+	media = NewMedia(test)
+	if media.Index != 0 || media.Ext != "" {
+		tu.Fail("Failed on", test, media)
+	}
+
 }
 
 func TestFormatName(t *testing.T) {
@@ -62,14 +70,16 @@ func TestFormatName(t *testing.T) {
 		Media Media
 	}
 
+	testTime := time.Date(2018, 12, 7, 0, 0, 0, 0, time.Local)
 	tests := []testCase{
-		testCase{"event01_020.png", Media{Event: "event01", Index: 20, Ext: "png"}},
-		testCase{"18-12-07 event_1234[one two].jpeg", Media{Event: "18-12-07 event", Index: 1234, Tags: map[string]struct{}{"one": struct{}{}, "two": struct{}{}}, Ext: "jpeg"}},
-		testCase{"", Media{Event: "some event/event", Index: 2, Ext: "jpg"}},
-		testCase{"", Media{Event: "evento", Index: -1, Ext: "png"}},
-		testCase{"", Media{Event: "eventing", Index: 23, Ext: "$$$"}},
-		testCase{"", Media{Event: "  ", Index: 23, Ext: "thing"}},
-		testCase{"", Media{Event: "eventer", Index: 12, Ext: ""}},
+		testCase{"18-12-07 event01_020.png", Media{Event: "event01", Index: 20, Ext: "png", Date: &testTime}},
+		testCase{"18-12-07 event_1234[one two].jpeg", Media{Event: "event", Index: 1234, Tags: map[string]struct{}{"one": struct{}{}, "two": struct{}{}}, Ext: "jpeg", Date: &testTime}},
+		testCase{"", Media{Event: "some event/event", Index: 2, Ext: "jpg", Date: &testTime}},
+		testCase{"", Media{Event: "evento", Index: -1, Ext: "png", Date: &testTime}},
+		testCase{"", Media{Event: "eventing", Index: 23, Ext: "$$$", Date: &testTime}},
+		testCase{"", Media{Event: "  ", Index: 23, Ext: "thing", Date: &testTime}},
+		testCase{"", Media{Event: "eventer", Index: 12, Ext: "", Date: &testTime}},
+		testCase{"", Media{Event: "event", Index: 2, Ext: "jpg"}},
 	}
 
 	for _, expect := range tests {
