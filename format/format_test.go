@@ -22,20 +22,43 @@ func TestTempPath(t *testing.T) {
 	}
 }
 
+func TestNewEvent(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+
+	test := "/path/to/18-12-07 event01"
+	event := NewEvent(test)
+	if event.Date == nil || event.Name != "event01" || event.Path != test {
+		tu.Fail("Failed on", test, event)
+	}
+
+	test = "/path/to/event01"
+	event = NewEvent(test)
+	if event.Date != nil || event.Name != "event01" || event.Path != test {
+		tu.Fail("Failed on", test, event)
+	}
+
+	test = "/path/to/e$vent01"
+	event = NewEvent(test)
+	if event.Date != nil || event.Name != "" || event.Path != test {
+		tu.Fail("Failed on", test, event)
+	}
+
+}
+
 func TestNewMedia(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 
 	// Test filename with tags
 	test := "18-12-08 event_002[one-two three].jpg"
 	media := NewMedia(test)
-	if media.Date.Equal(time.Date(2018, 12, 8, 0, 0, 0, 0, time.Local)) || media.Event != "event" || media.Index != 2 || media.Path != test || media.Ext != "jpg" || len(media.Tags) != 2 {
+	if !media.Date.Equal(time.Date(2018, 12, 8, 0, 0, 0, 0, time.Local)) || media.Event != "event" || media.Index != 2 || media.Path != test || media.Ext != "jpg" || len(media.Tags) != 2 {
 		tu.Fail("Failed on", test, media)
 	}
 
 	// Test filename without tags
 	test = "18-12-08 event_202.png"
 	media = NewMedia(test)
-	if media.Date.Equal(time.Date(2018, 12, 8, 0, 0, 0, 0, time.Local)) || media.Event != "event" || media.Index != 202 || media.Path != test || media.Ext != "png" || len(media.Tags) != 0 {
+	if !media.Date.Equal(time.Date(2018, 12, 8, 0, 0, 0, 0, time.Local)) || media.Event != "event" || media.Index != 202 || media.Path != test || media.Ext != "png" || len(media.Tags) != 0 {
 		tu.Fail("Failed on", test, media)
 	}
 

@@ -20,8 +20,8 @@ var DateReg = `\d{2}\-\d{2}\-\d{2}`
 // DateLayout : Format to display date
 var DateLayout = `06-01-02`
 
-// EventReg : Event name. Restrictive characters
-var EventReg = `[\w\-_ ]+` // Valid event
+// EventNameReg : Event name. Restrictive characters
+var EventNameReg = `[\w\-_ &@!%#]+` // Valid event
 
 // IndexReg : Valid index
 var IndexReg = `\d+` // Valid Index
@@ -31,7 +31,8 @@ var TagReg = `[\w\-_ ]+` // Valid Tags
 
 // ExtReg : Extension
 var ExtReg = `\w+`
-var mediaReg = regexp.MustCompile(fmt.Sprintf(`(%s) (%s)_(%s)(?:\[(%s)\])?\.(%s)$`, DateReg, EventReg, IndexReg, TagReg, ExtReg))
+var mediaReg = regexp.MustCompile(fmt.Sprintf(`^(%s) (%s)_(%s)(?:\[(%s)\])?\.(%s)$`, DateReg, EventNameReg, IndexReg, TagReg, ExtReg))
+var eventReg = regexp.MustCompile(fmt.Sprintf(`^(?:(%s) )?(%s)$`, DateReg, EventNameReg))
 
 // MakeTempPath : Apply temporary prefix to filepath
 func MakeTempPath(path string) string {
@@ -54,16 +55,24 @@ func IsUsable(path string) bool {
 }
 
 // Event : Group of media items.
-// type Event struct {
-// 	Path string    // Path to event
-// 	Name string    // Name of event
-// 	Date time.Time // Time of the event (if provided)
-// }
+type Event struct {
+	Path string     // Path to event
+	Name string     // Name of event
+	Date *time.Time // Time of the event (if provided)
+}
 
 // NewEvent : Create a new event object from a directory
-// func NewEvent(dirname string) (*Event, error) {
-//
-// }
+func NewEvent(dirname string) *Event {
+	event := &Event{Path: dirname}
+	parts := eventReg.FindStringSubmatch(filepath.Base(dirname))
+	if len(parts) > 0 {
+		if date, err := time.ParseInLocation(DateLayout, parts[1], time.Local); err == nil {
+			event.Date = &date
+		}
+		event.Name = parts[2]
+	}
+	return event
+}
 
 // Media : Container for information about media item
 type Media struct {
@@ -84,13 +93,13 @@ func NewMedia(filename string) *Media {
 		media.Ext = ext[1:]
 	}
 	media.Tags = make(map[string]struct{})
-	parts := mediaReg.FindStringSubmatch(filename)
+	parts := mediaReg.FindStringSubmatch(filepath.Base(filename))
 	if len(parts) > 0 {
 		media.Event = parts[2]
 		index, _ := strconv.Atoi(parts[3])
 		media.Index = index
 
-		if date, err := time.Parse(DateLayout, parts[1]); err == nil {
+		if date, err := time.ParseInLocation(DateLayout, parts[1], time.Local); err == nil {
 			media.Date = &date
 		} else {
 			media.Index = 0 // Mark invalid
@@ -112,7 +121,7 @@ func (media *Media) FormatName() (string, error) {
 	if media.Date == nil {
 		return "", fmt.Errorf("missing date")
 	}
-	if !regexp.MustCompile("^"+EventReg+"$").MatchString(media.Event) || strings.TrimSpace(media.Event) == "" {
+	if !regexp.MustCompile("^"+EventNameReg+"$").MatchString(media.Event) || strings.TrimSpace(media.Event) == "" {
 		return "", fmt.Errorf("Bad Event: '%s'", media.Event)
 	}
 	if media.Index <= 0 {
