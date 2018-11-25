@@ -14,7 +14,7 @@ func TestRename(t *testing.T) {
 	defer tu.LoadTestdata()()
 
 	event := filepath.Join(tu.Dir, "18-02-01 event")
-	tu.ModTime(2018, 02, 01, filepath.Join(event, "someimage.img"))
+	tu.ModTime(2018, 02, 10, filepath.Join(event, "someimage.img"))
 
 	// Get context
 	cxt := tu.MustFatal(context.NewContext(event)).(*context.Context)
@@ -31,7 +31,7 @@ func TestRename(t *testing.T) {
 	tu.AssertExists(
 		filepath.Join(event, "18-02-01 event_001.jpg"),
 		filepath.Join(event, "18-02-01 event_002[one two].jpg"),
-		filepath.Join(event, "18-02-01 event_003.img"),
+		filepath.Join(event, "18-02-10 event_003.img"),
 	)
 }
 
