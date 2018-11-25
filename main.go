@@ -161,7 +161,7 @@ func run(cwd string, args []string) error {
 		remove, i := false, 2
 
 		// Collect local data for index based checking
-		media, err := format.GetMediaFromDirectory(cxt.WorkingDir)
+		media, err := format.NewEvent(cxt.WorkingDir).GetMedia()
 		if err != nil {
 			return err
 		}

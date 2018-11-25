@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/internetimagery/photos/context"
 	"github.com/internetimagery/photos/testutil"
@@ -22,9 +23,10 @@ func TestRunBackup(t *testing.T) {
 	}
 
 	// Set environment
-	cxt.Env["TESTPATH1"] = filepath.Join(event, "event01_001.txt")
-	cxt.Env["TESTPATH2"] = filepath.Join(event, "event01_002.txt")
-	cxt.Env["TESTPATH3"] = filepath.Join(event, "event01_003.txt")
+	today := time.Now().Format("06-01-02")
+	cxt.Env["TESTPATH1"] = filepath.Join(event, today+" event01_001.txt")
+	cxt.Env["TESTPATH2"] = filepath.Join(event, today+" event01_002.txt")
+	cxt.Env["TESTPATH3"] = filepath.Join(event, today+" event01_003.txt")
 
 	// Test missing command
 	tu.Must(RunBackup(cxt, "nocommand"))

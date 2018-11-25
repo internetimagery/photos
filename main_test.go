@@ -207,6 +207,9 @@ func TestRenameExistingSource(t *testing.T) {
 	defer tu.LoadTestdata()()
 
 	event := filepath.Join(tu.Dir, "event01")
+	tu.ModTime(2018, 11, 26,
+		filepath.Join(event, "testfile1.txt"),
+		filepath.Join(event, "testfile2.txt"))
 
 	// Test rename with existing file in source dir
 	defer tu.UserInput("y\n")()
@@ -216,6 +219,8 @@ func TestRenameExistingSource(t *testing.T) {
 		filepath.Join(event, rename.SOURCEDIR, "testfile1.txt"),
 		filepath.Join(event, rename.SOURCEDIR, "testfile2.txt"),
 		filepath.Join(event, rename.SOURCEDIR, "testfile2_1.txt"),
+		filepath.Join(event, "18-11-26 event01_001.txt"),
+		filepath.Join(event, "18-11-26 event01_001.txt"),
 	)
 }
 
@@ -225,15 +230,16 @@ func TestRename(t *testing.T) {
 	defer tu.LoadTestdata()()
 
 	event := filepath.Join(tu.Dir, "event01")
+	tu.ModTime(2018, 11, 26, filepath.Join(event, "newfile.test"))
 
 	// Test rename
 	defer tu.UserInput("y\n")()
 	tu.Must(run(event, []string{"exe", "rename"}))
 
 	tu.AssertExists(
-		filepath.Join(event, "event01_002.test"),
-		filepath.Join(event, "event01_002[one two].test"),
-		filepath.Join(event, "event01_003.test"),
+		filepath.Join(event, "18-11-26 event01_002.test"),
+		filepath.Join(event, "18-11-26 event01_002[one two].test"),
+		filepath.Join(event, "18-11-26 event01_003.test"),
 		filepath.Join(event, rename.SOURCEDIR, "newfile.test"),
 	)
 }
@@ -268,16 +274,16 @@ func TestAddTag(t *testing.T) {
 
 	// Add tag by filename
 	event := filepath.Join(tu.Dir, "event01")
-	tu.Must(run(event, []string{"exe", "tag", filepath.Join(event, "event01_010[one].txt"), "two", "three"}))
-	tu.AssertExists(filepath.Join(event, "event01_010[one three two].txt"))
+	tu.Must(run(event, []string{"exe", "tag", filepath.Join(event, "18-11-26 event01_010[one].txt"), "two", "three"}))
+	tu.AssertExists(filepath.Join(event, "18-11-26 event01_010[one three two].txt"))
 
 	// Add tag by index
 	tu.Must(run(event, []string{"exe", "tag", "10", "four"}))
-	tu.AssertExists(filepath.Join(event, "event01_010[four one three two].txt"))
+	tu.AssertExists(filepath.Join(event, "18-11-26 event01_010[four one three two].txt"))
 
 	// Add numeric (index looking) tag by index using --
 	tu.Must(run(event, []string{"exe", "tag", "10", "--", "5"}))
-	tu.AssertExists(filepath.Join(event, "event01_010[5 four one three two].txt"))
+	tu.AssertExists(filepath.Join(event, "18-11-26 event01_010[5 four one three two].txt"))
 
 	// no tags, stopping with --
 	if err := run(event, []string{"exe", "tag", "10", "--"}); err == nil {
@@ -297,24 +303,24 @@ func TestRemoveTag(t *testing.T) {
 
 	// Remove tag by filename
 	event := filepath.Join(tu.Dir, "event01")
-	tu.Must(run(event, []string{"exe", "tag", "--remove", filepath.Join(event, "event01_010[5 three one two].txt"), "two"}))
-	tu.AssertExists(filepath.Join(event, "event01_010[5 one three].txt"))
+	tu.Must(run(event, []string{"exe", "tag", "--remove", filepath.Join(event, "18-11-26 event01_010[5 three one two].txt"), "two"}))
+	tu.AssertExists(filepath.Join(event, "18-11-26 event01_010[5 one three].txt"))
 
 	// Remove tag by index
 	tu.Must(run(event, []string{"exe", "tag", "--remove", "10", "one"}))
-	tu.AssertExists(filepath.Join(event, "event01_010[5 three].txt"))
+	tu.AssertExists(filepath.Join(event, "18-11-26 event01_010[5 three].txt"))
 
 	// Remove numeric (index looking) tag by index using --
 	tu.Must(run(event, []string{"exe", "tag", "--remove", "10", "--", "5"}))
-	tu.AssertExists(filepath.Join(event, "event01_010[three].txt"))
+	tu.AssertExists(filepath.Join(event, "18-11-26 event01_010[three].txt"))
 
 	// --remove in different spot
 	tu.Must(run(event, []string{"exe", "tag", "10", "--remove", "three"}))
-	tu.AssertExists(filepath.Join(event, "event01_010.txt"))
+	tu.AssertExists(filepath.Join(event, "18-11-26 event01_010.txt"))
 
 	// --remove in tag section
 	tu.Must(run(event, []string{"exe", "tag", "10", "--", "--remove", "three"}))
-	tu.AssertExists(filepath.Join(event, "event01_010.txt"))
+	tu.AssertExists(filepath.Join(event, "18-11-26 event01_010.txt"))
 
 	// no tags, stopping with --
 	if err := run(event, []string{"exe", "tag", "10", "--", "--remove"}); err == nil {
