@@ -55,10 +55,24 @@ func TestNewMedia(t *testing.T) {
 		tu.Fail("Failed on", test, media)
 	}
 
+	// Test filename with tags and version
+	test = "18-12-08 event_002.20[one-two three].jpg"
+	media = NewMedia(test)
+	if !media.Date.Equal(time.Date(2018, 12, 8, 0, 0, 0, 0, time.Local)) || media.Event != "event" || media.Index != 2 || media.Version != 20 || media.Path != test || media.Ext != "jpg" || len(media.Tags) != 2 {
+		tu.Fail("Failed on", test, media)
+	}
+
 	// Test filename without tags
 	test = "18-12-08 event_202.png"
 	media = NewMedia(test)
 	if !media.Date.Equal(time.Date(2018, 12, 8, 0, 0, 0, 0, time.Local)) || media.Event != "event" || media.Index != 202 || media.Path != test || media.Ext != "png" || len(media.Tags) != 0 {
+		tu.Fail("Failed on", test, media)
+	}
+
+	// Test filename versioned without tags
+	test = "18-12-08 event_202.10.png"
+	media = NewMedia(test)
+	if !media.Date.Equal(time.Date(2018, 12, 8, 0, 0, 0, 0, time.Local)) || media.Event != "event" || media.Index != 202 || media.Version != 10 || media.Path != test || media.Ext != "png" || len(media.Tags) != 0 {
 		tu.Fail("Failed on", test, media)
 	}
 
