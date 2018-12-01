@@ -168,7 +168,7 @@ func run(cwd string, args []string) error {
 
 		// Load in files
 		tagMedia := []string{}
-		tagReg := regexp.MustCompile("^" + format.TagReg + "$")
+		tagReg := regexp.MustCompile("^" + format.TagsFmt + "$")
 		for ; i < len(args); i++ {
 			arg := args[i]
 			if arg == "--remove" {

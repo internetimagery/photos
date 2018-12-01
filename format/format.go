@@ -20,7 +20,7 @@ var dateLayout = `06-01-02`
 var eventNameFmt = `[\w\- &@!%#]+` // Valid event
 var indexFmt = `\d+`
 var versionFmt = `\d+`
-var tagsFmt = `[\w\-_ ]+` // Valid Tags
+var TagsFmt = `[\w\-_ ]+` // TagsFmt : format required to be a valid tag
 var extFmt = `[a-zA-Z0-9]+`
 
 // Format example:
@@ -31,7 +31,7 @@ var mediaReg = regexp.MustCompile(fmt.Sprintf(`^(%s) (%s)_(%s)(?:\.(%s))?(?:\[(%
 	eventNameFmt,
 	indexFmt,
 	versionFmt,
-	tagsFmt,
+	TagsFmt,
 	extFmt))
 var eventReg = regexp.MustCompile(fmt.Sprintf(`^(?:(%s) )?(%s)$`,
 	dateFmt,
@@ -164,7 +164,7 @@ func (media *Media) FormatName() (string, error) {
 	if !regexp.MustCompile("^"+extFmt+"$").MatchString(media.Ext) || strings.TrimSpace(media.Ext) == "" {
 		return "", fmt.Errorf("Bad extension: '%s'", media.Ext)
 	}
-	tagTest := regexp.MustCompile("^" + tagsFmt + "$")
+	tagTest := regexp.MustCompile("^" + TagsFmt + "$")
 	for tag := range media.Tags {
 		if !tagTest.MatchString(tag) || strings.TrimSpace(tag) == "" {
 			return "", fmt.Errorf("Bad tag: '%s'", tag)
