@@ -14,25 +14,28 @@ import (
 // TEMPPREFIX : Prefix for temporary working files. Ignore these files.
 var TEMPPREFIX = `tmp-` // Prefix for temporary working files
 
-// DateReg : Date
-var DateReg = `\d{2}\-\d{2}\-\d{2}`
+// Format parts
+var dateFmt = `\d{2}\-\d{2}\-\d{2}`
+var dateLayout = `06-01-02`
+var eventNameFmt = `[\w\- &@!%#]+` // Valid event
+var indexFmt = `\d+`
+var versionFmt = `\d+`
+var tagsFmt = `[\w\-_ ]+` // Valid Tags
+var extFmt = `[a-zA-Z0-9]+`
 
-// DateLayout : Format to display date
-var DateLayout = `06-01-02`
-
-// EventNameReg : Event name. Restrictive characters
-var EventNameReg = `[\w\-_ &@!%#]+` // Valid event
-
-// IndexReg : Valid index
-var IndexReg = `\d+(?:\.(\d+))?` // Valid Index
-
-// TagReg : Valid tag characters
-var TagReg = `[\w\-_ ]+` // Valid Tags
-
-// ExtReg : Extension
-var ExtReg = `\w+`
-var mediaReg = regexp.MustCompile(fmt.Sprintf(`^(%s) (%s)_(%s)(?:\[(%s)\])?\.(%s)$`, DateReg, EventNameReg, IndexReg, TagReg, ExtReg))
-var eventReg = regexp.MustCompile(fmt.Sprintf(`^(?:(%s) )?(%s)$`, DateReg, EventNameReg))
+// Format example:
+// Date: 18-10-10, Event: myevent, Index: 20, Version 10, Tags: one two, Ext: txt
+// Format: 18-10-10 myevent_20.10[one two].txt
+var mediaReg = regexp.MustCompile(fmt.Sprintf(`^(%s) (%s)_(%s)(?:\.(%s))?(?:\[(%s)\])?\.(%s)$`,
+	dateFmt,
+	eventNameFmt,
+	indexFmt,
+	versionFmt,
+	tagsFmt,
+	extFmt))
+var eventReg = regexp.MustCompile(fmt.Sprintf(`^(?:(%s) )?(%s)$`,
+	dateFmt,
+	eventNameFmt))
 
 // MakeTempPath : Apply temporary prefix to filepath
 func MakeTempPath(path string) string {
@@ -66,7 +69,7 @@ func NewEvent(dirname string) *Event {
 	event := &Event{Path: dirname}
 	parts := eventReg.FindStringSubmatch(filepath.Base(dirname))
 	if len(parts) > 0 {
-		if date, err := time.ParseInLocation(DateLayout, parts[1], time.Local); err == nil {
+		if date, err := time.ParseInLocation(dateLayout, parts[1], time.Local); err == nil {
 			event.Date = &date
 		}
 		event.Name = parts[2]
@@ -128,7 +131,7 @@ func NewMedia(filename string) *Media {
 			media.Version = version
 		}
 
-		if date, err := time.ParseInLocation(DateLayout, parts[1], time.Local); err == nil {
+		if date, err := time.ParseInLocation(dateLayout, parts[1], time.Local); err == nil {
 			media.Date = &date
 		} else {
 			media.Index = 0 // Mark invalid
@@ -149,7 +152,7 @@ func (media *Media) FormatName() (string, error) {
 	if media.Date == nil {
 		return "", fmt.Errorf("missing date")
 	}
-	if !regexp.MustCompile("^"+EventNameReg+"$").MatchString(media.Event) || strings.TrimSpace(media.Event) == "" {
+	if !regexp.MustCompile("^"+eventNameFmt+"$").MatchString(media.Event) || strings.TrimSpace(media.Event) == "" {
 		return "", fmt.Errorf("Bad Event: '%s'", media.Event)
 	}
 	if media.Index <= 0 {
@@ -158,10 +161,10 @@ func (media *Media) FormatName() (string, error) {
 	if media.Version < 0 {
 		return "", fmt.Errorf("Cannot have negative version '%d'", media.Version)
 	}
-	if !regexp.MustCompile("^"+ExtReg+"$").MatchString(media.Ext) || strings.TrimSpace(media.Ext) == "" {
+	if !regexp.MustCompile("^"+extFmt+"$").MatchString(media.Ext) || strings.TrimSpace(media.Ext) == "" {
 		return "", fmt.Errorf("Bad extension: '%s'", media.Ext)
 	}
-	tagTest := regexp.MustCompile("^" + TagReg + "$")
+	tagTest := regexp.MustCompile("^" + tagsFmt + "$")
 	for tag := range media.Tags {
 		if !tagTest.MatchString(tag) || strings.TrimSpace(tag) == "" {
 			return "", fmt.Errorf("Bad tag: '%s'", tag)
@@ -182,5 +185,5 @@ func (media *Media) FormatName() (string, error) {
 	if media.Version > 0 {
 		version = "." + strconv.Itoa(media.Version)
 	}
-	return fmt.Sprintf("%s %s_%03d%s%s.%s", media.Date.Format(DateLayout), media.Event, media.Index, version, tags, ext), nil
+	return fmt.Sprintf("%s %s_%03d%s%s.%s", media.Date.Format(dateLayout), media.Event, media.Index, version, tags, ext), nil
 }
