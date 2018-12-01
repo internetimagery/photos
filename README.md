@@ -4,6 +4,7 @@
 
 # TODO:
 
+- Put lockfile into a folder, so any programs that take all media from a folder don't freak out over a yaml file.
 - Use proper flag parser for cli args. Too much logic in command runner.
 - add tests for failing in sort directory for backups / tags / format
 - check and see if os.Rename works across drives. Create a test if it doesn't.
