@@ -4,7 +4,7 @@
 
 # TODO:
 
-- Put lockfile into a folder, so any programs that take all media from a folder don't freak out over a yaml file.
+- versioning support. index "001" could become "001.10" for version 10 etc
 - Use proper flag parser for cli args. Too much logic in command runner.
 - add tests for failing in sort directory for backups / tags / format
 - check and see if os.Rename works across drives. Create a test if it doesn't.
@@ -15,7 +15,8 @@
 - add video phash check, if possible - would require ffmpeg static link... if this happens consider baking in ffmpeg compression functionality to replace cli args in config.
 
 #### Nice to have
-- make tagging use a web serice, with a basic website for interractive tagging
+- Put lockfile into a folder, so any programs that take all media from a folder don't freak out over a yaml file.
+- make tagging use a web serice, with a basic website as gui for interractive tagging
 - Test for, and create functionality for the situation where premature shutdown happens (ctrl+c / power outage)
 - manage all actions with an interface (ie file movements, renames etc)
 - track those actions and allow an undo system to exist

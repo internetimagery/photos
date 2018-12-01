@@ -24,7 +24,7 @@ var DateLayout = `06-01-02`
 var EventNameReg = `[\w\-_ &@!%#]+` // Valid event
 
 // IndexReg : Valid index
-var IndexReg = `\d+` // Valid Index
+var IndexReg = `\d+(?:\.(\d+))?` // Valid Index
 
 // TagReg : Valid tag characters
 var TagReg = `[\w\-_ ]+` // Valid Tags
@@ -101,12 +101,13 @@ func (event *Event) GetMedia() ([]*Media, error) {
 
 // Media : Container for information about media item
 type Media struct {
-	Path  string              // File name
-	Date  *time.Time          // Date
-	Event string              // Event name (parent folder)
-	Index int                 // ID of media
-	Tags  map[string]struct{} // Any Tags
-	Ext   string              // Extension / file type
+	Path    string              // File name
+	Date    *time.Time          // Date
+	Event   string              // Event name (parent folder)
+	Index   int                 // ID of media
+	Version int                 // Current version of media
+	Tags    map[string]struct{} // Any Tags
+	Ext     string              // Extension / file type
 }
 
 // NewMedia : Create new media representation
@@ -123,6 +124,9 @@ func NewMedia(filename string) *Media {
 		media.Event = parts[2]
 		index, _ := strconv.Atoi(parts[3])
 		media.Index = index
+		if version, err := strconv.Atoi(parts[4]); err == nil {
+			media.Version = version
+		}
 
 		if date, err := time.ParseInLocation(DateLayout, parts[1], time.Local); err == nil {
 			media.Date = &date
@@ -130,8 +134,8 @@ func NewMedia(filename string) *Media {
 			media.Index = 0 // Mark invalid
 		}
 
-		if len(parts[4]) > 0 {
-			for _, tagname := range strings.Split(parts[4], " ") {
+		if len(parts[5]) > 0 {
+			for _, tagname := range strings.Split(parts[5], " ") {
 				media.Tags[tagname] = struct{}{}
 			}
 		}
@@ -150,6 +154,9 @@ func (media *Media) FormatName() (string, error) {
 	}
 	if media.Index <= 0 {
 		return "", fmt.Errorf("Index value too low: '%d'", media.Index)
+	}
+	if media.Version < 0 {
+		return "", fmt.Errorf("Cannot have negative version '%d'", media.Version)
 	}
 	if !regexp.MustCompile("^"+ExtReg+"$").MatchString(media.Ext) || strings.TrimSpace(media.Ext) == "" {
 		return "", fmt.Errorf("Bad extension: '%s'", media.Ext)
@@ -171,5 +178,9 @@ func (media *Media) FormatName() (string, error) {
 		tags = fmt.Sprintf("[%s]", strings.Join(tagnames, " "))
 	}
 	ext := strings.ToLower(media.Ext)
-	return fmt.Sprintf("%s %s_%03d%s.%s", media.Date.Format(DateLayout), media.Event, media.Index, tags, ext), nil
+	version := ""
+	if media.Version > 0 {
+		version = "." + strconv.Itoa(media.Version)
+	}
+	return fmt.Sprintf("%s %s_%03d%s%s.%s", media.Date.Format(DateLayout), media.Event, media.Index, version, tags, ext), nil
 }
