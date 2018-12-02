@@ -5,6 +5,7 @@
 # TODO:
 
 - versioning support. index "001" could become "001.10" for version 10 etc
+- lockfile to use folder with replicated named files instead of master file
 - Use proper flag parser for cli args. Too much logic in command runner.
 - add tests for failing in sort directory for backups / tags / format
 - check and see if os.Rename works across drives. Create a test if it doesn't.

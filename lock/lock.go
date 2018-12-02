@@ -19,7 +19,7 @@ import (
 )
 
 // LOCKFILENAME : Name of file displaying the locked state of an event
-const LOCKFILENAME = "locked.yaml"
+const LOCKFILENAME = "locked"
 
 // GenerateContentHash : Generate hash from content to compare contents
 func GenerateContentHash(hashType string, handle io.Reader) (string, error) {
@@ -154,34 +154,45 @@ func (err *MissmatchError) Error() string {
 	return err.err
 }
 
-// CheckFile : Check if a snapshot matches corresponding file. Return missmatch error if not matching
-func (sshot *Snapshot) CheckFile(filename string) error {
-	// Get a handle
-	handle, err := os.Open(filename)
-	if err != nil {
-		return err
-	}
-	defer handle.Close()
-	info, err := handle.Stat()
-	if err != nil {
-		return err
-	}
+// CheckFile : Check if two snapshots refer to the same file
+func (sshot *Snapshot) Equals(other *Snapshot) error {
 
-	if info.Size() != sshot.Size {
-		return &MissmatchError{"Size does not match: " + filename}
+	if other.Size != sshot.Size {
+		return &MissmatchError{"Snapshot size does not match: " + other.Name}
 	}
-	if info.ModTime() == sshot.ModTime { // There needs to be some margin of error here. But how much? What does rclone do?
+	if other.ModTime == sshot.ModTime { // There needs to be some margin of error here. But how much? What does rclone do?
 		// Roughly conclude a match!
 		return nil
 	}
-	hash, err := GenerateContentHash("SHA256", handle) // SHA256 hardcoding for now
+	for hashType, hashVal := range sshot.ContentHash {
+		if otherHashType, ok := other.ContentHash[hashType]; ok { // Compare similar hashes!
+			if hashVal != otherHashType {
+				return &MissmatchError{fmt.Sprintf("Snapshot hash does not match: '%s' %s", hashType, otherHashType)}
+			}
+		} else {
+			continue
+		}
+	}
+	return &MissmatchError{"Snapshots do not have comparable hashes: " + other.Name}
+}
+
+// Save : Save snapshot data!
+func (sshot *Snapshot) Save(handle io.Writer) error {
+	data, err := yaml.Marshal(sshot)
 	if err != nil {
 		return err
 	}
-	if hash != sshot.ContentHash["SHA256"] {
-		return &MissmatchError{"Content does not match: " + filename}
+	_, err = handle.Write(data)
+	return err
+}
+
+// Load : Load snapshot data
+func (sshot *Snapshot) Load(handle io.Reader) error {
+	data, err := ioutil.ReadAll(handle)
+	if err != nil {
+		return err
 	}
-	return nil
+	return yaml.Unmarshal(data, &sshot)
 }
 
 // ReadOnly : Make file readonly
@@ -196,46 +207,74 @@ func ReadOnly(filename string) error {
 	return nil
 }
 
-// LockMap : Format and usage of locked file
-type LockMap map[string]*Snapshot // Basic representations of the files
+// SnapshotMap : Map snapshots to their corresponding files
+type SnapshotMap map[string]*Snapshot
 
-// Save : Save lockfile data!
-func (lock *LockMap) Save(handle io.Writer) error {
-	data, err := yaml.Marshal(lock)
+// NewSnapshotMap : Load up an existing or new mapping of snapshot files
+func NewSnapshotMap(eventname string) (SnapshotMap, error) {
+	newMap := map[string]*Snapshot{}
+	lockname := filepath.Join(eventname, LOCKFILENAME)
+	lockfiles, err := os.ListDir(lockname)
+	if err != nil {
+		return newMap, err
+	}
+
+	// Run through existing lock files and map them
+	for _, lockfile := range lockfiles {
+		if err = newMap.loadSnapshot(filepath.Join(eventname, lockfile.Name())); err != nil {
+			return err
+		}
+	}
+}
+
+// loadSnapshot : load a snapshot file and map it
+func (snapmap *SnapshotMap) loadSnapshot(filename string) error {
+	if ext := filepath.Ext(filename); ext != "yaml" {
+		return fmt.Errorf("File missing correct extension '%s'", filename)
+	}
+	handle, err := os.Open(filename)
 	if err != nil {
 		return err
 	}
-	_, err = handle.Write(data)
-	return err
-}
-
-// Load : Load lockfile data
-func (lock *LockMap) Load(handle io.Reader) error {
-	data, err := ioutil.ReadAll(handle)
-	if err != nil {
+	sshot := &Snapshot{}
+	if err = sshot.Load(handle); err != nil {
 		return err
 	}
-	return yaml.Unmarshal(data, &lock)
+	sourceFile := sshot.Name
+	if sourceFile == "" {
+		sourceBase := filepath.Base(filename)
+		sourceFile = sourceBase[len(sourceBase)-len(ext):]
+	}
+	snapmap[sourceFile] = sshot
+	return nil
 }
 
-// LockEvent : Attempt to lock event. If lock exists, check for any changes and update lock.
+// LockEvent : Attempt to lock event. If lock exists, check for any changes and update lock. If force, version up file and lock
 func LockEvent(directoryname string, force bool) error {
 	// Grab media from within file
 	mediaList, err := format.NewEvent(directoryname).GetMedia()
 	if err != nil {
 		return err
 	}
+	if len(mediaList) == 0 { // Nothing to do!
+		return nil
+	}
 
-	// Load lockfile snapshot data if it exists
-	lockmapPath := filepath.Join(directoryname, LOCKFILENAME)
-	lockmap := LockMap{}
-	if handle, err := os.Open(lockmapPath); err == nil {
-		err = lockmap.Load(handle)
-		handle.Close()
-		if err != nil {
+	// Check path to lock folder exists, and create if it doesn't
+	lockPath := filepath.Join(directoryname, LOCKFILENAME)
+	if info, err := os.Stat(lockPath); os.IsNotExist(err) {
+		if err = os.Mkdir(lockPath, 0755); err != nil {
 			return err
 		}
-	} else if !os.IsNotExist(err) {
+	} else if !info.IsDir() {
+		return fmt.Errorf("file exists with the same name '%s', please remove it", LOCKFILENAME)
+	} else if err != nil {
+		return err
+	}
+
+	// Load a mapping of our lock files
+	lockmap, err := NewSnapshotMap(directoryname)
+	if err != nil {
 		return err
 	}
 
@@ -297,8 +336,12 @@ func LockEvent(directoryname string, force bool) error {
 	for filename, sshot := range checkFiles {
 		if err = sshot.CheckFile(filename); err != nil {
 			if _, ok := err.(*MissmatchError); !ok {
-				return err
-			} else if !force {
+				return err // If not a missmatch error, then it's some other problem
+			} else if force {
+				// TODO: ensure old data sticks around in case there is a backup somewhere
+				// TODO: version up file, and check if no existing file is there. If so, version up again
+				// TODO: Add new snapshot for this new file
+			} else {
 				return err
 			}
 		}
