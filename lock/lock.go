@@ -207,29 +207,33 @@ func ReadOnly(filename string) error {
 	return nil
 }
 
-// SnapshotMap : Map snapshots to their corresponding files
-type SnapshotMap map[string]*Snapshot
+// SnapshotManager : Map snapshots to their corresponding files
+type SnapshotManager map[string]*Snapshot
 
-// NewSnapshotMap : Load up an existing or new mapping of snapshot files
-func NewSnapshotMap(eventname string) (SnapshotMap, error) {
-	newMap := map[string]*Snapshot{}
+// NewSnapshotManager : Load up an existing or new mapping of snapshot files
+func NewSnapshotManager(eventname string) (SnapshotManager, error) {
+	newMap := SnapshotManager{}
 	lockname := filepath.Join(eventname, LOCKFILENAME)
-	lockfiles, err := os.ListDir(lockname)
-	if err != nil {
+	lockfiles, err := ioutil.ReadDir(lockname)
+	if os.IsNotExist(err) {
+		return newMap, nil
+	} else if err != nil {
 		return newMap, err
 	}
 
 	// Run through existing lock files and map them
 	for _, lockfile := range lockfiles {
-		if err = newMap.loadSnapshot(filepath.Join(eventname, lockfile.Name())); err != nil {
-			return err
+		if err = newMap.LoadSnapshot(filepath.Join(eventname, lockfile.Name())); err != nil {
+			return newMap, err
 		}
 	}
+	return newMap, nil
 }
 
-// loadSnapshot : load a snapshot file and map it
-func (snapmap *SnapshotMap) loadSnapshot(filename string) error {
-	if ext := filepath.Ext(filename); ext != "yaml" {
+// LoadSnapshot : load a snapshot file and map it
+func (snapmap SnapshotManager) LoadSnapshot(filename string) error {
+	ext := filepath.Ext(filename)
+	if ext != "yaml" {
 		return fmt.Errorf("File missing correct extension '%s'", filename)
 	}
 	handle, err := os.Open(filename)
