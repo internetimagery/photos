@@ -127,6 +127,25 @@ func TestSnapshot(t *testing.T) {
 	}
 }
 
+func TestLoadSnapshot(t *testing.T) {
+	tu := testutil.NewTestUtil(t)
+	defer tu.LoadTestdata()()
+
+	lockname := filepath.Join(tu, LOCKFILENAME)
+
+	sshot := tu.Must((filename.Join(lockname, "normal.yaml"))).(*Snapshot)
+	if sshot.Name != "originalfile.txt" {
+		tu.Fail("snapshot name incorrect", sshot.Name)
+	}
+	sshot = tu.Must((filename.Join(lockname, "noname.txt.yaml"))).(*Snapshot)
+	if sshot.Name != "noname.txt" {
+		tu.Fail("snapshot name incorrect", sshot.Name)
+	}
+	if _, err := (filename.Join(lockname, "noext")); err == nil {
+		tu.Fail("No error on bad filename")
+	}
+}
+
 func TestCheckFile(t *testing.T) {
 	tu := testutil.NewTestUtil(t)
 	defer tu.LoadTestdata()()

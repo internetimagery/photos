@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/corona10/goimagehash"
@@ -207,6 +208,27 @@ func ReadOnly(filename string) error {
 	return nil
 }
 
+// LoadSnapshot : load a snapshot file. Fixing up Name variable if missing.
+func LoadSnapshot(filename string) (*Snapshot, error) {
+	sshot := &Snapshot{}
+	ext := filepath.Ext(filename)
+	if ext != "yaml" {
+		return sshot, fmt.Errorf("File missing correct extension '%s'", filename)
+	}
+	handle, err := os.Open(filename)
+	if err != nil {
+		return sshot, err
+	}
+	if err = sshot.Load(handle); err != nil {
+		return sshot, err
+	}
+	if strings.TrimSpace(sshot.Name) == "" {
+		sourceBase := filepath.Base(filename)
+		sshot.Name = sourceBase[len(sourceBase)-len(ext):]
+	}
+	return sshot, nil
+}
+
 // SnapshotManager : Map snapshots to their corresponding files
 type SnapshotManager map[string]*Snapshot
 
@@ -251,6 +273,12 @@ func (snapmap SnapshotManager) LoadSnapshot(filename string) error {
 	}
 	snapmap[sourceFile] = sshot
 	return nil
+}
+
+// AddSnapshot : Add a new snapshot
+func (snapmap SnapshotManager) AddSnapshot(filename string) chan error {
+	sshot := &Snapshot{}
+
 }
 
 // LockEvent : Attempt to lock event. If lock exists, check for any changes and update lock. If force, version up file and lock
