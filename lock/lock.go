@@ -70,8 +70,6 @@ func GeneratePerceptualHash(hashType string, handle io.ReadSeeker) (string, erro
 	return "", fmt.Errorf("Unknown hash format '%s'", hashType)
 }
 
-// TODO: add similar images to test this on. Also differently compressed versions of same image.
-
 // IsSamePerceptualHash : Hash comparison looking for equality
 func IsSamePerceptualHash(hash1, hash2 string) (bool, error) {
 	test1, err := goimagehash.ImageHashFromString(hash1)
@@ -133,7 +131,6 @@ func (sshot *Snapshot) Generate(filename string) chan error {
 		}
 		sshot.ContentHash = map[string]string{"SHA256": chash}
 
-		// TODO: This error needs to be managed for files that cannot have a phash (non-images)
 		handle.Seek(0, 0)
 		phash, err := GeneratePerceptualHash("average", handle)
 		if err == nil { // SHA256 hardcoded for now
@@ -155,7 +152,7 @@ func (err *MissmatchError) Error() string {
 	return err.err
 }
 
-// CheckFile : Check if two snapshots refer to the same file
+// Equals : Check if two snapshots refer to the same file
 func (sshot *Snapshot) Equals(other *Snapshot) error {
 
 	if other.Size != sshot.Size {
@@ -229,8 +226,68 @@ func LoadSnapshot(filename string) (*Snapshot, error) {
 	return sshot, nil
 }
 
-// SnapshotManager : Map snapshots to their corresponding files
-type SnapshotManager map[string]*Snapshot
+// GetAssociatedLockfile : Get lockfile associated with media
+func GetAssociatedLockfile(medianame string) (*Snapshot, error) {
+	basename := filepath.Base(medianame)
+	dirname := filepath.Dir(medianame)
+	lockfilename := filepath.Join(dirname, LOCKFILENAME, basename+".yaml")
+	return LoadSnapshot(lockfilename)
+}
+
+// Locker : Lock file management
+type Locker struct {
+	Path string
+}
+
+// NewLocker : Representation of lockfile
+func NewLocker(eventname string) *Locker {
+	return &Locker{Path: filepath.Join(eventname, LOCKFILENAME)}
+}
+
+// GetSnapshots : Get snapshot files
+func (locker *Locker) GetSnapshots() ([]*Snapshot, error) {
+	sshots := []*Snapshots{}
+	files, err := ioutil.ReadDir(locker.Path)
+	if os.IsNotExist(err) {
+		return sshots, nil
+	} else if err != nil {
+		return sshots, err
+	}
+
+	for _, file := range files {
+		sshot, err := LoadSnapshot(filepath.Join(locker.Path, file.Name()))
+		if err != nil {
+			return sshots, err
+		}
+		sshots = append(sshots, sshot)
+	}
+	return sshots, nil
+}
+
+// createFolder : Make the lockfile if it doesn't exist
+func (locker *Locker) createFolder() error {
+	if info, err := os.Stat(locker.Path); os.IsNotExist(err) {
+		if err = os.Mkdir(locker.Path, 0755); err != nil {
+			return err
+		}
+	} else if !info.IsDir() {
+		return fmt.Errorf("file exists with the same name '%s', please remove it", LOCKFILENAME)
+	} else if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Add : Add in a new lock file
+func (locker *Locker) Add(sshot *Snapshot) error {
+	lockname := filepath.Join(locker.Path, sshot.Name+".yaml")
+	handle, err := os.OpenFile(lockname, os.O_EXCL|os.O_WRONLY, 0444)
+	if err != nil {
+		return err
+	}
+	defer handle.Close()
+	return sshot.Save(handle)
+}
 
 // NewSnapshotManager : Load up an existing or new mapping of snapshot files
 func NewSnapshotManager(eventname string) (SnapshotManager, error) {
@@ -275,12 +332,6 @@ func (snapmap SnapshotManager) LoadSnapshot(filename string) error {
 	return nil
 }
 
-// AddSnapshot : Add a new snapshot
-func (snapmap SnapshotManager) AddSnapshot(filename string) chan error {
-	sshot := &Snapshot{}
-
-}
-
 // LockEvent : Attempt to lock event. If lock exists, check for any changes and update lock. If force, version up file and lock
 func LockEvent(directoryname string, force bool) error {
 	// Grab media from within file
@@ -288,26 +339,19 @@ func LockEvent(directoryname string, force bool) error {
 	if err != nil {
 		return err
 	}
-	if len(mediaList) == 0 { // Nothing to do!
+	locker := NewLocker(directoryname)
+	sshots, err := locker.GetSnapshots()
+	if err != nil {
+		return err
+	}
+	if len(mediaList) == 0 && len(sshots) == 0 { // Nothing to do!
 		return nil
 	}
 
-	// Check path to lock folder exists, and create if it doesn't
-	lockPath := filepath.Join(directoryname, LOCKFILENAME)
-	if info, err := os.Stat(lockPath); os.IsNotExist(err) {
-		if err = os.Mkdir(lockPath, 0755); err != nil {
-			return err
-		}
-	} else if !info.IsDir() {
-		return fmt.Errorf("file exists with the same name '%s', please remove it", LOCKFILENAME)
-	} else if err != nil {
-		return err
-	}
-
-	// Load a mapping of our lock files
-	lockmap, err := NewSnapshotMap(directoryname)
-	if err != nil {
-		return err
+	// map snapshots to their corresponding source files
+	lockerFiles := map[string]*Snapshot{}
+	for _, sshot := range sshots {
+		lockerFiles[sshot.Name] = sshot
 	}
 
 	// Sort out our files!
@@ -319,13 +363,13 @@ func LockEvent(directoryname string, force bool) error {
 			continue
 		}
 		basename := filepath.Base(media.Path)
-		if sshot, ok := lockmap[basename]; ok {
+		if sshot, ok := lockerFiles[basename]; ok {
 			checkFiles[media.Path] = sshot // File exists in folder and in locked list. Check for changes
 		} else {
 			newFiles[media.Path] = struct{}{} // New file not in locked list
 		}
 	}
-	for basename := range lockmap {
+	for basename := range lockerFiles {
 		filename := filepath.Join(directoryname, basename)
 		if _, ok := checkFiles[filename]; !ok {
 			removedFiles[basename] = struct{}{} // File exists in list, but not in folder. It has been removed (or renamed)
@@ -343,11 +387,15 @@ func LockEvent(directoryname string, force bool) error {
 		sshot := new(Snapshot)
 		newSnapshots[sshot] = sshot.Generate(filename)
 	}
+	var joberr error
 	for sshot, job := range newSnapshots {
-		if err = <-job; err != nil {
-			return err
+		if err = <-job; err != nil && joberr == nil {
+			joberr = err
 		}
 		lockmap[sshot.Name] = sshot
+	}
+	if joberr != nil {
+		return joberr
 	}
 
 	// Next we'll check to see if any missing files are actually in the new snapshots (rename)
@@ -356,7 +404,9 @@ func LockEvent(directoryname string, force bool) error {
 		for sshot := range newSnapshots { // compare hashes (hard coded sha256 for now...)
 			if lockmap[basename].ContentHash["SHA256"] == sshot.ContentHash["SHA256"] {
 				ok = true // Looks like this file matches another new file. Transparently deal with the rename and continue
-				delete(lockmap, basename)
+				if err = os.Remove(filepath.Join(locker.Path, basename)); err != nil {
+					return err
+				}
 			}
 		}
 		if !ok && !force {
